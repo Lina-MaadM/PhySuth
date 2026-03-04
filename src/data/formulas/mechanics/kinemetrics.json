@@ -1,0 +1,107 @@
+{
+  "topic": "Mechanics",
+  "subtopic": "Kinematics",
+  "description": "One-dimensional motion including displacement, velocity, acceleration, uniform motion, and constant acceleration equations.",
+
+  "variable_sub": [
+    { "key": "s", "symbol": "s", "name": "Position", "unit": "m", "description": "Position at time t" },
+    { "key": "s_0", "symbol": "s_0", "name": "Initial position", "unit": "m", "description": "Position at time t = 0" },
+    { "key": "u", "symbol": "u", "name": "Initial velocity", "unit": "m/s", "description": "Velocity at time t = 0" },
+    { "key": "v", "symbol": "v", "name": "Final velocity", "unit": "m/s", "description": "Velocity at time t" },
+    { "key": "v_avg", "symbol": "\\bar{v}", "name": "Average velocity", "unit": "m/s", "description": "Average velocity over a time interval" },
+    { "key": "a", "symbol": "a", "name": "Acceleration", "unit": "m/s^2", "description": "Rate of change of velocity" },
+    { "key": "t", "symbol": "t", "name": "Time", "unit": "s", "description": "Time interval" }
+  ],
+
+  "formula_sub": [
+
+    {
+      "id": "kin-1",
+      "name": "Average Velocity (General Definition)",
+      "formula": "\\bar{v} = \\frac{s - s_0}{t}",
+      "variable": ["v_avg", "s", "s_0", "t"],
+      "calculate": {
+        "v_avg": { "type": "expression", "value": "(s - s_0) / t" },
+        "s": { "type": "expression", "value": "s_0 + v_avg * t" },
+        "t": { "type": "expression", "value": "(s - s_0) / v_avg" }
+      }
+    },
+
+    {
+      "id": "kin-2",
+      "name": "Acceleration (Definition)",
+      "formula": "a = \\frac{v - u}{t}",
+      "variable": ["a", "v", "u", "t"],
+      "calculate": {
+        "a": { "type": "expression", "value": "(v - u) / t" },
+        "v": { "type": "expression", "value": "u + a * t" },
+        "u": { "type": "expression", "value": "v - a * t" },
+        "t": { "type": "expression", "value": "(v - u) / a" }
+      }
+    },
+
+    {
+      "id": "kin-3",
+      "name": "Uniform Motion (Constant Velocity)",
+      "formula": "s = s_0 + vt",
+      "variable": ["s", "s_0", "v", "t"],
+      "calculate": {
+        "s": { "type": "expression", "value": "s_0 + v * t" },
+        "v": { "type": "expression", "value": "(s - s_0) / t" },
+        "t": { "type": "expression", "value": "(s - s_0) / v" }
+      }
+    },
+
+    {
+      "id": "kin-4",
+      "name": "First Equation of Motion",
+      "formula": "v = u + at",
+      "variable": ["v", "u", "a", "t"],
+      "calculate": {
+        "v": { "type": "expression", "value": "u + a * t" },
+        "u": { "type": "expression", "value": "v - a * t" },
+        "a": { "type": "expression", "value": "(v - u) / t" },
+        "t": { "type": "expression", "value": "(v - u) / a" }
+      }
+    },
+
+    {
+      "id": "kin-5",
+      "name": "Second Equation of Motion",
+      "formula": "s = s_0 + ut + \\frac{1}{2}at^2",
+      "variable": ["s", "s_0", "u", "a", "t"],
+      "calculate": {
+        "s": { "type": "expression", "value": "s_0 + u * t + 0.5 * a * t * t" },
+        "u": { "type": "expression", "value": "(s - s_0 - 0.5 * a * t * t) / t" },
+        "a": { "type": "expression", "value": "2 * (s - s_0 - u * t) / (t * t)" },
+        "t": { "type": "quadratic", "form": "standard" }
+      }
+    },
+
+    {
+      "id": "kin-6",
+      "name": "Third Equation of Motion",
+      "formula": "v^2 = u^2 + 2a(s - s_0)",
+      "variable": ["v", "u", "a", "s", "s_0"],
+      "calculate": {
+        "v": { "type": "expression", "value": "sqrt(u * u + 2 * a * (s - s_0))" },
+        "u": { "type": "expression", "value": "sqrt(v * v - 2 * a * (s - s_0))" },
+        "a": { "type": "expression", "value": "(v * v - u * u) / (2 * (s - s_0))" },
+        "s": { "type": "expression", "value": "s_0 + (v * v - u * u) / (2 * a)" }
+      }
+    },
+
+    {
+      "id": "kin-7",
+      "name": "Average Velocity (Constant Acceleration)",
+      "formula": "\\bar{v} = \\frac{1}{2}(u + v)",
+      "variable": ["v_avg", "u", "v"],
+      "calculate": {
+        "v_avg": { "type": "expression", "value": "(u + v) / 2" },
+        "u": { "type": "expression", "value": "2 * v_avg - v" },
+        "v": { "type": "expression", "value": "2 * v_avg - u" }
+      }
+    }
+
+  ]
+}
