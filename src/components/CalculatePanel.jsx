@@ -120,39 +120,58 @@ export default function CalculatePanel({
   // -----------------------------
   if (!formula) return null;
 
-  return (
+return (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      marginTop: "3rem"
+    }}
+  >
     <div
       style={{
-        marginTop: "2rem",
-        padding: "1.5rem",
-        borderTop: "1px solid #ddd"
+        background: "#f9fafc",
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
+        width: "420px",
+        border: "1px solid #e3e3e3"
       }}
     >
-      <h3>Calculate</h3>
+      <h3 style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+        Calculate
+      </h3>
 
       {/* ---------- Find Section ---------- */}
       <div style={{ marginBottom: "1.5rem" }}>
-        <label>Find: </label>
+        <label style={{ fontWeight: "bold" }}>Find:</label>
 
-        <select
-          value={target}
-          onChange={e => {
-            setTarget(e.target.value);
-            setResult(null);
-          }}
-        >
-          {variableKeys.map(key => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))}
-        </select>
+        <div style={{ marginTop: "0.4rem" }}>
+          <select
+            value={target}
+            onChange={e => {
+              setTarget(e.target.value);
+              setResult(null);
+            }}
+            style={{
+              padding: "0.4rem",
+              borderRadius: "6px",
+              border: "1px solid #ccc"
+            }}
+          >
+            {variableKeys.map(key => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
 
-        <span style={{ marginLeft: "1rem", fontSize: "1.2rem" }}>
-          {currentVariable?.symbol && (
-            <InlineMath math={currentVariable.symbol} />
-          )}
-        </span>
+          <span style={{ marginLeft: "1rem", fontSize: "1.3rem" }}>
+            {currentVariable?.symbol && (
+              <InlineMath math={currentVariable.symbol} />
+            )}
+          </span>
+        </div>
       </div>
 
       {/* ---------- Input Fields ---------- */}
@@ -160,38 +179,81 @@ export default function CalculatePanel({
         const variable = variables.find(v => v.key === key);
 
         return (
-          <div key={key} style={{ marginBottom: "0.75rem" }}>
-            <label>
+          <div
+            key={key}
+            style={{
+              marginBottom: "0.8rem",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}
+          >
+            <span>
               {variable?.symbol ? (
                 <InlineMath math={variable.symbol} />
               ) : (
                 key
               )}
-              :
+            </span>
+
+            <div>
               <input
                 type="number"
                 value={inputs[key] ?? memory[key] ?? ""}
                 onChange={e => handleChange(key, e.target.value)}
-                style={{ marginLeft: "0.5rem", width: "120px" }}
+                style={{
+                  width: "100px",
+                  padding: "0.3rem",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc"
+                }}
               />
-              <span style={{ marginLeft: "0.5rem", opacity: 0.6 }}>
+
+              <span
+                style={{
+                  marginLeft: "0.5rem",
+                  fontSize: "0.9rem",
+                  opacity: 0.7
+                }}
+              >
                 {variable?.unit}
               </span>
-            </label>
+            </div>
           </div>
         );
       })}
 
+      {/* ---------- Button ---------- */}
       <button
         onClick={handleCalculate}
-        style={{ marginTop: "1rem", padding: "0.4rem 1rem" }}
+        style={{
+          marginTop: "1rem",
+          width: "100%",
+          padding: "0.6rem",
+          borderRadius: "8px",
+          border: "none",
+          background: "#3b82f6",
+          color: "white",
+          fontWeight: "bold",
+          cursor: "pointer"
+        }}
       >
         Calculate
       </button>
 
       {/* ---------- Result ---------- */}
       {result !== null && (
-        <div style={{ marginTop: "1.5rem", fontWeight: "bold" }}>
+        <div
+          style={{
+            marginTop: "1.5rem",
+            padding: "1rem",
+            background: "#eef2ff",
+            borderRadius: "8px",
+            textAlign: "center",
+            fontWeight: "bold",
+            fontSize: "1.1rem"
+          }}
+        >
           {typeof result === "number" && currentVariable?.symbol ? (
             <>
               <InlineMath
@@ -205,5 +267,6 @@ export default function CalculatePanel({
         </div>
       )}
     </div>
-  );
+  </div>
+);
 }
