@@ -6,13 +6,13 @@ import "katex/dist/katex.min.css";
 import VariableList from "../components/VariableList";
 import CalculatePanel from "../components/CalculatePanel";
 
-function FormulaDetail() {
+function FormulaDetail({ memory, onSaveMemory }) {
   const { id } = useParams();
 
   let targetEquation = null;
   let datasetVariables = [];
 
-  // 🔎 หา equation + dataset
+  // หา equation + dataset
   outer:
   for (const topic of physicsTopics) {
     for (const dataset of topic.datasets) {
@@ -38,7 +38,7 @@ function FormulaDetail() {
     );
   }
 
-  // 🔎 map variable key → object
+  // map variable key → object
   const usedVariables = datasetVariables.filter(
     (variable) =>
       Array.isArray(targetEquation.variable) &&
@@ -77,6 +77,8 @@ function FormulaDetail() {
       <CalculatePanel
         formula={targetEquation}
         variables={datasetVariables}
+        memory={memory}
+        onSaveMemory={onSaveMemory}
       />
     </div>
   );

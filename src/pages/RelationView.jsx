@@ -18,11 +18,17 @@ function RelationView() {
 
       dataset.variable_sub.forEach((v) => {
         if (v.symbol === decodedSymbol) {
+
+          const filteredFormula = (dataset.formula_sub || []).filter(f =>
+            Array.isArray(f.variable) &&
+            f.variable.includes(v.key)
+          );
+
           matches.push({
             ...v,
             topic: topicBlock.topic,
             subtopic: dataset.subtopic,
-            formula: dataset.formula_sub || []
+            formula: filteredFormula
           });
         }
       });

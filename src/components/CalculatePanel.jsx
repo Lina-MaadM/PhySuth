@@ -8,6 +8,7 @@ export default function CalculatePanel({
   memory = {},
   onSaveMemory = () => {}
 }) {
+
   // -----------------------------
   // Safe guards
   // -----------------------------
@@ -17,14 +18,25 @@ export default function CalculatePanel({
   const [inputs, setInputs] = useState({});
   const [result, setResult] = useState(null);
 
-  // ถ้า formula เปลี่ยน ให้ reset target
+// reset + auto fill จาก memory เมื่อ formula เปลี่ยน
   useEffect(() => {
     if (variableKeys.length > 0) {
-      setTarget(variableKeys[0]);
+      const firstTarget = variableKeys[0];
+
+      setTarget(firstTarget);
       setResult(null);
-      setInputs({});
-    }
-  }, [formula]);
+
+      const initialInputs = {};
+
+      variableKeys.forEach(key => {
+        if (memory[key] !== undefined) {
+          initialInputs[key] = memory[key];
+        }
+      });
+
+    setInputs(initialInputs);
+  }
+}, [formula, memory]);
 
   // -----------------------------
   // Required variables
@@ -62,16 +74,21 @@ export default function CalculatePanel({
 
       let expression = calculation.value;
 
-      // Replace variables safely
+      // -----------------------------
+      // Replace variables
+      // -----------------------------
       requiredVariables.forEach(key => {
+
+        // priority: user input -> memory
         const val =
-          inputs[key] !== undefined
+          inputs[key] !== undefined && inputs[key] !== ""
             ? parseFloat(inputs[key])
             : parseFloat(memory[key]);
 
-        if (isNaN(val)) throw new Error("Missing value");
+        if (isNaN(val)) {
+          throw new Error("Missing value");
+        }
 
-        // safer regex
         const regex = new RegExp(
           `(?<![a-zA-Z0-9_])${key}(?![a-zA-Z0-9_])`,
           "g"
@@ -80,7 +97,9 @@ export default function CalculatePanel({
         expression = expression.replace(regex, val);
       });
 
-      // Evaluate expression
+      // -----------------------------
+      // Evaluate
+      // -----------------------------
       const calculated = Function(
         "sqrt",
         "pow",
@@ -91,22 +110,29 @@ export default function CalculatePanel({
         throw new Error("Invalid result");
       }
 
-      // Format result (round nicely)
       const formatted = Number(calculated.toFixed(6));
 
       setResult(formatted);
 
+      // -----------------------------
       // Save to memory
-      onSaveMemory({
-        ...requiredVariables.reduce((acc, key) => {
-          acc[key] =
-            inputs[key] !== undefined
-              ? parseFloat(inputs[key])
-              : parseFloat(memory[key]);
-          return acc;
-        }, {}),
-        [target]: formatted
+      // -----------------------------
+      const memoryData = {};
+
+      requiredVariables.forEach(key => {
+        const val =
+          inputs[key] !== undefined && inputs[key] !== ""
+            ? parseFloat(inputs[key])
+            : parseFloat(memory[key]);
+
+        if (!isNaN(val)) {
+          memoryData[key] = val;
+        }
       });
+
+      memoryData[target] = formatted;
+
+      onSaveMemory(memoryData);
 
     } catch (err) {
       setResult("Invalid input");
@@ -120,153 +146,175 @@ export default function CalculatePanel({
   // -----------------------------
   if (!formula) return null;
 
-return (
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      marginTop: "3rem"
-    }}
-  >
+  return (
     <div
       style={{
-        background: "#f9fafc",
-        padding: "2rem",
-        borderRadius: "12px",
-        boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
-        width: "420px",
-        border: "1px solid #e3e3e3"
+        display: "flex",
+        justifyContent: "center",
+        marginTop: "3rem"
       }}
     >
-      <h3 style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-        Calculate
-      </h3>
-
-      {/* ---------- Find Section ---------- */}
-      <div style={{ marginBottom: "1.5rem" }}>
-        <label style={{ fontWeight: "bold" }}>Find:</label>
-
-        <div style={{ marginTop: "0.4rem" }}>
-          <select
-            value={target}
-            onChange={e => {
-              setTarget(e.target.value);
-              setResult(null);
-            }}
-            style={{
-              padding: "0.4rem",
-              borderRadius: "6px",
-              border: "1px solid #ccc"
-            }}
-          >
-            {variableKeys.map(key => (
-              <option key={key} value={key}>
-                {key}
-              </option>
-            ))}
-          </select>
-
-          <span style={{ marginLeft: "1rem", fontSize: "1.3rem" }}>
-            {currentVariable?.symbol && (
-              <InlineMath math={currentVariable.symbol} />
-            )}
-          </span>
-        </div>
-      </div>
-
-      {/* ---------- Input Fields ---------- */}
-      {requiredVariables.map(key => {
-        const variable = variables.find(v => v.key === key);
-
-        return (
-          <div
-            key={key}
-            style={{
-              marginBottom: "0.8rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between"
-            }}
-          >
-            <span>
-              {variable?.symbol ? (
-                <InlineMath math={variable.symbol} />
-              ) : (
-                key
-              )}
-            </span>
-
-            <div>
-              <input
-                type="number"
-                value={inputs[key] ?? memory[key] ?? ""}
-                onChange={e => handleChange(key, e.target.value)}
-                style={{
-                  width: "100px",
-                  padding: "0.3rem",
-                  borderRadius: "6px",
-                  border: "1px solid #ccc"
-                }}
-              />
-
-              <span
-                style={{
-                  marginLeft: "0.5rem",
-                  fontSize: "0.9rem",
-                  opacity: 0.7
-                }}
-              >
-                {variable?.unit}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-
-      {/* ---------- Button ---------- */}
-      <button
-        onClick={handleCalculate}
+      <div
         style={{
-          marginTop: "1rem",
-          width: "100%",
-          padding: "0.6rem",
-          borderRadius: "8px",
-          border: "none",
-          background: "#3b82f6",
-          color: "white",
-          fontWeight: "bold",
-          cursor: "pointer"
+          background: "#f9fafc",
+          padding: "2rem",
+          borderRadius: "12px",
+          boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
+          width: "420px",
+          border: "1px solid #e3e3e3"
         }}
       >
-        Calculate
-      </button>
+        <h3 style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+          Calculate
+        </h3>
 
-      {/* ---------- Result ---------- */}
-      {result !== null && (
-        <div
+        {/* ---------- Find Section ---------- */}
+        <div style={{ marginBottom: "1.5rem" }}>
+          <label style={{ fontWeight: "bold" }}>Find:</label>
+
+          <div style={{ marginTop: "0.4rem" }}>
+            <select
+              value={target}
+              onChange={e => {
+                setTarget(e.target.value);
+                setResult(null);
+              }}
+              style={{
+                padding: "0.4rem",
+                borderRadius: "6px",
+                border: "1px solid #ccc"
+              }}
+            >
+              {variableKeys.map(key => (
+                <option key={key} value={key}>
+                  {key}
+                </option>
+              ))}
+            </select>
+
+            <span style={{ marginLeft: "1rem", fontSize: "1.3rem" }}>
+              {currentVariable?.symbol && (
+                <InlineMath math={currentVariable.symbol} />
+              )}
+            </span>
+          </div>
+        </div>
+
+        {/* ---------- Inputs ---------- */}
+        {requiredVariables.map(key => {
+          const variable = variables.find(v => v.key === key);
+
+          return (
+            <div
+              key={key}
+              style={{
+                marginBottom: "0.8rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between"
+              }}
+            >
+              <span>
+                {variable?.symbol ? (
+                  <InlineMath math={variable.symbol} />
+                ) : (
+                  key
+                )}
+              </span>
+
+              <div>
+                <input
+                  type="number"
+                  value={inputs[key] ?? ""}
+                  onChange={e => handleChange(key, e.target.value)}
+                  style={{
+                    width: "100px",
+                    padding: "0.3rem",
+                    borderRadius: "6px",
+                    border: "1px solid #ccc",
+                    background:
+                      memory[key] !== undefined && 
+                      inputs[key] === undefined
+                        ? "#fff7ed"
+                        : "white"
+                  }}
+                />
+
+                <span
+                  style={{
+                    marginLeft: "0.5rem",
+                    fontSize: "0.9rem",
+                    opacity: 0.7
+                  }}
+                >
+                  {variable?.unit}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* ---------- Current Stored Value ---------- */}
+        {memory[target] !== undefined && currentVariable && (
+          <div
+            style={{
+              marginTop: "1rem",
+              textAlign: "center",
+              fontSize: "1rem",
+              color: "#444"
+            }}
+          >
+            <InlineMath
+              math={`${currentVariable.symbol} = ${memory[target]}`}
+            />
+            {currentVariable.unit && ` ${currentVariable.unit}`}
+          </div>
+        )}
+
+        {/* ---------- Button ---------- */}
+        <button
+          onClick={handleCalculate}
           style={{
-            marginTop: "1.5rem",
-            padding: "1rem",
-            background: "#eef2ff",
+            marginTop: "1rem",
+            width: "100%",
+            padding: "0.6rem",
             borderRadius: "8px",
-            textAlign: "center",
+            border: "none",
+            background: "#3b82f6",
+            color: "white",
             fontWeight: "bold",
-            fontSize: "1.1rem"
+            cursor: "pointer"
           }}
         >
-          {typeof result === "number" && currentVariable?.symbol ? (
-            <>
-              <InlineMath
-                math={`${currentVariable.symbol} = ${result}`}
-              />
-              {currentVariable?.unit && ` ${currentVariable.unit}`}
-            </>
-          ) : (
-            <>Result: {result}</>
-          )}
-        </div>
-      )}
+          Calculate
+        </button>
+
+        {/* ---------- Result ---------- */}
+        {result !== null && (
+          <div
+            style={{
+              marginTop: "1.5rem",
+              padding: "1rem",
+              background: "#eef2ff",
+              borderRadius: "8px",
+              textAlign: "center",
+              fontWeight: "bold",
+              fontSize: "1.1rem"
+            }}
+          >
+            {typeof result === "number" && currentVariable?.symbol ? (
+              <>
+                <InlineMath
+                  math={`${currentVariable.symbol} = ${result}`}
+                />
+                {currentVariable?.unit && ` ${currentVariable.unit}`}
+              </>
+            ) : (
+              <>Result: {result}</>
+            )}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
 }
