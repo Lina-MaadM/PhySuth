@@ -1,15 +1,29 @@
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { physicsTopics } from "../data/physicsData";
 import { InlineMath } from "react-katex";
 import { BlockMath } from "react-katex";
-import FormulaCard from "../components/FormulaCard";
 
 import "katex/dist/katex.min.css";
 
-function RelationView() {
+import FormulaCard from "../components/FormulaCard";
+
+
+function RelationView({ addHistory }) {
   const { symbol } = useParams();
   const decodedSymbol = decodeURIComponent(symbol);
 
+  useEffect(() => {
+  if (!decodedSymbol) return;
+
+  addHistory({
+    page: "variableHistory",
+    symbol: decodedSymbol,
+    label: decodedSymbol
+  });
+
+  }, [decodedSymbol, addHistory]);
+  
   const matches = [];
 
   physicsTopics.forEach((topicBlock) => {

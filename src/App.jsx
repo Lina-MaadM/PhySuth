@@ -9,9 +9,11 @@ import VariableIndex from "./pages/VariableIndex";
 import FormulaDetail from "./pages/FormulaDetail";
 import RelationView from "./pages/RelationView";
 
-
 function App() {
+
   const [memory, setMemory] = useState({});
+  const [history, setHistory] = useState([]);
+
   const handleSaveMemory = (data) => {
     setMemory(prev => ({
       ...prev,
@@ -22,6 +24,36 @@ function App() {
   const clearMemory = () => {
     setMemory({});
   };
+
+  function addHistory(entry) {
+  setHistory(prev => {
+
+    const last = prev[prev.length - 1];
+
+    // กันเพิ่มซ้ำ
+    if (
+      last &&
+      last.type === entry.type &&
+      (
+        (entry.id && last.id === entry.id) ||
+        (entry.symbol && last.symbol === entry.symbol)
+      )
+    ) {
+      return prev;
+    }
+
+    const newHistory = [...prev, entry];
+
+    // จำกัดจำนวน history
+    const MAX = 8;
+
+    if (newHistory.length > MAX) {
+      newHistory.shift();
+    }
+
+    return newHistory;
+  });
+}
 
   return (
     <BrowserRouter>
@@ -37,7 +69,8 @@ function App() {
           <Route path="/variables" element={<VariableIndex />} />
 
           {/* หน้า RelationView */}
-          <Route path="/variable/:symbol" element={<RelationView />} />
+          <Route path="/variable/:symbol" 
+          element={<RelationView addHistory={addHistory}/>} />
 
           {/* ส่งต่อข้อมูลตัวแปร */}
           <Route
@@ -46,6 +79,7 @@ function App() {
               <FormulaDetail
                 memory={memory}
                 onSaveMemory={handleSaveMemory}
+                addHistory={addHistory}
           />
   }
 />
@@ -56,3 +90,4 @@ function App() {
 }
 
 export default App;
+

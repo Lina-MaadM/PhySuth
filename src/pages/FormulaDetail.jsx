@@ -1,12 +1,14 @@
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 import { physicsTopics } from "../data/physicsData";
 import { BlockMath } from "react-katex";
+
 import "katex/dist/katex.min.css";
 
 import VariableList from "../components/VariableList";
 import CalculatePanel from "../components/CalculatePanel";
 
-function FormulaDetail({ memory, onSaveMemory }) {
+function FormulaDetail({ memory, onSaveMemory, addHistory }) {
   const { id } = useParams();
 
   let targetEquation = null;
@@ -37,6 +39,17 @@ function FormulaDetail({ memory, onSaveMemory }) {
       </div>
     );
   }
+
+  // history
+  useEffect(() => {
+    if(!targetEquation) return;
+
+    addHistory({
+      page: "formulaHistory",
+      id: id,
+      label: targetEquation.formula
+    })
+  }, [id, addHistory]); 
 
   // map variable key → object
   const usedVariables = datasetVariables.filter(
