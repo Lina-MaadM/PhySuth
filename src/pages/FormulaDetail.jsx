@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { physicsTopics } from "../data/physicsData";
 import { BlockMath } from "react-katex";
@@ -41,7 +42,11 @@ function FormulaDetail({ memory, onSaveMemory, addHistory }) {
   }
 
   // history
+  const location = useLocation();
+
   useEffect(() => {
+    if (location.state?.fromHistory) return;
+
     if(!targetEquation) return;
 
     addHistory({
@@ -49,7 +54,7 @@ function FormulaDetail({ memory, onSaveMemory, addHistory }) {
       id: id,
       label: targetEquation.formula
     })
-  }, [id, addHistory]); 
+  }, [id]); 
 
   // map variable key → object
   const usedVariables = datasetVariables.filter(

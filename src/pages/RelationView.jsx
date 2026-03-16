@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { physicsTopics } from "../data/physicsData";
 import { InlineMath } from "react-katex";
@@ -13,8 +14,12 @@ function RelationView({ addHistory }) {
   const { symbol } = useParams();
   const decodedSymbol = decodeURIComponent(symbol);
 
+  const location = useLocation();
+
   useEffect(() => {
   if (!decodedSymbol) return;
+
+  if (location.state?.fromHistory) return;
 
   addHistory({
     page: "variableHistory",

@@ -8,6 +8,8 @@ import FormulaCatalog from "./pages/FormulaCatalog";
 import VariableIndex from "./pages/VariableIndex";
 import FormulaDetail from "./pages/FormulaDetail";
 import RelationView from "./pages/RelationView";
+import HistoryBar from "./components/HistoryBar";
+import { formulaIndex } from "./data/physicsData";
 
 function App() {
 
@@ -25,43 +27,73 @@ function App() {
     setMemory({});
   };
 
+  function clearHistory() {
+    setHistory([]);
+  }
+
   function addHistory(entry) {
-  setHistory(prev => {
+    setHistory(prev => {
 
-    const last = prev[prev.length - 1];
+      // ป้องกัน entry ว่าง
+      if (!entry) return prev;
 
-    // กันเพิ่มซ้ำ
-    if (
-      last &&
-      last.type === entry.type &&
-      (
-        (entry.id && last.id === entry.id) ||
-        (entry.symbol && last.symbol === entry.symbol)
-      )
-    ) {
-      return prev;
-    }
+      const last = prev[prev.length - 1];
 
-    const newHistory = [...prev, entry];
+      const sameFormula =
+        entry.id && last?.id === entry.id;
 
-    // จำกัดจำนวน history
-    const MAX = 8;
+      const sameVariable =
+        entry.symbol && last?.symbol === entry.symbol;
 
-    if (newHistory.length > MAX) {
-      newHistory.shift();
-    }
+      // กัน A → A
+      if (last && last.page === entry.page && (sameFormula || sameVariable)) {
+        return prev;
+      }
 
-    return newHistory;
-  });
-}
+      // ตรวจว่าซ้ำใน history หรือไม่
+      const repeated = prev.some(
+        (h) =>
+          h.page === entry.page &&
+          (
+            (entry.id && h.id === entry.id) ||
+            (entry.symbol && h.symbol === entry.symbol)
+          )
+      );
+
+      const newEntry = {
+        ...entry,
+        repeat: repeated
+      };
+
+      const newHistory = [...prev, newEntry];
+
+      const MAX = 8;
+
+      if (newHistory.length > MAX) {
+        newHistory.shift();
+      }
+
+      return newHistory;
+    });
+  }
 
   return (
     <BrowserRouter>
       <Navbar />
+
+      <HistoryBar 
+        history={history}
+        formulaIndex={formulaIndex}
+        onClear={() => {
+          clearMemory();
+          clearHistory();
+        }} />
+
       <VariableMem memory={memory} onClear={clearMemory} />
 
       <div className="pt-24 px-6">
         <Routes>
+
           {/* หน้าเริ่มต้น */}
           <Route path="/" element={<FormulaCatalog />} />
 
@@ -69,10 +101,12 @@ function App() {
           <Route path="/variables" element={<VariableIndex />} />
 
           {/* หน้า RelationView */}
-          <Route path="/variable/:symbol" 
-          element={<RelationView addHistory={addHistory}/>} />
+          <Route
+            path="/variable/:symbol"
+            element={<RelationView addHistory={addHistory} />}
+          />
 
-          {/* ส่งต่อข้อมูลตัวแปร */}
+          {/* หน้า FormulaDetail */}
           <Route
             path="/formula/:id"
             element={
@@ -80,9 +114,10 @@ function App() {
                 memory={memory}
                 onSaveMemory={handleSaveMemory}
                 addHistory={addHistory}
+              />
+            }
           />
-  }
-/>
+
         </Routes>
       </div>
     </BrowserRouter>
@@ -90,4 +125,3 @@ function App() {
 }
 
 export default App;
-

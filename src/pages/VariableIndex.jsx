@@ -15,8 +15,8 @@ function VariableIndex() {
           if (!Array.isArray(dataset?.variable_sub)) return;
 
           dataset.variable_sub.forEach((v) => {
-            if (!variableMap.has(v.symbol)) {
-              variableMap.set(v.symbol, v);
+            if (!variableMap.has(v.key)) {
+              variableMap.set(v.key, v);
             }
           });
         });
@@ -33,7 +33,7 @@ function VariableIndex() {
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {uniqueVariables.map((v) => (
                 <VariableCard
-                  key={v.symbol}
+                  key={v.key}
                   symbol={v.symbol}
                   name={v.name}
                   unit={v.unit}

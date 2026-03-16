@@ -31,14 +31,16 @@ const waves = import.meta.glob(
 );
 
 // --------------------------------------------
+// GLOBAL INDEX 
+export const formulaIndex = {};
+
+// --------------------------------------------
 // normalize dataset ให้ตรงกับ schema ใหม่
 function normalizeDataset(dataset) {
   if (!dataset || typeof dataset !== "object") return null;
 
-  // ต้องมี formula_sub เป็น array
   if (!Array.isArray(dataset.formula_sub)) return null;
 
-  // กรองเฉพาะสูตรที่ valid
   const cleanedFormula = dataset.formula_sub.filter(
     (f) =>
       f &&
@@ -53,7 +55,6 @@ function normalizeDataset(dataset) {
     subtopic: dataset.subtopic ?? "",
     description: dataset.description ?? "",
 
-    // schema ใหม่
     variable_sub: Array.isArray(dataset.variable_sub)
       ? dataset.variable_sub
       : [],
@@ -72,6 +73,17 @@ function buildTopic(topicName, globResult) {
   const cleanedDatasets = rawDatasets
     .map(normalizeDataset)
     .filter((d) => d !== null);
+
+  // สร้าง formulaIndex
+  cleanedDatasets.forEach((dataset) => {
+    dataset.formula_sub.forEach((formula) => {
+      formulaIndex[formula.id] = {
+        ...formula,
+        topic: dataset.topic,
+        subtopic: dataset.subtopic,
+      };
+    });
+  });
 
   return {
     topic: topicName,
