@@ -1,12 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import { InlineMath } from "react-katex";
 
-function VariableCard({ symbol, name, unit, description }) {
+function VariableCard({ varKey, symbol, name, unit, description }) {
+
   const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/variable/${varKey}`);
+  };
 
   return (
     <div
-      onClick={() => navigate(`/variable/${encodeURIComponent(symbol)}`)}
+      onClick={handleClick}
       className="
         group
         cursor-pointer
@@ -25,6 +30,7 @@ function VariableCard({ symbol, name, unit, description }) {
         h-full
       "
     >
+
       {/* Symbol */}
       <div className="text-2xl font-mono mb-2">
         <InlineMath math={symbol} />
@@ -35,7 +41,7 @@ function VariableCard({ symbol, name, unit, description }) {
         {name}
       </div>
 
-      {/* Optional description */}
+      {/* Description */}
       {description && (
         <div className="text-sm text-gray-500 mt-1 line-clamp-2">
           {description}
@@ -46,6 +52,7 @@ function VariableCard({ symbol, name, unit, description }) {
       <div className="text-xs text-gray-500 mt-auto pt-3 border-t">
         Unit: {unit}
       </div>
+
     </div>
   );
 }

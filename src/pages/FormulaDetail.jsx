@@ -82,6 +82,7 @@ function FormulaDetail({ memory, onSaveMemory, addHistory }) {
           {usedVariables.map((v) => (
             <VariableList
               key={v.key}
+              varKey={v.key} 
               symbol={v.symbol}
               name={v.name}
               unit={v.unit}

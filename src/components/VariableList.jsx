@@ -2,12 +2,12 @@
 import { useNavigate } from "react-router-dom";
 import { InlineMath } from "react-katex";
 
-function VariableList({ symbol, name, unit, description }) {
+function VariableList({ varKey, symbol, name, unit, description }) {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() => navigate(`/variable/${encodeURIComponent(symbol)}`)}
+      onClick={() => navigate(`/variable/${varKey}`)}
       className="
         group
         cursor-pointer

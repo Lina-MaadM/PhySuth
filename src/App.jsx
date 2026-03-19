@@ -43,7 +43,7 @@ function App() {
         entry.id && last?.id === entry.id;
 
       const sameVariable =
-        entry.symbol && last?.symbol === entry.symbol;
+        entry.key && last?.key === entry.key;
 
       // กัน A → A
       if (last && last.page === entry.page && (sameFormula || sameVariable)) {
@@ -56,7 +56,7 @@ function App() {
           h.page === entry.page &&
           (
             (entry.id && h.id === entry.id) ||
-            (entry.symbol && h.symbol === entry.symbol)
+            (entry.key && h.key === entry.key)
           )
       );
 
@@ -67,7 +67,7 @@ function App() {
 
       const newHistory = [...prev, newEntry];
 
-      const MAX = 8;
+      const MAX = 20;  // max history length
 
       if (newHistory.length > MAX) {
         newHistory.shift();
@@ -102,7 +102,7 @@ function App() {
 
           {/* หน้า RelationView */}
           <Route
-            path="/variable/:symbol"
+            path="/variable/:key"
             element={<RelationView addHistory={addHistory} />}
           />
 

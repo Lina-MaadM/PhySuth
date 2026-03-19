@@ -34,6 +34,7 @@ function VariableIndex() {
               {uniqueVariables.map((v) => (
                 <VariableCard
                   key={v.key}
+                  varKey={v.key}
                   symbol={v.symbol}
                   name={v.name}
                   unit={v.unit}

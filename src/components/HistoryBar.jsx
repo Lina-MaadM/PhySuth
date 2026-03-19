@@ -1,15 +1,23 @@
 import { InlineMath } from "react-katex";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function HistoryBar({ history = [], onClear }) {
 
   const navigate = useNavigate();
 
-  const MAX_VISIBLE = 10;
-  const STEP = 5;
+  const MAX_VISIBLE = 6;
+  const STEP = 3;
 
   const [startIndex, setStartIndex] = useState(0);
+
+  useEffect(() => {
+    if (history.length <= MAX_VISIBLE) {
+      setStartIndex(0);
+    } else {
+      setStartIndex(history.length - MAX_VISIBLE);
+    }
+  }, [history]);
 
   const handleClick = (item) => {
 
@@ -20,7 +28,7 @@ function HistoryBar({ history = [], onClear }) {
     }
 
     if (item.page === "variableHistory") {
-      navigate(`/variable/${item.symbol}`, {
+      navigate(`/variable/${item.key}`, {
         state: { fromHistory: true }
       });
     }
@@ -62,50 +70,53 @@ function HistoryBar({ history = [], onClear }) {
   return (
     <div className="w-full border-b bg-gray-50 p-3 flex items-center">
 
-      {/* LEFT BUTTON */}
       <button
         onClick={handlePrev}
         disabled={!canPrev}
-        className={`px-2 mr-3 text-sm font-semibold
-        ${canPrev ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"}`}
+        className={`px-3 py-1 mr-3 text-lg font-bold rounded
+        ${canPrev ? "text-blue-600 hover:text-blue-800" 
+                  : "text-gray-400 cursor-default"}`}
       >
-        {"<="}
+        {"←"}
       </button>
 
-      {/* HISTORY AREA */}
-      <div className="flex gap-2 flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden flex justify-center">
 
-        {history.length === 0 && (
-          <span className="text-sm text-gray-400">
-            No history yet
-          </span>
-        )}
+        <div className="flex gap-2">
 
-        {visibleHistory.map((item, index) => (
-          <div
-            key={item.id || item.symbol || index}
-            onClick={() => handleClick(item)}
-            className="px-3 py-1 bg-white border rounded text-sm cursor-pointer hover:bg-blue-50 whitespace-nowrap"
-          >
-            <InlineMath math={item.label} />
-          </div>
-        ))}
+          {history.length === 0 && (
+            <span className="text-sm text-gray-400">
+              No history yet
+            </span>
+          )}
 
+          {visibleHistory.map((item, index) => (
+            <div
+              key={`${item.page}-${item.id || item.symbol}-${index}`}
+              onClick={() => handleClick(item)}
+              className="px-3 py-1 bg-white border rounded text-sm cursor-pointer hover:bg-blue-50 whitespace-nowrap"
+            >
+              <InlineMath math={item.label} />
+            </div>
+          ))}
+
+        </div>
       </div>
 
-      {/* RIGHT BUTTON */}
       <button
         onClick={handleNext}
         disabled={!canNext}
-        className={`px-2 ml-3 text-sm font-semibold
+        className={`px-3 py-1 ml-3 text-lg font-bold rounded
         ${canNext ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"}`}
       >
-        {"=>"}
+        {"→"}
       </button>
 
-      {/* CLEAR */}
       <button
-        onClick={onClear}
+        onClick={() => {
+          setStartIndex(0);
+          onClear?.();
+        }}
         className="ml-4 px-3 py-1 border rounded text-sm hover:bg-red-100"
       >
         Clear
