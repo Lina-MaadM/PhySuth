@@ -31,8 +31,9 @@ const waves = import.meta.glob(
 );
 
 // --------------------------------------------
-// GLOBAL INDEX 
+// GLOBAL INDEX
 export const formulaIndex = {};
+export const variableIndex = {};
 
 // --------------------------------------------
 // normalize dataset ให้ตรงกับ schema ใหม่
@@ -74,15 +75,26 @@ function buildTopic(topicName, globResult) {
     .map(normalizeDataset)
     .filter((d) => d !== null);
 
-  // สร้าง formulaIndex
   cleanedDatasets.forEach((dataset) => {
+
+    // สร้าง variableIndex
+    dataset.variable_sub.forEach((v) => {
+      variableIndex[v.key] = {
+        ...v,
+        topic: dataset.topic,
+        subtopic: dataset.subtopic
+      };
+    });
+
+    // สร้าง formulaIndex
     dataset.formula_sub.forEach((formula) => {
       formulaIndex[formula.id] = {
         ...formula,
-        topic: dataset.topic,
-        subtopic: dataset.subtopic,
+        topic: formula.topic ?? dataset.topic,
+        subtopic: formula.subtopic ?? dataset.subtopic,
       };
     });
+
   });
 
   return {

@@ -1,6 +1,7 @@
 import { useParams, useLocation } from "react-router-dom";
-import { useEffect } from "react";
-import { physicsTopics } from "../data/physicsData";
+import { useEffect, useMemo } from "react";
+
+import { variableIndex, formulaIndex } from "../data/physicsData";
 import { InlineMath } from "react-katex";
 
 import "katex/dist/katex.min.css";
@@ -12,51 +13,36 @@ function RelationView({ addHistory }) {
   const { key } = useParams();
   const location = useLocation();
 
-  const matches = [];
+  // หา variable จาก global index
+  const variable = variableIndex[key];
 
-  physicsTopics.forEach((topicBlock) => {
-    topicBlock.datasets.forEach((dataset) => {
+  // หา formula ที่ใช้ variable นี้
+  const formulas = useMemo(() => {
 
-      if (!Array.isArray(dataset.variable_sub)) return;
+    if (!variable) return [];
 
-      dataset.variable_sub.forEach((v) => {
+    return Object.values(formulaIndex).filter((f) =>
+      Array.isArray(f.variable) &&
+      f.variable.includes(key)
+    );
 
-        if (v.key === key) {
-
-          const filteredFormula = (dataset.formula_sub || []).filter(f =>
-            Array.isArray(f.variable) &&
-            f.variable.includes(v.key)
-          );
-
-          matches.push({
-            ...v,
-            topic: topicBlock.topic,
-            subtopic: dataset.subtopic,
-            formula: filteredFormula
-          });
-
-        }
-
-      });
-
-    });
-  });
+  }, [key, variable]);
 
   useEffect(() => {
 
-    if (matches.length === 0) return;
+    if (!variable) return;
 
     if (location.state?.fromHistory) return;
 
     addHistory({
       page: "variableHistory",
       key: key,
-      label: matches[0].symbol
+      label: variable.symbol
     });
 
   }, [key]);
 
-  if (matches.length === 0) {
+  if (!variable) {
     return (
       <div className="p-6 pt-24 max-w-4xl mx-auto">
         <h1 className="text-2xl font-bold">Variable not found</h1>
@@ -68,63 +54,54 @@ function RelationView({ addHistory }) {
     <div className="p-6 pt-24 space-y-10 max-w-4xl mx-auto">
 
       <h1 className="text-3xl font-bold">
-        <InlineMath math={matches[0].symbol} />
+        <InlineMath math={variable.symbol} />
       </h1>
 
-      {matches.map((v, index) => (
+      <div className="border rounded-lg p-6 space-y-3">
 
-        <div
-          key={`${v.topic}-${v.key}-${index}`}
-          className="border rounded-lg p-6 space-y-3"
-        >
+        <h2 className="text-xl font-semibold">
+          {variable.topic}
+          {variable.subtopic && ` – ${variable.subtopic}`}
+        </h2>
 
-          <h2 className="text-xl font-semibold">
-            {v.topic}
-            {v.subtopic && ` – ${v.subtopic}`}
-          </h2>
+        <p className="font-medium">{variable.name}</p>
 
-          <p className="font-medium">{v.name}</p>
+        {variable.unit && (
+          <p className="text-sm text-gray-500">
+            Unit: {variable.unit}
+          </p>
+        )}
 
-          {v.unit && (
-            <p className="text-sm text-gray-500">
-              Unit: {v.unit}
+        {variable.description && (
+          <p className="text-gray-700">
+            {variable.description}
+          </p>
+        )}
+
+        {formulas.length > 0 && (
+          <div className="pt-3">
+
+            <p className="font-semibold mb-2">
+              Appears in formula:
             </p>
-          )}
 
-          {v.description && (
-            <p className="text-gray-700">
-              {v.description}
-            </p>
-          )}
+            <div className="space-y-1">
 
-          {v.formula.length > 0 && (
-
-            <div className="pt-3">
-
-              <p className="font-semibold mb-2">
-                Appears in formula:
-              </p>
-
-              <div className="space-y-1">
-
-                {v.formula.map((f) => (
-                  <FormulaCard
-                    key={f.id}
-                    id={f.id}
-                    name={f.name}
-                    formula={f.formula}
-                  />
-                ))}
-
-              </div>
+              {formulas.map((f) => (
+                <FormulaCard
+                  key={f.id}
+                  id={f.id}
+                  name={f.name}
+                  formula={f.formula}
+                />
+              ))}
 
             </div>
 
-          )}
+          </div>
+        )}
 
-        </div>
-
-      ))}
+      </div>
 
     </div>
   );

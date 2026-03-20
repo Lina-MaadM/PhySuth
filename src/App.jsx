@@ -8,24 +8,25 @@ import FormulaCatalog from "./pages/FormulaCatalog";
 import VariableIndex from "./pages/VariableIndex";
 import FormulaDetail from "./pages/FormulaDetail";
 import RelationView from "./pages/RelationView";
-import HistoryBar from "./components/HistoryBar";
-import { formulaIndex } from "./data/physicsData";
+import HistoryAnalyze from "./pages/HistoryAnalyze";
+
+import { formulaIndex, variableIndex } from "./data/physicsData";
 
 function App() {
 
   const [memory, setMemory] = useState({});
   const [history, setHistory] = useState([]);
 
-  const handleSaveMemory = (data) => {
+  function handleSaveMemory(data) {
     setMemory(prev => ({
       ...prev,
       ...data
     }));
-  };
+  }
 
-  const clearMemory = () => {
+  function clearMemory() {
     setMemory({});
-  };
+  }
 
   function clearHistory() {
     setHistory([]);
@@ -34,7 +35,6 @@ function App() {
   function addHistory(entry) {
     setHistory(prev => {
 
-      // ป้องกัน entry ว่าง
       if (!entry) return prev;
 
       const last = prev[prev.length - 1];
@@ -46,11 +46,14 @@ function App() {
         entry.key && last?.key === entry.key;
 
       // กัน A → A
-      if (last && last.page === entry.page && (sameFormula || sameVariable)) {
+      if (
+        last &&
+        last.page === entry.page &&
+        (sameFormula || sameVariable)
+      ) {
         return prev;
       }
 
-      // ตรวจว่าซ้ำใน history หรือไม่
       const repeated = prev.some(
         (h) =>
           h.page === entry.page &&
@@ -62,12 +65,13 @@ function App() {
 
       const newEntry = {
         ...entry,
-        repeat: repeated
+        repeat: repeated,
+        time: Date.now()
       };
 
       const newHistory = [...prev, newEntry];
 
-      const MAX = 20;  // max history length
+      const MAX = 20;
 
       if (newHistory.length > MAX) {
         newHistory.shift();
@@ -81,32 +85,30 @@ function App() {
     <BrowserRouter>
       <Navbar />
 
-      <HistoryBar 
+      <HistoryAnalyze
         history={history}
         formulaIndex={formulaIndex}
+        variableIndex={variableIndex}
         onClear={() => {
           clearMemory();
           clearHistory();
-        }} />
+        }}
+      />
 
       <VariableMem memory={memory} onClear={clearMemory} />
 
       <div className="pt-24 px-6">
         <Routes>
 
-          {/* หน้าเริ่มต้น */}
           <Route path="/" element={<FormulaCatalog />} />
 
-          {/* หน้า Variable */}
           <Route path="/variables" element={<VariableIndex />} />
 
-          {/* หน้า RelationView */}
           <Route
             path="/variable/:key"
             element={<RelationView addHistory={addHistory} />}
           />
 
-          {/* หน้า FormulaDetail */}
           <Route
             path="/formula/:id"
             element={
