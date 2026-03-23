@@ -1,13 +1,14 @@
 // src/components/VariableList.jsx
 import { useNavigate } from "react-router-dom";
 import { InlineMath } from "react-katex";
+import { routeBuilder } from "../routes";
 
 function VariableList({ varKey, symbol, name, unit, description }) {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() => navigate(`/variable/${varKey}`)}
+      onClick={() => navigate(routeBuilder.variable(varKey))}
       className="
         group
         cursor-pointer

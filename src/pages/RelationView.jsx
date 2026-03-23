@@ -5,104 +5,136 @@ import { variableIndex, formulaIndex } from "../data/physicsData";
 import { InlineMath } from "react-katex";
 
 import "katex/dist/katex.min.css";
-
 import FormulaCard from "../components/FormulaCard";
 
 function RelationView({ addHistory }) {
-
   const { key } = useParams();
   const location = useLocation();
 
-  // หา variable จาก global index
-  const variable = variableIndex[key];
+  const baseKey = key?.split("_")[0];
 
-  // หา formula ที่ใช้ variable นี้
-  const formulas = useMemo(() => {
-
-    if (!variable) return [];
-
-    return Object.values(formulaIndex).filter((f) =>
-      Array.isArray(f.variable) &&
-      f.variable.includes(key)
+  // หา variable ที่มีรูปแบบ x_*
+  const relatedVariables = useMemo(() => {
+    return Object.values(variableIndex).filter((v) =>
+      v.key.startsWith(baseKey + "_")
     );
+  }, [baseKey]);
 
-  }, [key, variable]);
+  const formulas = useMemo(() => {
+    if (!relatedVariables.length) return [];
+
+    const variableKeys = relatedVariables.map((v) => v.key);
+
+    return Object.values(formulaIndex).filter(
+      (f) =>
+        Array.isArray(f.variable) &&
+        f.variable.some((v) => variableKeys.includes(v))
+    );
+  }, [relatedVariables]);
+
+  // group สูตรตาม topic
+  const groupedFormulas = useMemo(() => {
+    const groups = {};
+
+    formulas.forEach((f) => {
+      const groupKey = `${f.topic}__${f.subtopic || ""}`;
+
+      if (!groups[groupKey]) {
+        groups[groupKey] = {
+          topic: f.topic,
+          subtopic: f.subtopic,
+          formulas: [],
+        };
+      }
+
+      groups[groupKey].formulas.push(f);
+    });
+
+    return Object.values(groups);
+  }, [formulas]);
+
+  const currentVariable = variableIndex[key] || relatedVariables[0];
 
   useEffect(() => {
-
-    if (!variable) return;
-
+    if (!currentVariable) return;
     if (location.state?.fromHistory) return;
 
     addHistory({
       page: "variableHistory",
       key: key,
-      label: variable.symbol
+      label: currentVariable.symbol,
     });
-
   }, [key]);
 
-  if (!variable) {
+  if (!currentVariable) {
     return (
       <div className="p-6 pt-24 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold">Variable not found</h1>
+        <h1 className="text-2xl font-bold text-center">Variable not found</h1>
       </div>
     );
   }
 
   return (
     <div className="p-6 pt-24 space-y-10 max-w-4xl mx-auto">
-
-      <h1 className="text-3xl font-bold">
-        <InlineMath math={variable.symbol} />
+      <h1 className="text-3xl font-bold text-center">
+        <InlineMath math={currentVariable.symbol} />
       </h1>
 
-      <div className="border rounded-lg p-6 space-y-3">
+      <div className="space-y-8">
+        {groupedFormulas.map((group) => {
+          // หา variable ที่ตรงกับ group นี้จริง ๆ
+          const variableForGroup = relatedVariables.find(
+            (v) =>
+              v.topic === group.topic &&
+              v.subtopic === group.subtopic
+          );
 
-        <h2 className="text-xl font-semibold">
-          {variable.topic}
-          {variable.subtopic && ` – ${variable.subtopic}`}
-        </h2>
+          if (!variableForGroup) return null;
 
-        <p className="font-medium">{variable.name}</p>
+          return (
+            <div
+              key={group.topic + group.subtopic}
+              className="border rounded-lg p-6 space-y-3"
+            >
+              <h2 className="text-xl font-semibold">
+                {group.topic}
+                {group.subtopic && ` – ${group.subtopic}`}
+              </h2>
 
-        {variable.unit && (
-          <p className="text-sm text-gray-500">
-            Unit: {variable.unit}
-          </p>
-        )}
+              <p className="font-medium">{variableForGroup.name}</p>
 
-        {variable.description && (
-          <p className="text-gray-700">
-            {variable.description}
-          </p>
-        )}
+              {variableForGroup.unit && (
+                <p className="text-sm text-gray-500">
+                  Unit: {variableForGroup.unit}
+                </p>
+              )}
 
-        {formulas.length > 0 && (
-          <div className="pt-3">
+              {variableForGroup.description && (
+                <p className="text-gray-700">
+                  {variableForGroup.description}
+                </p>
+              )}
 
-            <p className="font-semibold mb-2">
-              Appears in formula:
-            </p>
+              <div className="pt-2">
+                <p className="font-semibold mb-2">
+                  Appears in formula:
+                </p>
 
-            <div className="space-y-1">
-
-              {formulas.map((f) => (
-                <FormulaCard
-                  key={f.id}
-                  id={f.id}
-                  name={f.name}
-                  formula={f.formula}
-                />
-              ))}
-
+                <div className="space-y-2">
+                  {group.formulas.map((f) => (
+                    <FormulaCard
+                      key={f.id}
+                      id={f.id}
+                      name={f.name}
+                      formula={f.formula}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
-
-          </div>
-        )}
-
+          );
+        })}
       </div>
-
     </div>
   );
 }

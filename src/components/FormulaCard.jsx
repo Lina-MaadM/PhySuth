@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { BlockMath } from "react-katex";
+import { routeBuilder } from "../routes";
 
 function FormulaCard({ id, name, formula }) {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() => navigate(`/formula/${id}`)}
+      onClick={() => id && navigate(routeBuilder.formula(id))}
       className="
         cursor-pointer
         rounded-xl

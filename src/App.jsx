@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
+import { ROUTE_PATH } from "./routes";
 
 import Navbar from "./components/Navbar";
 import VariableMem from "./components/VariableMem";
@@ -97,31 +98,31 @@ function App() {
 
       <VariableMem memory={memory} onClear={clearMemory} />
 
-      <div className="pt-24 px-6">
-        <Routes>
+        <div className="pt-24 px-6">
+          <Routes>
 
-          <Route path="/" element={<FormulaCatalog />} />
+            <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
 
-          <Route path="/variables" element={<VariableIndex />} />
+            <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />
 
-          <Route
-            path="/variable/:key"
-            element={<RelationView addHistory={addHistory} />}
-          />
+            <Route
+              path={ROUTE_PATH.VARIABLE_DETAIL}
+              element={<RelationView addHistory={addHistory} />}
+            />
 
-          <Route
-            path="/formula/:id"
-            element={
-              <FormulaDetail
-                memory={memory}
-                onSaveMemory={handleSaveMemory}
-                addHistory={addHistory}
-              />
-            }
-          />
+            <Route
+              path={ROUTE_PATH.FORMULA_DETAIL}
+              element={
+                <FormulaDetail
+                  memory={memory}
+                  onSaveMemory={handleSaveMemory}
+                  addHistory={addHistory}
+                />
+              }
+            />
 
-        </Routes>
-      </div>
+          </Routes>
+        </div>
     </BrowserRouter>
   );
 }

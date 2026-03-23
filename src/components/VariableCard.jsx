@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { InlineMath } from "react-katex";
+import { routeBuilder } from "../routes";
 
 function VariableCard({ varKey, symbol, name, unit, description }) {
-
   const navigate = useNavigate();
 
   const handleClick = () => {
-    navigate(`/variable/${varKey}`);
+    if (!varKey) return;
+    navigate(routeBuilder.variable(varKey));
   };
 
   return (
@@ -33,7 +34,7 @@ function VariableCard({ varKey, symbol, name, unit, description }) {
 
       {/* Symbol */}
       <div className="text-2xl font-mono mb-2">
-        <InlineMath math={symbol} />
+        {symbol && <InlineMath math={symbol} />}
       </div>
 
       {/* Name */}

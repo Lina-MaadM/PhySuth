@@ -1,5 +1,6 @@
 import { InlineMath } from "react-katex";
 import { useNavigate } from "react-router-dom";
+import { routeBuilder } from "../routes";
 import { useState, useEffect, useMemo, useRef } from "react";
 
 function HistoryBar({ history = [], onClear }) {
@@ -74,13 +75,13 @@ function HistoryBar({ history = [], onClear }) {
   const handleClick = (item) => {
 
     if (item.page === "formulaHistory") {
-      navigate(`/formula/${item.id}`, {
+      navigate(routeBuilder.formula(item.id), {
         state: { fromHistory: true }
       });
     }
 
     if (item.page === "variableHistory") {
-      navigate(`/variable/${item.key}`, {
+      navigate(routeBuilder.variable(item.key), {
         state: { fromHistory: true }
       });
     }
