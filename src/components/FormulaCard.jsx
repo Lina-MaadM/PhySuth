@@ -11,9 +11,10 @@ function FormulaCard({ id, name, formula }) {
       className="
         cursor-pointer
         rounded-xl
-        border
         bg-blue-100
         p-4
+        max-w-xl
+        mx-auto
         shadow-sm
         transition
         hover:shadow-md
