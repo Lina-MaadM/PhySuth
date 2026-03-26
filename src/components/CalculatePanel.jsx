@@ -8,17 +8,13 @@ export default function CalculatePanel({
   memory = {},
   onSaveMemory = () => {}
 }) {
-
-  // -----------------------------
-  // Safe guards
-  // -----------------------------
   const variableKeys = formula?.variable || [];
 
   const [target, setTarget] = useState(variableKeys[0] || "");
   const [inputs, setInputs] = useState({});
   const [result, setResult] = useState(null);
 
-// reset + auto fill จาก memory เมื่อ formula เปลี่ยน
+  // reset + autofill memory
   useEffect(() => {
     if (variableKeys.length > 0) {
       const firstTarget = variableKeys[0];
@@ -34,98 +30,110 @@ export default function CalculatePanel({
         }
       });
 
-    setInputs(initialInputs);
-  }
-}, [formula, memory]);
+      setInputs(initialInputs);
+    }
+  }, [formula, memory]);
 
-  // -----------------------------
-  // Required variables
-  // -----------------------------
   const requiredVariables = useMemo(() => {
     return variableKeys.filter(v => v !== target);
   }, [variableKeys, target]);
 
+  // -------------------------
+  // INPUT VALIDATION
+  // -------------------------
+  const isValidNumberInput = val => {
+    return /^-?\d*\.?\d*$/.test(val);
+  };
+
   const handleChange = (key, value) => {
+    if (!isValidNumberInput(value)) return;
+
     setInputs(prev => ({
       ...prev,
       [key]: value
     }));
   };
 
-  // -----------------------------
-  // Calculation
-  // -----------------------------
+  // -------------------------
+  // CALCULATE
+  // -------------------------
   const handleCalculate = () => {
     try {
       if (!formula?.calculate) {
-        throw new Error("No calculation defined");
+        throw new Error("Invalid input");
       }
 
       const calculation = formula.calculate[target];
 
       if (!calculation) {
-        throw new Error("No calculation for target");
-      }
-
-      if (calculation.type === "quadratic") {
-        setResult("Quadratic solving not implemented yet");
-        return;
+        throw new Error("Invalid input");
       }
 
       let expression = calculation.value;
 
-      // -----------------------------
+      if (expression.includes("=")) {
+        expression = expression.split("=")[1].trim();
+      }
+
+      // -------------------------
       // Replace variables
-      // -----------------------------
+      // -------------------------
       requiredVariables.forEach(key => {
+        const variable = variables.find(v => v.key === key);
 
-        // priority: user input -> memory
-        const val =
-          inputs[key] !== undefined && inputs[key] !== ""
-            ? parseFloat(inputs[key])
-            : parseFloat(memory[key]);
+        const raw = inputs[key] ?? memory[key];
+        const val = Number(raw);
 
-        if (isNaN(val)) {
-          throw new Error("Missing value");
+        if (!isFinite(val)) {
+          throw new Error("Invalid input");
         }
 
-        const regex = new RegExp(
-          `(?<![a-zA-Z0-9_])${key}(?![a-zA-Z0-9_])`,
-          "g"
-        );
+        // ใช้ constraint จาก schema
+        if (variable?.min !== undefined && val < variable.min) {
+          throw new Error("Invalid input");
+        }
 
+        if (variable?.max !== undefined && val > variable.max) {
+          throw new Error("Invalid input");
+        }
+
+        const regex = new RegExp(`\\b${key}\\b`, "g");
         expression = expression.replace(regex, val);
       });
 
-      // -----------------------------
-      // Evaluate
-      // -----------------------------
+      // กันตัวแปรค้าง
+      if (/[a-zA-Z_]/.test(expression)) {
+        throw new Error("Invalid input");
+      }
+
       const calculated = Function(
         "sqrt",
         "pow",
         `return ${expression}`
       )(Math.sqrt, Math.pow);
 
-      if (typeof calculated !== "number" || isNaN(calculated)) {
-        throw new Error("Invalid result");
+      // ตรวจผลลัพธ์
+      if (
+        typeof calculated !== "number" ||
+        isNaN(calculated) ||
+        !isFinite(calculated)
+      ) {
+        throw new Error("Not physically defined");
       }
 
       const formatted = Number(calculated.toFixed(6));
-
       setResult(formatted);
 
-      // -----------------------------
-      // Save to memory
-      // -----------------------------
+      // -------------------------
+      // SAVE MEMORY
+      // -------------------------
       const memoryData = {};
 
       requiredVariables.forEach(key => {
-        const val =
-          inputs[key] !== undefined && inputs[key] !== ""
-            ? parseFloat(inputs[key])
-            : parseFloat(memory[key]);
+        const raw = inputs[key] ?? memory[key];
+        const val = Number(raw);
 
-        if (!isNaN(val)) {
+        if (isFinite(val)) {
           memoryData[key] = val;
         }
       });
@@ -133,17 +141,19 @@ export default function CalculatePanel({
       memoryData[target] = formatted;
 
       onSaveMemory(memoryData);
-
     } catch (err) {
-      setResult("Invalid input");
+      console.error(err);
+
+      if (err.message === "Not physically defined") {
+        setResult("Not physically defined");
+      } else {
+        setResult("Invalid input");
+      }
     }
   };
 
   const currentVariable = variables.find(v => v.key === target);
 
-  // -----------------------------
-  // Render
-  // -----------------------------
   if (!formula) return null;
 
   return (
@@ -168,7 +178,7 @@ export default function CalculatePanel({
           Calculate
         </h3>
 
-        {/* ---------- Find Section ---------- */}
+        {/* Find */}
         <div style={{ marginBottom: "1.5rem" }}>
           <label style={{ fontWeight: "bold" }}>Find:</label>
 
@@ -200,9 +210,15 @@ export default function CalculatePanel({
           </div>
         </div>
 
-        {/* ---------- Inputs ---------- */}
+        {/* Inputs */}
         {requiredVariables.map(key => {
           const variable = variables.find(v => v.key === key);
+          const currentValue = inputs[key];
+
+          const belowMin =
+            variable?.min !== undefined &&
+            currentValue !== undefined &&
+            Number(currentValue) < variable.min;
 
           return (
             <div
@@ -224,16 +240,19 @@ export default function CalculatePanel({
 
               <div>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   value={inputs[key] ?? ""}
                   onChange={e => handleChange(key, e.target.value)}
                   style={{
                     width: "100px",
                     padding: "0.3rem",
                     borderRadius: "6px",
-                    border: "1px solid #ccc",
+                    border: belowMin
+                      ? "1px solid #ef4444"
+                      : "1px solid #ccc",
                     background:
-                      memory[key] !== undefined && 
+                      memory[key] !== undefined &&
                       inputs[key] === undefined
                         ? "#fff7ed"
                         : "white"
@@ -254,7 +273,7 @@ export default function CalculatePanel({
           );
         })}
 
-        {/* ---------- Current Stored Value ---------- */}
+        {/* Memory preview */}
         {memory[target] !== undefined && currentVariable && (
           <div
             style={{
@@ -271,7 +290,7 @@ export default function CalculatePanel({
           </div>
         )}
 
-        {/* ---------- Button ---------- */}
+        {/* Button */}
         <button
           onClick={handleCalculate}
           style={{
@@ -289,7 +308,7 @@ export default function CalculatePanel({
           Calculate
         </button>
 
-        {/* ---------- Result ---------- */}
+        {/* Result */}
         {result !== null && (
           <div
             style={{

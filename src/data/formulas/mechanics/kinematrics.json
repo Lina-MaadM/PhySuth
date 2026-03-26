@@ -4,13 +4,56 @@
   "description": "One-dimensional motion including displacement, velocity, acceleration, uniform motion, and constant acceleration equations.",
 
   "variable_sub": [
-    { "key": "s_Mechanics", "symbol": "s", "name": "Position", "unit": "m", "description": "Position at time t" },
-    { "key": "s0_Mechanics", "symbol": "s_0", "name": "Initial position", "unit": "m", "description": "Position at time t = 0" },
-    { "key": "u_Mechanics", "symbol": "u", "name": "Initial velocity", "unit": "m/s", "description": "Velocity at time t = 0" },
-    { "key": "v_Mechanics", "symbol": "v", "name": "Final velocity", "unit": "m/s", "description": "Velocity at time t" },
-    { "key": "vavg_Mechanics", "symbol": "\\bar{v}", "name": "Average velocity", "unit": "m/s", "description": "Average velocity over a time interval" },
-    { "key": "a_Mechanics", "symbol": "a", "name": "Acceleration", "unit": "m/s^2", "description": "Rate of change of velocity" },
-    { "key": "t_Mechanics", "symbol": "t", "name": "Time", "unit": "s", "description": "Time interval" }
+    { 
+      "key": "s_Mechanics",
+      "symbol": "s",
+      "name": "Position",
+      "unit": "m",
+      "description": "Position at time t"
+    },
+    { 
+      "key": "s0_Mechanics",
+      "symbol": "s_0",
+      "name": "Initial position",
+      "unit": "m",
+      "description": "Position at time t = 0"
+    },
+    { 
+      "key": "u_Mechanics",
+      "symbol": "u",
+      "name": "Initial velocity",
+      "unit": "m/s",
+      "description": "Velocity at time t = 0"
+    },
+    { 
+      "key": "v_Mechanics",
+      "symbol": "v",
+      "name": "Final velocity",
+      "unit": "m/s",
+      "description": "Velocity at time t"
+    },
+    { 
+      "key": "vavg_Mechanics",
+      "symbol": "\\bar{v}",
+      "name": "Average velocity",
+      "unit": "m/s",
+      "description": "Average velocity over a time interval"
+    },
+    { 
+      "key": "a_Mechanics",
+      "symbol": "a",
+      "name": "Acceleration",
+      "unit": "m/s^2",
+      "description": "Rate of change of velocity"
+    },
+    { 
+      "key": "t_Mechanics",
+      "symbol": "t",
+      "name": "Time",
+      "unit": "s",
+      "description": "Time interval",
+      "min": 0
+    }
   ],
 
   "formula_sub": [

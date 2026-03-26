@@ -42,12 +42,14 @@ function normalizeDataset(dataset) {
 
   if (!Array.isArray(dataset.formula_sub)) return null;
 
-  const cleanedFormula = dataset.formula_sub.filter(
-    (f) =>
-      f &&
-      f.id &&
-      typeof f.formula === "string"
-  );
+  // กรองสูตรที่พัง
+  const cleanedFormula = dataset.formula_sub.filter((f) => {
+    if (!f || !f.id || typeof f.formula !== "string" || !f.calculate) {
+      console.warn("Invalid formula removed:", f);
+      return false;
+    }
+    return true;
+  });
 
   if (cleanedFormula.length === 0) return null;
 
@@ -56,12 +58,48 @@ function normalizeDataset(dataset) {
     subtopic: dataset.subtopic ?? "",
     description: dataset.description ?? "",
 
+    // กรอง variable ที่พัง
     variable_sub: Array.isArray(dataset.variable_sub)
-      ? dataset.variable_sub
+      ? dataset.variable_sub.filter((v) => {
+          if (!v || !v.key) {
+            console.warn("Invalid variable removed:", v);
+            return false;
+          }
+          return true;
+        })
       : [],
 
     formula_sub: cleanedFormula,
   };
+}
+
+// --------------------------------------------
+// ตรวจว่าสูตรใช้ตัวแปรถูกต้องไหม
+function validateFormulaVariables(formula) {
+  const declaredVars = new Set(formula.variable || []);
+
+  const calcVars = Object.values(formula.calculate || {})
+    .flatMap((c) => {
+      if (!c) return [];
+      if (typeof c.value !== "string") return [];
+      return c.value.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+    });
+
+  // เอาเฉพาะตัวแปรที่ดูเหมือน key จริง
+  const usedVars = calcVars.filter((v) => v.includes("_"));
+
+  const missing = usedVars.filter((v) => !declaredVars.has(v));
+
+  if (missing.length > 0) {
+    console.warn(
+      "Formula skipped (undeclared variables):",
+      formula.id,
+      missing
+    );
+    return false;
+  }
+
+  return true;
 }
 
 // --------------------------------------------
@@ -77,8 +115,15 @@ function buildTopic(topicName, globResult) {
 
   cleanedDatasets.forEach((dataset) => {
 
+    // ----------------------------------------
     // สร้าง variableIndex
     dataset.variable_sub.forEach((v) => {
+
+      if (variableIndex[v.key]) {
+        console.warn("Duplicate variable skipped:", v.key);
+        return;
+      }
+
       variableIndex[v.key] = {
         ...v,
         topic: dataset.topic,
@@ -86,8 +131,20 @@ function buildTopic(topicName, globResult) {
       };
     });
 
+    // ----------------------------------------
     // สร้าง formulaIndex
     dataset.formula_sub.forEach((formula) => {
+
+      if (!validateFormulaVariables(formula)) {
+        console.warn("Formula skipped:", formula.id);
+        return;
+      }
+
+      if (formulaIndex[formula.id]) {
+        console.warn("Duplicate formula skipped:", formula.id);
+        return;
+      }
+
       formulaIndex[formula.id] = {
         ...formula,
         topic: formula.topic ?? dataset.topic,
