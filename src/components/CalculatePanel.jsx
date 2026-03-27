@@ -10,329 +10,251 @@ export default function CalculatePanel({
 }) {
   const variableKeys = formula?.variable || [];
 
-  const [target, setTarget] = useState(variableKeys[0] || "");
+  // target จะเลือกเฉพาะ isFixed=false
+  const editableKeys = useMemo(() => {
+    return variableKeys.filter(key => {
+      const v = variables.find(v => v.key === key);
+      return v?.isFixed !== true;
+    });
+  }, [variableKeys, variables]);
+
+  const [target, setTarget] = useState(editableKeys[0] || "");
   const [inputs, setInputs] = useState({});
   const [result, setResult] = useState(null);
+  const [initialized, setInitialized] = useState(false);
 
-  // reset + autofill memory
+  // initialize inputs จาก memory หรือ default value
   useEffect(() => {
-    if (variableKeys.length > 0) {
-      const firstTarget = variableKeys[0];
-
-      setTarget(firstTarget);
-      setResult(null);
-
+    if (!initialized && variableKeys.length > 0) {
       const initialInputs = {};
-
       variableKeys.forEach(key => {
+        const variable = variables.find(v => v.key === key);
         if (memory[key] !== undefined) {
           initialInputs[key] = memory[key];
+        } else if (variable?.value !== undefined) {
+          initialInputs[key] = variable.value;
         }
       });
-
       setInputs(initialInputs);
+      setTarget(editableKeys[0] || "");
+      setResult(null);
+      setInitialized(true);
     }
-  }, [formula, memory]);
+  }, [initialized, variableKeys, variables, memory, editableKeys]);
 
   const requiredVariables = useMemo(() => {
-    return variableKeys.filter(v => v !== target);
+    return variableKeys.filter(key => key !== target);
   }, [variableKeys, target]);
 
-  // -------------------------
-  // INPUT VALIDATION
-  // -------------------------
-  const isValidNumberInput = val => {
-    return /^-?\d*\.?\d*$/.test(val);
-  };
+  const isValidNumberInput = val => /^-?\d*\.?\d*$/.test(val);
 
   const handleChange = (key, value) => {
     if (!isValidNumberInput(value)) return;
-
-    setInputs(prev => ({
-      ...prev,
-      [key]: value
-    }));
+    setInputs(prev => ({ ...prev, [key]: value }));
+    setResult(null);
   };
 
-  // -------------------------
-  // CALCULATE
-  // -------------------------
   const handleCalculate = () => {
     try {
-      if (!formula?.calculate) {
-        throw new Error("Invalid input");
-      }
+      if (!formula?.calculate) throw new Error("Invalid input");
 
       const calculation = formula.calculate[target];
-
-      if (!calculation) {
-        throw new Error("Invalid input");
-      }
+      if (!calculation) throw new Error("Invalid input");
 
       let expression = calculation.value;
+      if (expression.includes("=")) expression = expression.split("=")[1].trim();
 
-      if (expression.includes("=")) {
-        expression = expression.split("=")[1].trim();
-      }
-
-      // -------------------------
-      // Replace variables
-      // -------------------------
       requiredVariables.forEach(key => {
         const variable = variables.find(v => v.key === key);
-
-        const raw = inputs[key] ?? memory[key];
+        const raw = inputs[key] ?? variable?.value ?? memory[key];
         const val = Number(raw);
 
-        if (!isFinite(val)) {
-          throw new Error("Invalid input");
-        }
-
-        // ใช้ constraint จาก schema
-        if (variable?.min !== undefined && val < variable.min) {
-          throw new Error("Invalid input");
-        }
-
-        if (variable?.max !== undefined && val > variable.max) {
-          throw new Error("Invalid input");
-        }
+        if (!isFinite(val)) throw new Error("Invalid input");
+        if (variable?.min !== undefined && val < variable.min) throw new Error("Invalid input");
+        if (variable?.max !== undefined && val > variable.max) throw new Error("Invalid input");
 
         const regex = new RegExp(`\\b${key}\\b`, "g");
         expression = expression.replace(regex, val);
       });
 
-      // กันตัวแปรค้าง
-      if (/[a-zA-Z_]/.test(expression)) {
-        throw new Error("Invalid input");
-      }
+      if (/[a-zA-Z_]/.test(expression)) throw new Error("Invalid input");
 
-      const calculated = Function(
-        "sqrt",
-        "pow",
-        `return ${expression}`
-      )(Math.sqrt, Math.pow);
+      const calculated = Function("sqrt", "pow", `return ${expression}`)(Math.sqrt, Math.pow);
 
-      // ตรวจผลลัพธ์
-      if (
-        typeof calculated !== "number" ||
-        isNaN(calculated) ||
-        !isFinite(calculated)
-      ) {
+      if (typeof calculated !== "number" || isNaN(calculated) || !isFinite(calculated))
         throw new Error("Not physically defined");
-      }
 
       const formatted = Number(calculated.toFixed(6));
       setResult(formatted);
 
-      // -------------------------
-      // SAVE MEMORY
-      // -------------------------
+      // Save memory
       const memoryData = {};
-
       requiredVariables.forEach(key => {
-        const raw = inputs[key] ?? memory[key];
+        const raw = inputs[key] ?? variables.find(v => v.key === key)?.value ?? memory[key];
         const val = Number(raw);
-
-        if (isFinite(val)) {
-          memoryData[key] = val;
-        }
+        if (isFinite(val)) memoryData[key] = val;
       });
-
       memoryData[target] = formatted;
-
       onSaveMemory(memoryData);
     } catch (err) {
       console.error(err);
-
-      if (err.message === "Not physically defined") {
-        setResult("Not physically defined");
-      } else {
-        setResult("Invalid input");
-      }
+      setResult(err.message === "Not physically defined" ? "Not physically defined" : "Invalid input");
     }
   };
 
   const currentVariable = variables.find(v => v.key === target);
-
   if (!formula) return null;
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        marginTop: "3rem"
-      }}
-    >
-      <div
-        style={{
-          background: "#f9fafc",
-          padding: "2rem",
-          borderRadius: "12px",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.1)",
-          width: "420px",
-          border: "1px solid #e3e3e3"
-        }}
-      >
-        <h3 style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-          Calculate
+    <div style={{ display: "flex", justifyContent: "center", marginTop: "3rem", fontFamily: "'Inter', sans-serif" }}>
+      <div style={{ 
+        background: "#ffffff", 
+        padding: "2rem", 
+        borderRadius: "16px", 
+        boxShadow: "0 10px 25px rgba(0,0,0,0.05)", 
+        width: "440px", 
+        border: "1px solid #eaeaea" 
+      }}>
+        <h3 style={{ textAlign: "center", marginBottom: "2rem", color: "#1f2937", fontSize: "1.25rem" }}>
+          Physics Calculator
         </h3>
 
-        {/* Find */}
-        <div style={{ marginBottom: "1.5rem" }}>
-          <label style={{ fontWeight: "bold" }}>Find:</label>
-
-          <div style={{ marginTop: "0.4rem" }}>
+        {/* Find Section - ปรับให้ดูสะอาดขึ้น */}
+        <div style={{ marginBottom: "2rem", padding: "1rem", background: "#f8fafc", borderRadius: "12px" }}>
+          <label style={{ fontWeight: "600", color: "#64748b", fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            Target Variable
+          </label>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginTop: "0.6rem" }}>
             <select
               value={target}
-              onChange={e => {
-                setTarget(e.target.value);
-                setResult(null);
-              }}
-              style={{
-                padding: "0.4rem",
-                borderRadius: "6px",
-                border: "1px solid #ccc"
+              onChange={e => { setTarget(e.target.value); setResult(null); }}
+              style={{ 
+                flex: 1,
+                padding: "0.6rem", 
+                borderRadius: "8px", 
+                border: "1px solid #cbd5e1",
+                background: "white",
+                fontSize: "1rem",
+                outline: "none"
               }}
             >
-              {variableKeys.map(key => (
-                <option key={key} value={key}>
-                  {key}
-                </option>
+              {editableKeys.map(key => (
+                <option key={key} value={key}>{key}</option>
               ))}
             </select>
-
-            <span style={{ marginLeft: "1rem", fontSize: "1.3rem" }}>
-              {currentVariable?.symbol && (
-                <InlineMath math={currentVariable.symbol} />
-              )}
-            </span>
+            <div style={{ minWidth: "50px", textAlign: "center", fontSize: "1.5rem", color: "#2563eb" }}>
+              {currentVariable?.symbol && <InlineMath math={currentVariable.symbol} />}
+            </div>
           </div>
         </div>
 
-        {/* Inputs */}
-        {requiredVariables.map(key => {
-          const variable = variables.find(v => v.key === key);
-          const currentValue = inputs[key];
+        {/* Inputs Section - ใช้ Grid เพื่อแก้ปัญหา Alignment */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {requiredVariables.map(key => {
+            const variable = variables.find(v => v.key === key);
+            const value = inputs[key] ?? variable?.value ?? "";
+            const belowMin = variable?.min !== undefined && Number(value) < variable.min;
 
-          const belowMin =
-            variable?.min !== undefined &&
-            currentValue !== undefined &&
-            Number(currentValue) < variable.min;
-
-          return (
-            <div
-              key={key}
-              style={{
-                marginBottom: "0.8rem",
-                display: "flex",
+            return (
+              <div key={key} style={{ 
+                display: "grid", 
+                gridTemplateColumns: "50px 1fr 80px", // [สัญลักษณ์] [ช่องกรอก] [หน่วย]
                 alignItems: "center",
-                justifyContent: "space-between"
-              }}
-            >
-              <span>
-                {variable?.symbol ? (
-                  <InlineMath math={variable.symbol} />
-                ) : (
-                  key
-                )}
-              </span>
+                gap: "10px"
+              }}>
+                {/* 1. Symbol - ชิดซ้าย */}
+                <span style={{ fontSize: "1.1rem", color: "#475569" }}>
+                  {variable?.symbol ? <InlineMath math={variable.symbol} /> : key}
+                </span>
 
-              <div>
+                {/* 2. Input - ชิดขวาข้างในเพื่อให้เลขใกล้หน่วย */}
                 <input
                   type="text"
                   inputMode="decimal"
-                  value={inputs[key] ?? ""}
-                  onChange={e => handleChange(key, e.target.value)}
+                  value={value}
+                  onChange={e => !variable?.isFixed && handleChange(key, e.target.value)}
+                  disabled={variable?.isFixed}
                   style={{
-                    width: "100px",
-                    padding: "0.3rem",
-                    borderRadius: "6px",
-                    border: belowMin
-                      ? "1px solid #ef4444"
-                      : "1px solid #ccc",
-                    background:
-                      memory[key] !== undefined &&
-                      inputs[key] === undefined
-                        ? "#fff7ed"
-                        : "white"
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    background: variable?.isFixed ? "#f1f5f9" : "white",
+                    textAlign: "right",
+                    fontSize: "1rem",
+                    transition: "all 0.2s",
+                    outline: "none",
+                    width: "100%" // ให้ขยายเต็ม Column กลาง
                   }}
                 />
 
-                <span
-                  style={{
-                    marginLeft: "0.5rem",
-                    fontSize: "0.9rem",
-                    opacity: 0.7
-                  }}
-                >
+                {/* 3. Unit - ล็อกความกว้างและชิดซ้าย เพื่อให้ระยะห่างจากเลขคงที่ */}
+                <span style={{ 
+                  fontSize: "0.9rem", 
+                  color: "#94a3b8", 
+                  paddingLeft: "5px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}>
                   {variable?.unit}
                 </span>
               </div>
+            );
+          })}
+        </div>
+
+        {/* Result Area */}
+        <div style={{ minHeight: "80px", marginTop: "2rem", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          {result !== null ? (
+            <div style={{ 
+              padding: "1rem", 
+              background: "#eff6ff", 
+              borderRadius: "12px", 
+              textAlign: "center", 
+              border: "1px solid #dbeafe"
+            }}>
+              <div style={{ color: "#3b82f6", fontSize: "0.8rem", fontWeight: "600", marginBottom: "0.25rem" }}>RESULT</div>
+              <div style={{ color: "#1e40af", fontSize: "1.2rem", fontWeight: "bold" }}>
+                {typeof result === "number" && currentVariable?.symbol ? (
+                  <>
+                    <InlineMath math={`${currentVariable.symbol} = ${result}`} />
+                    <span style={{ marginLeft: "0.5rem", fontSize: "1rem" }}>{currentVariable?.unit}</span>
+                  </>
+                ) : result}
+              </div>
             </div>
-          );
-        })}
+          ) : (
+            /* Memory Preview กรณีไม่มีผลลัพธ์ */
+            memory[target] !== undefined && currentVariable && (
+              <div style={{ textAlign: "center", color: "#94a3b8", fontSize: "0.95rem", fontStyle: "italic" }}>
+                Prev: <InlineMath math={`${currentVariable.symbol} = ${memory[target]}`} /> {currentVariable.unit}
+              </div>
+            )
+          )}
+        </div>
 
-        {/* Memory preview */}
-        {memory[target] !== undefined && currentVariable && (
-          <div
-            style={{
-              marginTop: "1rem",
-              textAlign: "center",
-              fontSize: "1rem",
-              color: "#444"
-            }}
-          >
-            <InlineMath
-              math={`${currentVariable.symbol} = ${memory[target]}`}
-            />
-            {currentVariable.unit && ` ${currentVariable.unit}`}
-          </div>
-        )}
-
-        {/* Button */}
+        {/* Calculate Button */}
         <button
           onClick={handleCalculate}
-          style={{
-            marginTop: "1rem",
-            width: "100%",
-            padding: "0.6rem",
-            borderRadius: "8px",
-            border: "none",
-            background: "#3b82f6",
-            color: "white",
-            fontWeight: "bold",
-            cursor: "pointer"
+          style={{ 
+            marginTop: "1rem", 
+            width: "100%", 
+            padding: "0.8rem", 
+            borderRadius: "10px", 
+            border: "none", 
+            background: "#2563eb", 
+            color: "white", 
+            fontWeight: "bold", 
+            fontSize: "1rem",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(37, 99, 235, 0.2)",
+            transition: "transform 0.1s"
           }}
+          onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
+          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
         >
-          Calculate
+          Calculate & Save
         </button>
-
-        {/* Result */}
-        {result !== null && (
-          <div
-            style={{
-              marginTop: "1.5rem",
-              padding: "1rem",
-              background: "#eef2ff",
-              borderRadius: "8px",
-              textAlign: "center",
-              fontWeight: "bold",
-              fontSize: "1.1rem"
-            }}
-          >
-            {typeof result === "number" && currentVariable?.symbol ? (
-              <>
-                <InlineMath
-                  math={`${currentVariable.symbol} = ${result}`}
-                />
-                {currentVariable?.unit && ` ${currentVariable.unit}`}
-              </>
-            ) : (
-              <>Result: {result}</>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

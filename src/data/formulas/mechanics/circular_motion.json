@@ -1,1 +1,119 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Circular Motion",
+  "description": "Uniform circular motion: centripetal force, acceleration, and the relationship between angular and linear quantities.",
+  "variable_sub": [
+    { 
+      "key": "v_Mechanics", 
+      "symbol": "v", 
+      "name": "Linear Velocity", 
+      "unit": "m/s", 
+      "min": 0, 
+      "description": "Velocity along the circular path" 
+    },
+    { 
+      "key": "omega_Mechanics", 
+      "symbol": "\\omega", 
+      "name": "Angular Velocity", 
+      "unit": "rad/s", 
+      "min": 0, 
+      "description": "Rate of change of angular displacement" 
+    },
+    { 
+      "key": "r_Mechanics", 
+      "symbol": "r", 
+      "name": "Radius", 
+      "unit": "m", 
+      "min": 0.000001, 
+      "description": "Radius of the circular path" 
+    },
+    { 
+      "key": "T_Mechanics", 
+      "symbol": "T", 
+      "name": "Period", 
+      "unit": "s", 
+      "min": 0.000001, 
+      "description": "Time taken for one complete revolution" 
+    },
+    { 
+      "key": "f_Mechanics", 
+      "symbol": "f", 
+      "name": "Frequency", 
+      "unit": "Hz", 
+      "min": 0, 
+      "description": "Number of revolutions per second" 
+    },
+    { 
+      "key": "ac_Mechanics", 
+      "symbol": "a_c", 
+      "name": "Centripetal Acceleration", 
+      "unit": "m/s^2", 
+      "min": 0, 
+      "description": "Acceleration directed towards the center" 
+    },
+    { 
+      "key": "Fc_Mechanics", 
+      "symbol": "F_c", 
+      "name": "Centripetal Force", 
+      "unit": "N", 
+      "min": 0, 
+      "description": "Net force causing circular motion" 
+    },
+    { 
+      "key": "m_Mechanics", 
+      "symbol": "m", 
+      "name": "Mass", 
+      "unit": "kg", 
+      "min": 0.000001, 
+      "description": "Mass of the rotating object" 
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "circ-1",
+      "name": "Linear and Angular Velocity Relation",
+      "formula": "v = \\omega r",
+      "variable": ["v_Mechanics", "omega_Mechanics", "r_Mechanics"],
+      "calculate": {
+        "v_Mechanics": { "type": "expression", "value": "omega_Mechanics * r_Mechanics" },
+        "omega_Mechanics": { "type": "expression", "value": "v_Mechanics / r_Mechanics" },
+        "r_Mechanics": { "type": "expression", "value": "v_Mechanics / omega_Mechanics" }
+      }
+    },
+    {
+      "id": "circ-2",
+      "name": "Angular Velocity and Period/Frequency",
+      "formula": "\\omega = \\frac{2 \\pi}{T} = 2 \\pi f",
+      "variable": ["omega_Mechanics", "T_Mechanics", "f_Mechanics"],
+      "calculate": {
+        "omega_Mechanics": { "type": "expression", "value": "2 * PI * f_Mechanics" },
+        "T_Mechanics": { "type": "expression", "value": "2 * PI / omega_Mechanics" },
+        "f_Mechanics": { "type": "expression", "value": "1 / T_Mechanics" }
+      }
+    },
+    {
+      "id": "circ-3",
+      "name": "Centripetal Acceleration",
+      "formula": "a_c = \\frac{v^2}{r} = \\omega^2 r",
+      "variable": ["ac_Mechanics", "v_Mechanics", "r_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "ac_Mechanics": { "type": "expression", "value": "v_Mechanics * v_Mechanics / r_Mechanics" },
+        "v_Mechanics": { "type": "expression", "value": "sqrt(ac_Mechanics * r_Mechanics)" },
+        "r_Mechanics": { "type": "expression", "value": "v_Mechanics * v_Mechanics / ac_Mechanics" },
+        "omega_Mechanics": { "type": "expression", "value": "sqrt(ac_Mechanics / r_Mechanics)" }
+      }
+    },
+    {
+      "id": "circ-4",
+      "name": "Centripetal Force",
+      "formula": "F_c = \\frac{m v^2}{r} = m \\omega^2 r",
+      "variable": ["Fc_Mechanics", "m_Mechanics", "v_Mechanics", "r_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "Fc_Mechanics": { "type": "expression", "value": "m_Mechanics * v_Mechanics * v_Mechanics / r_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "Fc_Mechanics * r_Mechanics / (v_Mechanics * v_Mechanics)" },
+        "v_Mechanics": { "type": "expression", "value": "sqrt(Fc_Mechanics * r_Mechanics / m_Mechanics)" },
+        "r_Mechanics": { "type": "expression", "value": "m_Mechanics * v_Mechanics * v_Mechanics / Fc_Mechanics" }
+      }
+    }
+  ]
+}

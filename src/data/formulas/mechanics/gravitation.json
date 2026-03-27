@@ -1,1 +1,103 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Gravitation",
+  "description": "Newtonian gravitation for high school level: gravitational force, weight, and acceleration due to gravity.",
+  "variable_sub": [
+    { 
+      "key": "m_Mechanics", 
+      "symbol": "m", 
+      "name": "Mass of object", 
+      "unit": "kg", 
+      "min": 0.000001, 
+      "description": "Mass of the object" 
+    },
+    { 
+      "key": "M_Mechanics", 
+      "symbol": "M", 
+      "name": "Mass of other object", 
+      "unit": "kg", 
+      "min": 0.000001, 
+      "description": "Mass of the other object (e.g., Earth)" 
+    },
+    { 
+      "key": "r_Mechanics", 
+      "symbol": "r", 
+      "name": "Distance", 
+      "unit": "m", 
+      "min": 0.000001, 
+      "description": "Distance between the centers of two masses" 
+    },
+    { 
+      "key": "G_Mechanics", 
+      "symbol": "G", 
+      "name": "Gravitational constant", 
+      "unit": "N·m^2/kg^2", 
+      "value": 6.674e-11, 
+      "min": 0, 
+      "isFixed": true, 
+      "description": "Universal gravitational constant (Fixed)" 
+    },
+    { 
+      "key": "g_Mechanics", 
+      "symbol": "g", 
+      "name": "Gravitational acceleration", 
+      "unit": "m/s^2", 
+      "value": 9.8, 
+      "min": 0, 
+      "isFixed": false, 
+      "description": "Default is Earth's gravity (9.8), but can be changed for other planets." 
+    },
+    { 
+      "key": "F_Mechanics", 
+      "symbol": "F", 
+      "name": "Gravitational force", 
+      "unit": "N", 
+      "min": 0, 
+      "description": "Force between two masses" 
+    },
+    { 
+      "key": "W_Mechanics", 
+      "symbol": "W", 
+      "name": "Weight", 
+      "unit": "N", 
+      "min": 0, 
+      "description": "Weight of the object (m * g)" 
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "grav-1",
+      "name": "Newton's Law of Gravitation",
+      "formula": "F = \\frac{G m M}{r^2}",
+      "variable": ["F_Mechanics", "G_Mechanics", "m_Mechanics", "M_Mechanics", "r_Mechanics"],
+      "calculate": {
+        "F_Mechanics": { "type": "expression", "value": "G_Mechanics * m_Mechanics * M_Mechanics / (r_Mechanics * r_Mechanics)" },
+        "m_Mechanics": { "type": "expression", "value": "F_Mechanics * r_Mechanics * r_Mechanics / (G_Mechanics * M_Mechanics)" },
+        "M_Mechanics": { "type": "expression", "value": "F_Mechanics * r_Mechanics * r_Mechanics / (G_Mechanics * m_Mechanics)" },
+        "r_Mechanics": { "type": "expression", "value": "sqrt(G_Mechanics * m_Mechanics * M_Mechanics / F_Mechanics)" }
+      }
+    },
+    {
+      "id": "grav-2",
+      "name": "Weight of an object",
+      "formula": "W = m g",
+      "variable": ["W_Mechanics", "m_Mechanics", "g_Mechanics"],
+      "calculate": {
+        "W_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "W_Mechanics / g_Mechanics" },
+        "g_Mechanics": { "type": "expression", "value": "W_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "grav-3",
+      "name": "Gravitational acceleration near a planet",
+      "formula": "g = \\frac{G M}{r^2}",
+      "variable": ["g_Mechanics", "G_Mechanics", "M_Mechanics", "r_Mechanics"],
+      "calculate": {
+        "g_Mechanics": { "type": "expression", "value": "G_Mechanics * M_Mechanics / (r_Mechanics * r_Mechanics)" },
+        "M_Mechanics": { "type": "expression", "value": "g_Mechanics * r_Mechanics * r_Mechanics / G_Mechanics" },
+        "r_Mechanics": { "type": "expression", "value": "sqrt(G_Mechanics * M_Mechanics / g_Mechanics)" }
+      }
+    }
+  ]
+}

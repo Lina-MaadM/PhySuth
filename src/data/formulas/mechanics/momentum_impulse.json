@@ -1,1 +1,66 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Momentum & Impulse",
+  "description": "Momentum and impulse in one-dimensional motion, change in momentum, and average force.",
+  "variable_sub": [
+    { "key": "p_Mechanics", "symbol": "p", "name": "Momentum", "unit": "kg·m/s" },
+    { "key": "p0_Mechanics", "symbol": "p_0", "name": "Initial Momentum", "unit": "kg·m/s" },
+    { "key": "deltap_Mechanics", "symbol": "\\Delta p", "name": "Change in Momentum", "unit": "kg·m/s" },
+    { "key": "J_Mechanics", "symbol": "J", "name": "Impulse", "unit": "N·s" },
+    { "key": "m_Mechanics", "symbol": "m", "name": "Mass", "unit": "kg", "min": 0.000001 },
+    { "key": "u_Mechanics", "symbol": "u", "name": "Initial Velocity", "unit": "m/s" },
+    { "key": "v_Mechanics", "symbol": "v", "name": "Final Velocity", "unit": "m/s" },
+    { "key": "t_Mechanics", "symbol": "t", "name": "Final Time", "unit": "s", "min": 0 },
+    { "key": "t0_Mechanics", "symbol": "t_0", "name": "Initial Time", "unit": "s", "min": 0 },
+    { "key": "Favg_Mechanics", "symbol": "F_{avg}", "name": "Average Force", "unit": "N" }
+  ],
+  "formula_sub": [
+    {
+      "id": "mom-1",
+      "name": "Momentum",
+      "formula": "p = mv",
+      "variable": ["p_Mechanics", "m_Mechanics", "v_Mechanics"],
+      "calculate": {
+        "p_Mechanics": { "value": "m_Mechanics * v_Mechanics" },
+        "m_Mechanics": { "value": "p_Mechanics / v_Mechanics" },
+        "v_Mechanics": { "value": "p_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "mom-3",
+      "name": "Change in Momentum (Velocity)",
+      "formula": "\\Delta p = m(v - u)",
+      "variable": ["deltap_Mechanics", "m_Mechanics", "v_Mechanics", "u_Mechanics"],
+      "calculate": {
+        "deltap_Mechanics": { "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
+        "m_Mechanics": { "value": "deltap_Mechanics / (v_Mechanics - u_Mechanics)" },
+        "v_Mechanics": { "value": "(deltap_Mechanics / m_Mechanics) + u_Mechanics" },
+        "u_Mechanics": { "value": "v_Mechanics - (deltap_Mechanics / m_Mechanics)" }
+      }
+    },
+    {
+      "id": "mom-5",
+      "name": "Impulse (Mass & Velocity Change)",
+      "formula": "J = m(v - u)",
+      "variable": ["J_Mechanics", "m_Mechanics", "v_Mechanics", "u_Mechanics"],
+      "calculate": {
+        "J_Mechanics": { "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
+        "m_Mechanics": { "value": "J_Mechanics / (v_Mechanics - u_Mechanics)" },
+        "v_Mechanics": { "value": "(J_Mechanics / m_Mechanics) + u_Mechanics" },
+        "u_Mechanics": { "value": "v_Mechanics - (J_Mechanics / m_Mechanics)" }
+      }
+    },
+    {
+      "id": "mom-6",
+      "name": "Average Force",
+      "formula": "F_{avg} = \\frac{J}{t - t_0}",
+      "variable": ["F_avg_Mechanics", "J_Mechanics", "t_Mechanics", "t0_Mechanics"],
+      "calculate": {
+        "F_avg_Mechanics": { "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)" },
+        "J_Mechanics": { "value": "F_avg_Mechanics * (t_Mechanics - t0_Mechanics)" },
+        "t_Mechanics": { "value": "(J_Mechanics / F_avg_Mechanics) + t0_Mechanics" },
+        "t0_Mechanics": { "value": "t_Mechanics - (J_Mechanics / F_avg_Mechanics)" }
+      }
+    }
+  ]
+}

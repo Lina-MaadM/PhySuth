@@ -13,16 +13,15 @@ function RelationView({ addHistory }) {
 
   const baseKey = key?.split("_")[0];
 
-  // หา variable ที่มีรูปแบบ x_*
   const relatedVariables = useMemo(() => {
-    return Object.values(variableIndex).filter((v) =>
-      v.key.startsWith(baseKey + "_")
-    );
+    return Object.values(variableIndex).filter((v) => {
+      const vBase = v.key.split("_")[0];
+      return vBase === baseKey;
+    });
   }, [baseKey]);
 
   const formulas = useMemo(() => {
     if (!relatedVariables.length) return [];
-
     const variableKeys = relatedVariables.map((v) => v.key);
 
     return Object.values(formulaIndex).filter(
@@ -32,22 +31,26 @@ function RelationView({ addHistory }) {
     );
   }, [relatedVariables]);
 
-  // group สูตรตาม topic
-  const groupedFormulas = useMemo(() => {
+  // ปรับ Logic การ Group: ชั้นแรก Group ด้วย Topic เพื่อให้อยู่ในกรอบเดียวกัน
+  const topicGroups = useMemo(() => {
     const groups = {};
 
     formulas.forEach((f) => {
-      const groupKey = `${f.topic}__${f.subtopic || ""}`;
-
-      if (!groups[groupKey]) {
-        groups[groupKey] = {
-          topic: f.topic,
-          subtopic: f.subtopic,
-          formulas: [],
+      if (!groups[f.topic]) {
+        groups[f.topic] = {
+          topicName: f.topic,
+          subGroups: {} // เก็บ subtopics ย่อยข้างใน
         };
       }
 
-      groups[groupKey].formulas.push(f);
+      const subKey = f.subtopic || "General";
+      if (!groups[f.topic].subGroups[subKey]) {
+        groups[f.topic].subGroups[subKey] = {
+          subtopicName: f.subtopic,
+          formulas: []
+        };
+      }
+      groups[f.topic].subGroups[subKey].formulas.push(f);
     });
 
     return Object.values(groups);
@@ -64,76 +67,83 @@ function RelationView({ addHistory }) {
       key: key,
       label: currentVariable.symbol,
     });
-  }, [key]);
+  }, [key, currentVariable, addHistory, location.state]);
 
   if (!currentVariable) {
     return (
-      <div className="p-6 pt-24 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold text-center">Variable not found</h1>
+      <div className="p-6 pt-24 max-w-4xl mx-auto text-center">
+        <h1 className="text-2xl font-bold">Variable not found</h1>
       </div>
     );
   }
 
   return (
     <div className="p-6 pt-24 space-y-10 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center">
-        <InlineMath math={currentVariable.symbol} />
-      </h1>
+      {/* Header ส่วนบนสุด */}
+      <div className="text-center space-y-2">
+        <h1 className="text-5xl font-bold">
+          <InlineMath math={currentVariable.symbol} />
+        </h1>
+        {/*<p className="text-xl text-gray-600">{currentVariable.name}</p>*/}
+      </div>
 
       <div className="space-y-8">
-        {groupedFormulas.map((group) => {
-          // หา variable ที่ตรงกับ group นี้จริง ๆ
-          const variableForGroup = relatedVariables.find(
-            (v) =>
-              v.topic === group.topic &&
-              v.subtopic === group.subtopic
-          );
-
-          if (!variableForGroup) return null;
-
-          return (
-            <div
-              key={group.topic + group.subtopic}
-              className="border rounded-lg p-6 space-y-3"
-            >
-              <h2 className="text-xl font-semibold">
-                {group.topic}
-                {group.subtopic && ` – ${group.subtopic}`}
+        {topicGroups.map((group) => (
+          <div
+            key={group.topicName}
+            className="border rounded-xl p-6 shadow-sm bg-white space-y-6"
+          >
+            {/* หัวข้อใหญ่ของกรอบ (Topic) */}
+            <div className="border-b pb-2">
+              <h2 className="text-2xl font-bold text-blue-600 uppercase">
+                {group.topicName}
               </h2>
-
-              <p className="font-medium">{variableForGroup.name}</p>
-
-              {variableForGroup.unit && (
-                <p className="text-sm text-gray-500">
-                  Unit: {variableForGroup.unit}
-                </p>
-              )}
-
-              {variableForGroup.description && (
-                <p className="text-gray-700">
-                  {variableForGroup.description}
-                </p>
-              )}
-
-              <div className="pt-2">
-                <p className="font-semibold mb-2">
-                  Appears in formula:
-                </p>
-
-                <div className="space-y-2">
-                  {group.formulas.map((f) => (
-                    <FormulaCard
-                      key={f.id}
-                      id={f.id}
-                      name={f.name}
-                      formula={f.formula}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
-          );
-        })}
+
+            {/* แสดงเนื้อหาแยกตาม Subtopic ภายในกรอบเดียวกัน */}
+            {Object.values(group.subGroups).map((subGroup) => {
+              // หาข้อมูลตัวแปรที่ตรงกับกลุ่มนี้เพื่อดึง Unit/Description มาแสดง
+              const variableForGroup = relatedVariables.find(
+                (v) => v.topic === group.topicName && v.subtopic === subGroup.subtopicName
+              ) || currentVariable;
+
+              return (
+                <div key={subGroup.subtopicName || "gen"} className="space-y-4">
+                  {/* หัวข้อย่อยและรายละเอียดตัวแปร */}
+                  <div className="space-y-1">
+                    {subGroup.subtopicName && (
+                      <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider">
+                        {subGroup.subtopicName}
+                      </h3>
+                    )}
+                    <p className="font-semibold text-lg">{variableForGroup.name}</p>
+                    {variableForGroup.unit && (
+                      <p className="text-sm text-gray-500">Unit: {variableForGroup.unit}</p>
+                    )}
+                    {variableForGroup.description && (
+                      <p className="text-gray-600 text-sm italic">{variableForGroup.description}</p>
+                    )}
+                  </div>
+
+                  {/* รายการการ์ดสูตร */}
+                  <div className="space-y-2">
+                    {subGroup.formulas.map((f) => (
+                      <FormulaCard
+                        key={f.id}
+                        id={f.id}
+                        name={f.name}
+                        formula={f.formula}
+                      />
+                    ))}
+                  </div>
+                  
+                  {/* เส้นคั่นระหว่าง Subtopic (ถ้ามีหลายอันในกรอบเดียว) */}
+                  <div className="last:hidden border-t border-gray-50 pt-2"></div>
+                </div>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,1 +1,92 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Force (Newton's Laws)",
+  "description": "Basic force formulas for high school physics, including net force, weight, and friction.",
+  "variable_sub": [
+    { 
+      "key": "F_Mechanics", 
+      "symbol": "F", 
+      "name": "Net Force", 
+      "unit": "N", 
+      "min": 0 
+    },
+    { 
+      "key": "m_Mechanics", 
+      "symbol": "m", 
+      "name": "Mass", 
+      "unit": "kg", 
+      "min": 0.000001 
+    },
+    { 
+      "key": "a_Mechanics", 
+      "symbol": "a", 
+      "name": "Acceleration", 
+      "unit": "m/s²" 
+    },
+    { 
+      "key": "g_Mechanics", 
+      "symbol": "g", 
+      "name": "Local Gravity", 
+      "unit": "m/s²", 
+      "value": 9.806, 
+      "min": 0,
+      "description": "Default is Earth (9.8), change for other planets"
+    },
+    { 
+      "key": "W_Mechanics", 
+      "symbol": "W", 
+      "name": "Weight", 
+      "unit": "N", 
+      "min": 0 
+    },
+    { 
+      "key": "Ff_Mechanics", 
+      "symbol": "F_f", 
+      "name": "Friction Force", 
+      "unit": "N", 
+      "min": 0 
+    },
+    { 
+      "key": "mu_Mechanics", 
+      "symbol": "\\mu", 
+      "name": "Coeff. of Friction", 
+      "unit": "", 
+      "min": 0 
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "force-1",
+      "name": "Newton's Second Law",
+      "formula": "F = ma",
+      "variable": ["F_Mechanics", "m_Mechanics", "a_Mechanics"],
+      "calculate": {
+        "F_Mechanics": { "value": "m_Mechanics * a_Mechanics" },
+        "m_Mechanics": { "value": "F_Mechanics / a_Mechanics" },
+        "a_Mechanics": { "value": "F_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "force-2",
+      "name": "Weight",
+      "formula": "W = mg",
+      "variable": ["W_Mechanics", "m_Mechanics", "g_Mechanics"],
+      "calculate": {
+        "W_Mechanics": { "value": "m_Mechanics * g_Mechanics" },
+        "m_Mechanics": { "value": "W_Mechanics / g_Mechanics" },
+        "g_Mechanics": { "value": "W_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "force-3",
+      "name": "Friction Force",
+      "formula": "F_f = \\mu W",
+      "variable": ["Ff_Mechanics", "mu_Mechanics", "W_Mechanics"],
+      "calculate": {
+        "Ff_Mechanics": { "value": "mu_Mechanics * W_Mechanics" },
+        "mu_Mechanics": { "value": "Ff_Mechanics / W_Mechanics" },
+        "W_Mechanics": { "value": "Ff_Mechanics / mu_Mechanics" }
+      }
+    }
+  ]
+}
