@@ -1,1 +1,156 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Simple Harmonic Motion",
+  "description": "Basic SHM formulas for high school level: displacement, velocity, acceleration, angular frequency, period, and energy.",
+  "variable_sub": [
+    {
+      "key": "x_Mechanics",
+      "symbol": "x",
+      "name": "Displacement",
+      "unit": "m",
+      "description": "Displacement from equilibrium position"
+    },
+    {
+      "key": "A_Mechanics",
+      "symbol": "A",
+      "name": "Amplitude",
+      "unit": "m",
+      "min": 0.000001,
+      "description": "Maximum displacement"
+    },
+    {
+      "key": "v_Mechanics",
+      "symbol": "v",
+      "name": "Velocity",
+      "unit": "m/s",
+      "description": "Instantaneous velocity"
+    },
+    {
+      "key": "vmax_Mechanics",
+      "symbol": "v_{max}",
+      "name": "Maximum velocity",
+      "unit": "m/s",
+      "min": 0.000001,
+      "description": "Velocity at maximum displacement"
+    },
+    {
+      "key": "a_Mechanics",
+      "symbol": "a",
+      "name": "Acceleration",
+      "unit": "m/s^2",
+      "description": "Instantaneous acceleration"
+    },
+    {
+      "key": "amax_Mechanics",
+      "symbol": "a_{max}",
+      "name": "Maximum acceleration",
+      "unit": "m/s^2",
+      "min": 0.000001,
+      "description": "Acceleration at maximum displacement"
+    },
+    {
+      "key": "k_Mechanics",
+      "symbol": "k",
+      "name": "Spring constant",
+      "unit": "N/m",
+      "min": 0.000001,
+      "description": "Spring stiffness"
+    },
+    {
+      "key": "m_Mechanics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "min": 0.000001,
+      "description": "Mass of the object"
+    },
+    {
+      "key": "omega_Mechanics",
+      "symbol": "\\omega",
+      "name": "Angular frequency",
+      "unit": "rad/s",
+      "min": 0.000001,
+      "description": "Angular frequency of SHM"
+    },
+    {
+      "key": "T_Mechanics",
+      "symbol": "T",
+      "name": "Period",
+      "unit": "s",
+      "min": 0.000001,
+      "description": "Time for one complete oscillation"
+    },
+    {
+      "key": "E_Mechanics",
+      "symbol": "E",
+      "name": "Total energy",
+      "unit": "J",
+      "min": 0.000001,
+      "description": "Total mechanical energy in SHM"
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "shm-1",
+      "name": "Displacement in SHM",
+      "formula": "x = A \\cos(\\omega t + \\phi)",
+      "variable": ["x_Mechanics", "A_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "x_Mechanics": { "type": "expression", "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics + phi_Mechanics)" },
+        "A_Mechanics": { "type": "expression", "value": "abs(x_Mechanics / cos(omega_Mechanics * t_Mechanics + phi_Mechanics))" }
+      }
+    },
+    {
+      "id": "shm-2",
+      "name": "Velocity in SHM",
+      "formula": "v = -A \\omega \\sin(\\omega t + \\phi)",
+      "variable": ["v_Mechanics", "A_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "v_Mechanics": { "type": "expression", "value": "-A_Mechanics * omega_Mechanics * sin(omega_Mechanics * t_Mechanics + phi_Mechanics)" },
+        "vmax_Mechanics": { "type": "expression", "value": "A_Mechanics * omega_Mechanics" }
+      }
+    },
+    {
+      "id": "shm-3",
+      "name": "Acceleration in SHM",
+      "formula": "a = -A \\omega^2 \\cos(\\omega t + \\phi)",
+      "variable": ["a_Mechanics", "A_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "a_Mechanics": { "type": "expression", "value": "-A_Mechanics * omega_Mechanics^2 * cos(omega_Mechanics * t_Mechanics + phi_Mechanics)" },
+        "amax_Mechanics": { "type": "expression", "value": "A_Mechanics * omega_Mechanics^2" }
+      }
+    },
+    {
+      "id": "shm-4",
+      "name": "Angular frequency",
+      "formula": "\\omega = \\sqrt{k/m}",
+      "variable": ["omega_Mechanics", "k_Mechanics", "m_Mechanics"],
+      "calculate": {
+        "omega_Mechanics": { "type": "expression", "value": "sqrt(k_Mechanics / m_Mechanics)" },
+        "k_Mechanics": { "type": "expression", "value": "omega_Mechanics^2 * m_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "k_Mechanics / omega_Mechanics^2" }
+      }
+    },
+    {
+      "id": "shm-5",
+      "name": "Period",
+      "formula": "T = 2\\pi / \\omega",
+      "variable": ["T_Mechanics", "omega_Mechanics"],
+      "calculate": {
+        "T_Mechanics": { "type": "expression", "value": "2 * pi / omega_Mechanics" },
+        "omega_Mechanics": { "type": "expression", "value": "2 * pi / T_Mechanics" }
+      }
+    },
+    {
+      "id": "shm-6",
+      "name": "Total energy in SHM",
+      "formula": "E = \\frac{1}{2} k A^2",
+      "variable": ["E_Mechanics", "k_Mechanics", "A_Mechanics"],
+      "calculate": {
+        "E_Mechanics": { "type": "expression", "value": "0.5 * k_Mechanics * A_Mechanics^2" },
+        "k_Mechanics": { "type": "expression", "value": "2 * E_Mechanics / (A_Mechanics^2)" },
+        "A_Mechanics": { "type": "expression", "value": "sqrt(2 * E_Mechanics / k_Mechanics)" }
+      }
+    }
+  ]
+}

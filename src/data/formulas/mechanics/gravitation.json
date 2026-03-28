@@ -87,17 +87,6 @@
         "m_Mechanics": { "type": "expression", "value": "W_Mechanics / g_Mechanics" },
         "g_Mechanics": { "type": "expression", "value": "W_Mechanics / m_Mechanics" }
       }
-    },
-    {
-      "id": "grav-3",
-      "name": "Gravitational acceleration near a planet",
-      "formula": "g = \\frac{G M}{r^2}",
-      "variable": ["g_Mechanics", "G_Mechanics", "M_Mechanics", "r_Mechanics"],
-      "calculate": {
-        "g_Mechanics": { "type": "expression", "value": "G_Mechanics * M_Mechanics / (r_Mechanics * r_Mechanics)" },
-        "M_Mechanics": { "type": "expression", "value": "g_Mechanics * r_Mechanics * r_Mechanics / G_Mechanics" },
-        "r_Mechanics": { "type": "expression", "value": "sqrt(G_Mechanics * M_Mechanics / g_Mechanics)" }
-      }
     }
   ]
 }

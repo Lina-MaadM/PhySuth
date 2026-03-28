@@ -1,1 +1,155 @@
-{}
+{
+  "topic": "Mechanics",
+  "subtopic": "Work, Energy, Power",
+  "description": "Basic formulas for work, kinetic energy, potential energy, and power at high school level.",
+  "variable_sub": [
+    {
+      "key": "W_Mechanics",
+      "symbol": "W",
+      "name": "Work",
+      "unit": "J",
+      "min": 0,
+      "description": "Work done by a force"
+    },
+    {
+      "key": "F_Mechanics",
+      "symbol": "F",
+      "name": "Force",
+      "unit": "N",
+      "min": 0.000001,
+      "description": "Magnitude of the force applied"
+    },
+    {
+      "key": "d_Mechanics",
+      "symbol": "d",
+      "name": "Displacement",
+      "unit": "m",
+      "min": 0.000001,
+      "description": "Displacement along the line of force"
+    },
+    {
+      "key": "theta_Mechanics",
+      "symbol": "\\theta",
+      "name": "Angle",
+      "unit": "deg",
+      "description": "Angle between force and displacement"
+    },
+    {
+      "key": "KE_Mechanics",
+      "symbol": "KE",
+      "name": "Kinetic energy",
+      "unit": "J",
+      "min": 0,
+      "description": "Energy of a moving object"
+    },
+    {
+      "key": "PE_Mechanics",
+      "symbol": "PE",
+      "name": "Potential energy",
+      "unit": "J",
+      "min": 0,
+      "description": "Gravitational potential energy"
+    },
+    {
+      "key": "m_Mechanics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "min": 0.000001,
+      "description": "Mass of the object"
+    },
+    {
+      "key": "v_Mechanics",
+      "symbol": "v",
+      "name": "Velocity",
+      "unit": "m/s",
+      "description": "Speed of the object"
+    },
+    {
+      "key": "h_Mechanics",
+      "symbol": "h",
+      "name": "Height",
+      "unit": "m",
+      "description": "Height above reference point"
+    },
+    {
+      "key": "g_Mechanics",
+      "symbol": "g",
+      "name": "Gravitational acceleration",
+      "unit": "m/s^2",
+      "value": 9.8,
+      "min": 0,
+      "description": "Earth's gravity"
+    },
+    {
+      "key": "P_Mechanics",
+      "symbol": "P",
+      "name": "Power",
+      "unit": "W",
+      "min": 0,
+      "description": "Rate of doing work"
+    },
+    {
+      "key": "t_Mechanics",
+      "symbol": "t",
+      "name": "Time",
+      "unit": "s",
+      "min": 0.000001,
+      "description": "Time interval"
+    }
+  ],
+  "formula_sub": [
+    {
+      
+      "id": "wep-1",
+      "name": "Work done by a constant force",
+      "formula": "W = F d \\cos(\\theta)",
+      "variable": ["W_Mechanics", "F_Mechanics", "d_Mechanics", "theta_Mechanics"],
+      "calculate": {
+        "W_Mechanics": { 
+          "value": "F_Mechanics * d_Mechanics * cos(theta_Mechanics * PI / 180)" 
+        },
+        "F_Mechanics": { 
+          "value": "W_Mechanics / (d_Mechanics * cos(theta_Mechanics * PI / 180))" 
+        },
+        "d_Mechanics": { 
+          "value": "W_Mechanics / (F_Mechanics * cos(theta_Mechanics * PI / 180))" 
+        },
+        "theta_Mechanics": { 
+          "value": "acos(W_Mechanics / (F_Mechanics * d_Mechanics)) * 180 / PI" 
+        }
+
+          }
+    },
+    {
+      "id": "wep-2",
+      "name": "Kinetic energy",
+      "formula": "KE = \\frac{1}{2} m v^2",
+      "variable": ["KE_Mechanics", "m_Mechanics", "v_Mechanics"],
+      "calculate": {
+        "KE_Mechanics": { "type": "expression", "value": "0.5 * m_Mechanics * v_Mechanics * v_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "2 * KE_Mechanics / (v_Mechanics * v_Mechanics)" },
+        "v_Mechanics": { "type": "expression", "value": "sqrt(2 * KE_Mechanics / m_Mechanics)" }
+      }
+    },
+    {
+      "id": "wep-3",
+      "name": "Potential energy",
+      "formula": "PE = m g h",
+      "variable": ["PE_Mechanics", "m_Mechanics", "g_Mechanics", "h_Mechanics"],
+      "calculate": {
+        "PE_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics * h_Mechanics" }
+      }
+    },
+    {
+      "id": "wep-4",
+      "name": "Power (average)",
+      "formula": "P = \\frac{W}{t}",
+      "variable": ["P_Mechanics", "W_Mechanics", "t_Mechanics"],
+      "calculate": {
+        "P_Mechanics": { "type": "expression", "value": "W_Mechanics / t_Mechanics" },
+        "W_Mechanics": { "type": "expression", "value": "P_Mechanics * t_Mechanics" }
+      }
+    }
+  ]
+}

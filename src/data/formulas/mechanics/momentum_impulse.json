@@ -57,7 +57,7 @@
       "variable": ["F_avg_Mechanics", "J_Mechanics", "t_Mechanics", "t0_Mechanics"],
       "calculate": {
         "F_avg_Mechanics": { "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)" },
-        "J_Mechanics": { "value": "F_avg_Mechanics * (t_Mechanics - t0_Mechanics)" },
+        "J_Mechanics": { "value": "Favg_Mechanics * (t_Mechanics - t0_Mechanics)" },
         "t_Mechanics": { "value": "(J_Mechanics / F_avg_Mechanics) + t0_Mechanics" },
         "t0_Mechanics": { "value": "t_Mechanics - (J_Mechanics / F_avg_Mechanics)" }
       }
