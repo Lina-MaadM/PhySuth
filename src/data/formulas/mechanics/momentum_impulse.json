@@ -3,63 +3,145 @@
   "subtopic": "Momentum & Impulse",
   "description": "Momentum and impulse in one-dimensional motion, change in momentum, and average force.",
   "variable_sub": [
-    { "key": "p_Mechanics", "symbol": "p", "name": "Momentum", "unit": "kg·m/s" },
-    { "key": "p0_Mechanics", "symbol": "p_0", "name": "Initial Momentum", "unit": "kg·m/s" },
-    { "key": "deltap_Mechanics", "symbol": "\\Delta p", "name": "Change in Momentum", "unit": "kg·m/s" },
-    { "key": "J_Mechanics", "symbol": "J", "name": "Impulse", "unit": "N·s" },
-    { "key": "m_Mechanics", "symbol": "m", "name": "Mass", "unit": "kg", "min": 0.000001 },
-    { "key": "u_Mechanics", "symbol": "u", "name": "Initial Velocity", "unit": "m/s" },
-    { "key": "v_Mechanics", "symbol": "v", "name": "Final Velocity", "unit": "m/s" },
-    { "key": "t_Mechanics", "symbol": "t", "name": "Final Time", "unit": "s", "min": 0 },
-    { "key": "t0_Mechanics", "symbol": "t_0", "name": "Initial Time", "unit": "s", "min": 0 },
-    { "key": "Favg_Mechanics", "symbol": "F_{avg}", "name": "Average Force", "unit": "N" }
+    {
+      "key": "p_Mechanics",
+      "symbol": "p",
+      "name": "Momentum",
+      "unit": "kg·m/s",
+      "description": "The product of mass and velocity (vector quantity)."
+    },
+    {
+      "key": "p0_Mechanics",
+      "symbol": "p_0",
+      "name": "Initial Momentum",
+      "unit": "kg·m/s",
+      "description": "Momentum of the object before an interaction."
+    },
+    {
+      "key": "deltap_Mechanics",
+      "symbol": "\\Delta p",
+      "name": "Change in Momentum",
+      "unit": "kg·m/s",
+      "description": "The difference between final and initial momentum."
+    },
+    {
+      "key": "J_Mechanics",
+      "symbol": "J",
+      "name": "Impulse",
+      "unit": "N·s",
+      "description": "The change in momentum or the product of force and time."
+    },
+    {
+      "key": "m_Mechanics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "min": 0.000001,
+      "description": "The mass of the object (always positive)."
+    },
+    {
+      "key": "u_Mechanics",
+      "symbol": "u",
+      "name": "Initial Velocity",
+      "unit": "m/s",
+      "description": "The starting velocity of the object."
+    },
+    {
+      "key": "v_Mechanics",
+      "symbol": "v",
+      "name": "Final Velocity",
+      "unit": "m/s",
+      "description": "The final velocity of the object."
+    },
+    {
+      "key": "t_Mechanics",
+      "symbol": "t",
+      "name": "Final Time",
+      "unit": "s",
+      "min": 0,
+      "description": "The time at the end of the force application."
+    },
+    {
+      "key": "t0_Mechanics",
+      "symbol": "t_0",
+      "name": "Initial Time",
+      "unit": "s",
+      "min": 0,
+      "description": "The time when the force starts acting (usually 0)."
+    },
+    {
+      "key": "Favg_Mechanics",
+      "symbol": "F_{avg}",
+      "name": "Average Force",
+      "unit": "N",
+      "description": "The mean force exerted during a time interval."
+    }
   ],
   "formula_sub": [
     {
       "id": "mom-1",
-      "name": "Momentum",
+      "name": "Momentum Definition",
       "formula": "p = mv",
-      "variable": ["p_Mechanics", "m_Mechanics", "v_Mechanics"],
+      "variable": [
+        "p_Mechanics", 
+        "m_Mechanics", 
+        "v_Mechanics"
+      ],
       "calculate": {
-        "p_Mechanics": { "value": "m_Mechanics * v_Mechanics" },
-        "m_Mechanics": { "value": "p_Mechanics / v_Mechanics" },
-        "v_Mechanics": { "value": "p_Mechanics / m_Mechanics" }
+        "p_Mechanics": { "type": "expression", "value": "m_Mechanics * v_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "p_Mechanics / v_Mechanics" },
+        "v_Mechanics": { "type": "expression", "value": "p_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "mom-2",
+      "name": "Change in Momentum (Velocity Form)",
+      "formula": "\\Delta p = m(v - u)",
+      "variable": [
+        "deltap_Mechanics", 
+        "m_Mechanics", 
+        "v_Mechanics", 
+        "u_Mechanics"
+      ],
+      "calculate": {
+        "deltap_Mechanics": { "type": "expression", "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
+        "m_Mechanics": { "type": "expression", "value": "deltap_Mechanics / (v_Mechanics - u_Mechanics)" },
+        "v_Mechanics": { "type": "expression", "value": "(deltap_Mechanics / m_Mechanics) + u_Mechanics" },
+        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - (deltap_Mechanics / m_Mechanics)" }
       }
     },
     {
       "id": "mom-3",
-      "name": "Change in Momentum (Velocity)",
-      "formula": "\\Delta p = m(v - u)",
-      "variable": ["deltap_Mechanics", "m_Mechanics", "v_Mechanics", "u_Mechanics"],
-      "calculate": {
-        "deltap_Mechanics": { "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
-        "m_Mechanics": { "value": "deltap_Mechanics / (v_Mechanics - u_Mechanics)" },
-        "v_Mechanics": { "value": "(deltap_Mechanics / m_Mechanics) + u_Mechanics" },
-        "u_Mechanics": { "value": "v_Mechanics - (deltap_Mechanics / m_Mechanics)" }
-      }
-    },
-    {
-      "id": "mom-5",
-      "name": "Impulse (Mass & Velocity Change)",
+      "name": "Impulse-Momentum Theorem",
       "formula": "J = m(v - u)",
-      "variable": ["J_Mechanics", "m_Mechanics", "v_Mechanics", "u_Mechanics"],
+      "variable": [
+        "J_Mechanics", 
+        "m_Mechanics", 
+        "v_Mechanics", 
+        "u_Mechanics"
+      ],
       "calculate": {
-        "J_Mechanics": { "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
-        "m_Mechanics": { "value": "J_Mechanics / (v_Mechanics - u_Mechanics)" },
-        "v_Mechanics": { "value": "(J_Mechanics / m_Mechanics) + u_Mechanics" },
-        "u_Mechanics": { "value": "v_Mechanics - (J_Mechanics / m_Mechanics)" }
+        "J_Mechanics": { "type": "expression", "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
+        "m_Mechanics": { "type": "expression", "value": "J_Mechanics / (v_Mechanics - u_Mechanics)" },
+        "v_Mechanics": { "type": "expression", "value": "(J_Mechanics / m_Mechanics) + u_Mechanics" },
+        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - (J_Mechanics / m_Mechanics)" }
       }
     },
     {
-      "id": "mom-6",
-      "name": "Average Force",
+      "id": "mom-4",
+      "name": "Average Force during Impact",
       "formula": "F_{avg} = \\frac{J}{t - t_0}",
-      "variable": ["F_avg_Mechanics", "J_Mechanics", "t_Mechanics", "t0_Mechanics"],
+      "variable": [
+        "Favg_Mechanics", 
+        "J_Mechanics", 
+        "t_Mechanics", 
+        "t0_Mechanics"
+      ],
       "calculate": {
-        "F_avg_Mechanics": { "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)" },
-        "J_Mechanics": { "value": "Favg_Mechanics * (t_Mechanics - t0_Mechanics)" },
-        "t_Mechanics": { "value": "(J_Mechanics / F_avg_Mechanics) + t0_Mechanics" },
-        "t0_Mechanics": { "value": "t_Mechanics - (J_Mechanics / F_avg_Mechanics)" }
+        "Favg_Mechanics": { "type": "expression", "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)" },
+        "J_Mechanics": { "type": "expression", "value": "Favg_Mechanics * (t_Mechanics - t0_Mechanics)" },
+        "t_Mechanics": { "type": "expression", "value": "(J_Mechanics / Favg_Mechanics) + t0_Mechanics" },
+        "t0_Mechanics": { "type": "expression", "value": "t_Mechanics - (J_Mechanics / Favg_Mechanics)" }
       }
     }
   ]

@@ -124,109 +124,79 @@ export default function CalculatePanel({
       setError(null);
       setMissingFields([]);
 
-      // STEP 1 check formula
       if (!formula?.calculate) throw new Error("Invalid formula");
-
       const calculation = formula.calculate[target];
       if (!calculation) throw new Error("Invalid formula");
 
-      // STEP 2 check missing input
+      // 1️⃣ ตรวจสอบ input ที่ยังว่าง
       const missing = requiredVariables.filter(
         key => inputs[key] === "" || inputs[key] === undefined
       );
-
       if (missing.length > 0) {
         setMissingFields(missing);
         throw new Error("Missing input");
       }
 
-      // STEP 3 validate input
+      // 2️⃣ ตรวจสอบ input เกิน min/max และไม่ใช่ตัวเลข
       const values = {};
-
       for (const key of requiredVariables) {
         const variable = variableMap[key];
         const val = Number(inputs[key]);
 
-        if (!isFinite(val)) throw new Error("Invalid input");
+        if (!isFinite(val)) throw new Error("Not physically defined"); // NaN, Infinity
 
         const min = variable?.min ?? GLOBAL_MIN;
         const max = variable?.max ?? GLOBAL_MAX;
-
-        if (val < min || val > max) {
-          throw new Error("Input out of allowed range");
-        }
+        if (val < min || val > max) throw new Error("Input out of allowed range");
 
         values[key] = val;
       }
 
-      // STEP 4 build expression
-      let expression = calculation.value;
-      if (expression.includes("=")) {
-        expression = expression.split("=")[1].trim();
-      }
+      // 3️⃣ สร้าง expression
+      let expression = calculation.value.includes("=")
+        ? calculation.value.split("=")[1].trim()
+        : calculation.value;
 
+      // แทนค่าตัวแปร
       for (const key in values) {
-        const regex = new RegExp(`\\b${key}\\b`, "g");
-        expression = expression.replace(regex, values[key]);
+        expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), values[key]);
       }
-
-      // add fixed constants
+      // แทนค่าตัวแปร fixed
       variableKeys.forEach(key => {
         const variable = variableMap[key];
         if (variable?.isFixed) {
-          const regex = new RegExp(`\\b${key}\\b`, "g");
-          expression = expression.replace(regex, variable.value);
+          expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), variable.value);
         }
       });
 
-      // STEP 5 calculate
-      const calculated = Function(
-        "sqrt",
-        "pow",
-        "sin",
-        "cos",
-        "tan",
-        "asin",
-        "acos",
-        "atan",
-        "PI",
-        `return ${expression}`
-      )(
-        Math.sqrt,
-        Math.pow,
-        Math.sin,
-        Math.cos,
-        Math.tan,
-        Math.asin,
-        Math.acos,
-        Math.atan,
-        Math.PI
-      );
-
-      // STEP 6 validate math stability
-      if (!isFinite(calculated)) {
-        throw new Error("Result not defined in this configuration");
+      // 4️⃣ คำนวณ
+      let calculated;
+      try {
+        calculated = Function(
+          "sqrt","pow","sin","cos","tan","asin","acos","atan","PI",
+          `return ${expression}`
+        )(
+          Math.sqrt,Math.pow,Math.sin,Math.cos,Math.tan,
+          Math.asin,Math.acos,Math.atan,Math.PI
+        );
+      } catch {
+        throw new Error("Not physically defined");
       }
 
-      // STEP 7 physics validation
-      const physicsError = validatePhysics(target, calculated);
-      if (physicsError) throw new Error(physicsError);
+      if (!isFinite(calculated)) throw new Error("Not physically defined");
 
-      // STEP 8 result range safety
-      if (calculated < GLOBAL_MIN || calculated > GLOBAL_MAX) {
-        throw new Error("Result overflow");
-      }
+      // 5️⃣ ตรวจสอบ result เกิน min/max
+      const minTarget = variableMap[target]?.min ?? GLOBAL_MIN;
+      const maxTarget = variableMap[target]?.max ?? GLOBAL_MAX;
+      if (calculated < minTarget || calculated > maxTarget) throw new Error("Result overflow");
 
+      // 6️⃣ ตั้งผลลัพธ์และบันทึก memory
       const formatted = Number(calculated.toFixed(6));
       setResult(formatted);
 
-      // STEP 9 save memory
       const memoryData = { ...memory };
-      requiredVariables.forEach(key => {
-        memoryData[key] = values[key];
-      });
+      requiredVariables.forEach(key => { memoryData[key] = values[key]; });
       memoryData[target] = formatted;
-
       onSaveMemory(memoryData);
 
     } catch (err) {

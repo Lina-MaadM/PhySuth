@@ -1,91 +1,79 @@
 {
   "topic": "Mechanics",
   "subtopic": "Gravitation",
-  "description": "Newtonian gravitation for high school level: gravitational force, weight, and acceleration due to gravity.",
+  "description": "Gravitational relationships: focusing on weight and gravitational acceleration on different planets.",
   "variable_sub": [
-    { 
-      "key": "m_Mechanics", 
-      "symbol": "m", 
-      "name": "Mass of object", 
-      "unit": "kg", 
-      "min": 0.000001, 
-      "description": "Mass of the object" 
+    {
+      "key": "m_Mechanics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "min": 0.000001,
+      "description": "Mass of the object (invariant)"
     },
-    { 
-      "key": "M_Mechanics", 
-      "symbol": "M", 
-      "name": "Mass of other object", 
-      "unit": "kg", 
-      "min": 0.000001, 
-      "description": "Mass of the other object (e.g., Earth)" 
+    {
+      "key": "g_Mechanics",
+      "symbol": "g",
+      "name": "Gravitational acceleration",
+      "unit": "m/s^2",
+      "value": 9.8 ,
+      "min": 0 ,
+      "description": "Acceleration due to gravity on a specific planet."
     },
-    { 
-      "key": "r_Mechanics", 
-      "symbol": "r", 
-      "name": "Distance", 
-      "unit": "m", 
-      "min": 0.000001, 
-      "description": "Distance between the centers of two masses" 
+    {
+      "key": "W_Mechanics",
+      "symbol": "W",
+      "name": "Weight",
+      "unit": "N",
+      "description": "The gravitational force acting on the mass (W = mg)."
     },
-    { 
-      "key": "G_Mechanics", 
-      "symbol": "G", 
-      "name": "Gravitational constant", 
-      "unit": "N·m^2/kg^2", 
-      "value": 6.674e-11, 
-      "min": 0, 
-      "isFixed": true, 
-      "description": "Universal gravitational constant (Fixed)" 
+    {
+      "key": "h_Mechanics",
+      "symbol": "h",
+      "name": "Height",
+      "unit": "m",
+      "min": 0,
+      "description": "Height from the reference level."
     },
-    { 
-      "key": "g_Mechanics", 
-      "symbol": "g", 
-      "name": "Gravitational acceleration", 
-      "unit": "m/s^2", 
-      "value": 9.8, 
-      "min": 0, 
-      "isFixed": false, 
-      "description": "Default is Earth's gravity (9.8), but can be changed for other planets." 
-    },
-    { 
-      "key": "F_Mechanics", 
-      "symbol": "F", 
-      "name": "Gravitational force", 
-      "unit": "N", 
-      "min": 0, 
-      "description": "Force between two masses" 
-    },
-    { 
-      "key": "W_Mechanics", 
-      "symbol": "W", 
-      "name": "Weight", 
-      "unit": "N", 
-      "min": 0, 
-      "description": "Weight of the object (m * g)" 
+    {
+      "key": "Epg_Mechanics",
+      "symbol": "E_{pg}",
+      "name": "Gravitational Potential Energy",
+      "unit": "J",
+      "min": 0,
+      "description": "Potential energy due to height (mgh)."
     }
   ],
   "formula_sub": [
     {
       "id": "grav-1",
-      "name": "Newton's Law of Gravitation",
-      "formula": "F = \\frac{G m M}{r^2}",
-      "variable": ["F_Mechanics", "G_Mechanics", "m_Mechanics", "M_Mechanics", "r_Mechanics"],
-      "calculate": {
-        "F_Mechanics": { "type": "expression", "value": "G_Mechanics * m_Mechanics * M_Mechanics / (r_Mechanics * r_Mechanics)" },
-        "m_Mechanics": { "type": "expression", "value": "F_Mechanics * r_Mechanics * r_Mechanics / (G_Mechanics * M_Mechanics)" },
-        "M_Mechanics": { "type": "expression", "value": "F_Mechanics * r_Mechanics * r_Mechanics / (G_Mechanics * m_Mechanics)" },
-        "r_Mechanics": { "type": "expression", "value": "sqrt(G_Mechanics * m_Mechanics * M_Mechanics / F_Mechanics)" }
-      }
-    },
-    {
-      "id": "grav-2",
-      "name": "Weight of an object",
-      "formula": "W = m g",
-      "variable": ["W_Mechanics", "m_Mechanics", "g_Mechanics"],
+      "name": "Weight Calculation",
+      "formula": "W = mg",
+      "variable": [
+        "W_Mechanics",
+        "m_Mechanics",
+        "g_Mechanics"
+      ],
       "calculate": {
         "W_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics" },
         "m_Mechanics": { "type": "expression", "value": "W_Mechanics / g_Mechanics" },
         "g_Mechanics": { "type": "expression", "value": "W_Mechanics / m_Mechanics" }
+      }
+    },
+    {
+      "id": "grav-2",
+      "name": "Gravitational Potential Energy",
+      "formula": "E_{pg} = mgh",
+      "variable": [
+        "Epg_Mechanics",
+        "m_Mechanics",
+        "g_Mechanics",
+        "h_Mechanics"
+      ],
+      "calculate": {
+        "Epg_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics * h_Mechanics" },
+        "m_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (g_Mechanics * h_Mechanics)" },
+        "h_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (m_Mechanics * g_Mechanics)" }
       }
     }
   ]

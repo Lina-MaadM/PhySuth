@@ -1,164 +1,111 @@
 {
   "topic": "Mechanics",
   "subtopic": "Kinematics",
-  "description": "One-dimensional motion including displacement, velocity, acceleration, uniform motion, and constant acceleration equations.",
-
+  "description": "One-dimensional motion: displacement, velocity, and constant acceleration equations (The 5 Main Equations).",
   "variable_sub": [
-    { 
+    {
       "key": "s_Mechanics",
       "symbol": "s",
-      "name": "Position",
+      "name": "Final Position",
       "unit": "m",
-      "description": "Position at time t"
+      "description": "The final position or displacement from the origin."
     },
-    { 
+    {
       "key": "s0_Mechanics",
       "symbol": "s_0",
-      "name": "Initial position",
+      "name": "Initial Position",
       "unit": "m",
-      "description": "Position at time t = 0"
+      "description": "The starting position (reference point, often zero)."
     },
-    { 
+    {
       "key": "u_Mechanics",
       "symbol": "u",
-      "name": "Initial velocity",
+      "name": "Initial Velocity",
       "unit": "m/s",
-      "description": "Velocity at time t = 0"
+      "description": "The velocity of the object at time t = 0."
     },
-    { 
+    {
       "key": "v_Mechanics",
       "symbol": "v",
-      "name": "Final velocity",
+      "name": "Final Velocity",
       "unit": "m/s",
-      "description": "Velocity at time t"
+      "description": "The velocity of the object at the final time t."
     },
-    { 
+    {
       "key": "vavg_Mechanics",
       "symbol": "\\bar{v}",
-      "name": "Average velocity",
+      "name": "Average Velocity",
       "unit": "m/s",
-      "description": "Average velocity over a time interval"
+      "description": "Total displacement divided by total time interval."
     },
-    { 
+    {
       "key": "a_Mechanics",
       "symbol": "a",
       "name": "Acceleration",
       "unit": "m/s^2",
-      "description": "Rate of change of velocity"
+      "description": "The constant rate of change of velocity over time."
     },
-    { 
+    {
       "key": "t_Mechanics",
       "symbol": "t",
-      "name": "Time",
+      "name": "Time Interval",
       "unit": "s",
-      "description": "Time interval",
-      "min": 0
+      "min": 0,
+      "description": "The duration of the motion (must be non-negative)."
     }
   ],
-
   "formula_sub": [
-
     {
       "id": "kin-1",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Average Velocity (General Definition)",
-      "formula": "\\bar{v} = \\frac{s - s_0}{t}",
-      "variable": ["vavg_Mechanics", "s_Mechanics", "s0_Mechanics", "t_Mechanics"],
+      "name": "Average Velocity",
+      "formula": "\\bar{v} = (s - s_0) / t",
+      "variable": [
+        "vavg_Mechanics",
+        "s_Mechanics",
+        "s0_Mechanics",
+        "t_Mechanics"
+      ],
       "calculate": {
         "vavg_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / t_Mechanics" },
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + vavg_Mechanics * t_Mechanics" },
+        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (vavg_Mechanics * t_Mechanics)" },
         "t_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / vavg_Mechanics" }
       }
     },
-
-    {
-      "id": "kin-2",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Acceleration (Definition)",
-      "formula": "a = \\frac{v - u}{t}",
-      "variable": ["a_Mechanics", "v_Mechanics", "u_Mechanics", "t_Mechanics"],
-      "calculate": {
-        "a_Mechanics": { "type": "expression", "value": "(v_Mechanics - u_Mechanics) / t_Mechanics" },
-        "v_Mechanics": { "type": "expression", "value": "u_Mechanics + a_Mechanics * t_Mechanics" },
-        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - a_Mechanics * t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "(v_Mechanics - u_Mechanics) / a_Mechanics" }
-      }
-    },
-
-    {
-      "id": "kin-3",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Uniform Motion (Constant Velocity)",
-      "formula": "s = s_0 + vt",
-      "variable": ["s_Mechanics", "s0_Mechanics", "v_Mechanics", "t_Mechanics"],
-      "calculate": {
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + v_Mechanics * t_Mechanics" },
-        "v_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / v_Mechanics" }
-      }
-    },
-
-    {
-      "id": "kin-4",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "First Equation of Motion",
-      "formula": "v = u + at",
-      "variable": ["v_Mechanics", "u_Mechanics", "a_Mechanics", "t_Mechanics"],
-      "calculate": {
-        "v_Mechanics": { "type": "expression", "value": "u_Mechanics + a_Mechanics * t_Mechanics" },
-        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - a_Mechanics * t_Mechanics" },
-        "a_Mechanics": { "type": "expression", "value": "(v_Mechanics - u_Mechanics) / t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "(v_Mechanics - u_Mechanics) / a_Mechanics" }
-      }
-    },
-
     {
       "id": "kin-5",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Second Equation of Motion",
+      "name": "Displacement-Time Equation",
       "formula": "s = s_0 + ut + \\frac{1}{2}at^2",
-      "variable": ["s_Mechanics", "s0_Mechanics", "u_Mechanics", "a_Mechanics", "t_Mechanics"],
+      "variable": [
+        "s_Mechanics",
+        "s0_Mechanics",
+        "u_Mechanics",
+        "a_Mechanics",
+        "t_Mechanics"
+      ],
       "calculate": {
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + u_Mechanics * t_Mechanics + 0.5 * a_Mechanics * t_Mechanics * t_Mechanics" },
-        "u_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics - 0.5 * a_Mechanics * t_Mechanics * t_Mechanics) / t_Mechanics" },
-        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - s0_Mechanics - u_Mechanics * t_Mechanics) / (t_Mechanics * t_Mechanics)" },
-        "t_Mechanics": { "type": "quadratic", "form": "standard" }
+        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (u_Mechanics * t_Mechanics) + (0.5 * a_Mechanics * pow(t_Mechanics, 2))" },
+        "u_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics - 0.5 * a_Mechanics * pow(t_Mechanics, 2)) / t_Mechanics" },
+        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - s0_Mechanics - u_Mechanics * t_Mechanics) / pow(t_Mechanics, 2)" },
+        "t_Mechanics": { "type": "expression", "value": "(-u_Mechanics + sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))) / a_Mechanics" }
       }
     },
-
     {
       "id": "kin-6",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Third Equation of Motion",
+      "name": "Velocity-Displacement Equation",
       "formula": "v^2 = u^2 + 2a(s - s_0)",
-      "variable": ["v_Mechanics", "u_Mechanics", "a_Mechanics", "s_Mechanics", "s0_Mechanics"],
+      "variable": [
+        "v_Mechanics",
+        "u_Mechanics",
+        "a_Mechanics",
+        "s_Mechanics",
+        "s0_Mechanics"
+      ],
       "calculate": {
-        "v_Mechanics": { "type": "expression", "value": "sqrt(u_Mechanics * u_Mechanics + 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
-        "u_Mechanics": { "type": "expression", "value": "sqrt(v_Mechanics * v_Mechanics - 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
-        "a_Mechanics": { "type": "expression", "value": "(v_Mechanics * v_Mechanics - u_Mechanics * u_Mechanics) / (2 * (s_Mechanics - s0_Mechanics))" },
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (v_Mechanics * v_Mechanics - u_Mechanics * u_Mechanics) / (2 * a_Mechanics)" }
-      }
-    },
-
-    {
-      "id": "kin-7",
-      "topic": "Mechanics",
-      "subtopic": "Kinematics",
-      "name": "Average Velocity (Constant Acceleration)",
-      "formula": "\\bar{v} = \\frac{1}{2}(u + v)",
-      "variable": ["vavg_Mechanics", "u_Mechanics", "v_Mechanics"],
-      "calculate": {
-        "vavg_Mechanics": { "type": "expression", "value": "(u_Mechanics + v_Mechanics) / 2" },
-        "u_Mechanics": { "type": "expression", "value": "2 * vavg_Mechanics - v_Mechanics" },
-        "v_Mechanics": { "type": "expression", "value": "2 * vavg_Mechanics - u_Mechanics" }
+        "v_Mechanics": { "type": "expression", "value": "sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
+        "u_Mechanics": { "type": "expression", "value": "sqrt(pow(v_Mechanics, 2) - 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
+        "a_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * (s_Mechanics - s0_Mechanics))" },
+        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * a_Mechanics)" }
       }
     }
-
   ]
 }
