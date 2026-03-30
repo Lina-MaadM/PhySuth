@@ -143,7 +143,7 @@ export default function CalculatePanel({
         const variable = variableMap[key];
         const val = Number(inputs[key]);
 
-        if (!isFinite(val)) throw new Error("Not physically defined"); // NaN, Infinity
+        if (!isFinite(val)) throw new Error("Result is undefined or infinite"); // NaN, Infinity
 
         const min = variable?.min ?? GLOBAL_MIN;
         const max = variable?.max ?? GLOBAL_MAX;

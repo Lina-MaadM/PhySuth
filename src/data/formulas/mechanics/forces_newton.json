@@ -1,14 +1,14 @@
 {
   "topic": "Mechanics",
   "subtopic": "Force (Newton's Laws)",
-  "description": "Fundamental laws of motion: net force, acceleration, weight, and friction based on Newton's principles.",
+  "description": "Newton's laws of motion and related forces including net force, acceleration, weight, and friction.",
   "variable_sub": [
     {
       "key": "F_Mechanics",
       "symbol": "F",
       "name": "Net Force",
       "unit": "N",
-      "description": "Total force acting on an object (can be negative to show direction)."
+      "description": "The total force acting on an object."
     },
     {
       "key": "m_Mechanics",
@@ -16,14 +16,14 @@
       "name": "Mass",
       "unit": "kg",
       "min": 0.000001,
-      "description": "The amount of matter in an object (always positive)."
+      "description": "A physical quantity representing the amount of matter in an object."
     },
     {
       "key": "a_Mechanics",
       "symbol": "a",
       "name": "Acceleration",
       "unit": "m/s^2",
-      "description": "Rate of change of velocity (same direction as net force)."
+      "description": "A physical quantity representing the rate of change of velocity with respect to time."
     },
     {
       "key": "g_Mechanics",
@@ -32,21 +32,21 @@
       "unit": "m/s^2",
       "value": 9.8,
       "min": 0,
-      "description": "Acceleration due to gravity (Earth ≈ 9.8 m/s^2)."
+      "description": "The acceleration due to gravity near the surface of a planet."
     },
     {
       "key": "W_Mechanics",
       "symbol": "W",
       "name": "Weight",
       "unit": "N",
-      "description": "The force of gravity acting on an object's mass."
+      "description": "The gravitational force acting on an object."
     },
     {
       "key": "Ff_Mechanics",
       "symbol": "F_f",
       "name": "Friction Force",
       "unit": "N",
-      "description": "The force resisting motion between two surfaces."
+      "description": "The force that resists relative motion between two surfaces in contact."
     },
     {
       "key": "mu_Mechanics",
@@ -54,7 +54,7 @@
       "name": "Coeff. of Friction",
       "unit": "",
       "min": 0,
-      "description": "Ratio between friction force and normal force (dimensionless)."
+      "description": "A dimensionless quantity representing the ratio between frictional force and normal force."
     }
   ],
   "formula_sub": [
@@ -73,10 +73,8 @@
         "a_Mechanics": { "type": "expression", "value": "F_Mechanics / m_Mechanics" }
       }
     },
-
-    
     {
-      "id": "force-3",
+      "id": "force-2",
       "name": "Friction Force (On Level Surface)",
       "formula": "F_f = \\mu W",
       "variable": [

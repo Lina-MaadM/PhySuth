@@ -1,7 +1,7 @@
 {
   "topic": "Mechanics",
   "subtopic": "Circular Motion",
-  "description": "Uniform circular motion: relationship between linear and angular quantities, centripetal acceleration, and force.",
+  "description": "Uniform circular motion and the relationships between linear and angular quantities, centripetal acceleration, and centripetal force.",
   "variable_sub": [
     {
       "key": "PI_Mechanics",
@@ -10,21 +10,21 @@
       "unit": "",
       "value": 3.141592,
       "isFixed": true,
-      "description": "Mathematical constant Pi (Fixed)"
+      "description": "A mathematical constant representing the ratio of a circle's circumference to its diameter."
     },
     {
       "key": "v_Mechanics",
       "symbol": "v",
       "name": "Linear Velocity",
       "unit": "m/s",
-      "description": "The speed or velocity of an object along the arc."
+      "description": "A physical quantity representing the tangential velocity of an object moving along a circular path."
     },
     {
       "key": "omega_Mechanics",
       "symbol": "\\omega",
       "name": "Angular Velocity",
       "unit": "rad/s",
-      "description": "Rate of rotation (can be negative for direction)."
+      "description": "A physical quantity representing the rate of change of angular position with respect to time."
     },
     {
       "key": "r_Mechanics",
@@ -32,7 +32,7 @@
       "name": "Radius",
       "unit": "m",
       "min": 0.000001,
-      "description": "Radius of the circular path."
+      "description": "The distance from the center of a circular path to the moving object."
     },
     {
       "key": "T_Mechanics",
@@ -40,7 +40,7 @@
       "name": "Period",
       "unit": "s",
       "min": 0.000001,
-      "description": "Time for one complete revolution."
+      "description": "The time required for one complete revolution in circular motion."
     },
     {
       "key": "f_Mechanics",
@@ -48,21 +48,21 @@
       "name": "Frequency",
       "unit": "Hz",
       "min": 0,
-      "description": "Revolutions per second (1/T)."
+      "description": "A physical quantity representing the number of revolutions per unit time."
     },
     {
       "key": "ac_Mechanics",
       "symbol": "a_c",
       "name": "Centripetal Acceleration",
       "unit": "m/s^2",
-      "description": "Acceleration pointing toward the center."
+      "description": "An acceleration directed toward the center of a circular path."
     },
     {
       "key": "Fc_Mechanics",
       "symbol": "F_c",
       "name": "Centripetal Force",
       "unit": "N",
-      "description": "Force required to maintain circular motion."
+      "description": "The net force directed toward the center of a circular path in circular motion."
     },
     {
       "key": "m_Mechanics",
@@ -70,7 +70,7 @@
       "name": "Mass",
       "unit": "kg",
       "min": 0.000001,
-      "description": "Mass of the moving object."
+      "description": "A physical quantity representing the amount of matter in an object."
     }
   ],
   "formula_sub": [

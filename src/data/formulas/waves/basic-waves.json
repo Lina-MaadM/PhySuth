@@ -1,0 +1,58 @@
+{
+  "topic": "Waves",
+  "subtopic": "Basic Wave Properties",
+  "description": "Concepts describing the fundamental properties of waves and how they move through a medium.",
+  "variable_sub": [
+    {
+      "key": "v_Waves",
+      "symbol": "v",
+      "name": "Wave Speed",
+      "unit": "m/s",
+      "description": "The speed at which a wave travels through a medium."
+    },
+    {
+      "key": "f_Waves",
+      "symbol": "f",
+      "name": "Frequency",
+      "unit": "Hz",
+      "description": "The number of wave cycles that pass a point per second."
+    },
+    {
+      "key": "lambda_Waves",
+      "symbol": "\\lambda",
+      "name": "Wavelength",
+      "unit": "m",
+      "description": "The distance between repeating points of a wave pattern."
+    },
+    {
+      "key": "T_Waves",
+      "symbol": "T",
+      "name": "Period",
+      "unit": "s",
+      "description": "The time required for one complete wave cycle."
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "wave-1",
+      "name": "Wave Speed Equation",
+      "formula": "v = f \\lambda",
+      "variable": ["v_Waves", "f_Waves", "lambda_Waves"],
+      "calculate": {
+        "v_Waves": { "type": "expression", "value": "f_Waves * lambda_Waves" },
+        "f_Waves": { "type": "expression", "value": "v_Waves / lambda_Waves" },
+        "lambda_Waves": { "type": "expression", "value": "v_Waves / f_Waves" }
+      }
+    },
+    {
+      "id": "wave-2",
+      "name": "Frequency and Period",
+      "formula": "f = 1 / T",
+      "variable": ["f_Waves", "T_Waves"],
+      "calculate": {
+        "f_Waves": { "type": "expression", "value": "1 / T_Waves" },
+        "T_Waves": { "type": "expression", "value": "1 / f_Waves" }
+      }
+    }
+  ]
+}

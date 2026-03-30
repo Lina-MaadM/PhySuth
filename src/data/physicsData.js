@@ -13,7 +13,7 @@ export const formulaIndex = {};
 export const variableIndex = {};
 
 // --------------------------------------------
-// 1. normalize dataset: จัดการค่า Default และ isFixed
+// 1. normalize dataset
 function normalizeDataset(dataset) {
   if (!dataset || typeof dataset !== "object") return null;
   if (!Array.isArray(dataset.formula_sub)) return null;
@@ -29,19 +29,16 @@ function normalizeDataset(dataset) {
   if (cleanedFormula.length === 0) return null;
 
   return {
-    topic: dataset.topic ?? "",
+    topic: dataset.topic ?? "", // display topic
     subtopic: dataset.subtopic ?? "",
     description: dataset.description ?? "",
 
-    // กรองและเติมค่าพื้นฐานให้ตัวแปร
     variable_sub: Array.isArray(dataset.variable_sub)
       ? dataset.variable_sub
           .filter((v) => v && v.key)
           .map((v) => ({
             ...v,
-            // ถ้าไม่ได้กำหนด isFixed ให้เป็น false เสมอ
             isFixed: v.isFixed ?? false,
-            // ส่งต่อ value ถ้ามี (เช่น 9.8) ถ้าไม่มีจะเป็น undefined
             value: v.value !== undefined ? v.value : undefined,
           }))
       : [],
@@ -51,21 +48,18 @@ function normalizeDataset(dataset) {
 }
 
 // --------------------------------------------
-// 2. validate: ตรวจสอบตัวแปร (ข้ามพวก sqrt, pow)
+// 2. validate variables
 function validateFormulaVariables(formula) {
   const declaredVars = new Set(formula.variable || []);
-  
-  // รายชื่อฟังก์ชันคณิตศาสตร์มาตรฐานที่ต้องข้าม
+
   const mathReserved = new Set(["sqrt", "pow", "abs", "sin", "cos", "tan", "Math"]);
 
   const calcVars = Object.values(formula.calculate || {})
     .flatMap((c) => {
       if (!c || typeof c.value !== "string") return [];
-      // ดึงคำศัพท์ทั้งหมดที่ขึ้นต้นด้วยตัวอักษร
       return c.value.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
     });
 
-  // กรองเฉพาะตัวแปรที่มี "_" (คีย์เรา) และไม่ใช่คำสั่งคณิตศาสตร์
   const usedVars = calcVars.filter(
     (v) => v.includes("_") && !mathReserved.has(v)
   );
@@ -84,8 +78,8 @@ function validateFormulaVariables(formula) {
 }
 
 // --------------------------------------------
-// 3. รวม glob → topic
-function buildTopic(topicName, globResult) {
+// 3. build topic
+function buildTopic(systemTopic, globResult) {
   const rawDatasets = Object.values(globResult).map((m) => m.default);
 
   const cleanedDatasets = rawDatasets
@@ -93,20 +87,26 @@ function buildTopic(topicName, globResult) {
     .filter((d) => d !== null);
 
   cleanedDatasets.forEach((dataset) => {
-    // สร้าง variableIndex
+    // ⭐ ใช้ topic จาก JSON ถ้ามี (สำหรับ UI)
+    const displayTopic = dataset.topic || systemTopic;
+
+    // ⭐ บังคับให้ทุก dataset ใช้ topic เดียวกันในระบบ
+    dataset.topic = displayTopic;
+    dataset.systemTopic = systemTopic;
+
+    // VARIABLE INDEX
     dataset.variable_sub.forEach((v) => {
-      if (variableIndex[v.key]) {
-        // ตามที่คุณตั้งใจไว้: ถ้ามีคีย์ซ้ำจะข้าม (ใช้ตัวแรกที่เจอเป็นหลัก)
-        return;
-      }
+      if (variableIndex[v.key]) return;
+
       variableIndex[v.key] = {
         ...v,
-        topic: dataset.topic,
+        topic: displayTopic,
+        systemTopic,
         subtopic: dataset.subtopic,
       };
     });
 
-    // สร้าง formulaIndex
+    // FORMULA INDEX
     dataset.formula_sub.forEach((formula) => {
       if (!validateFormulaVariables(formula)) return;
 
@@ -117,14 +117,16 @@ function buildTopic(topicName, globResult) {
 
       formulaIndex[formula.id] = {
         ...formula,
-        topic: formula.topic ?? dataset.topic,
-        subtopic: formula.subtopic ?? dataset.subtopic,
+        topic: displayTopic,
+        systemTopic,
+        subtopic: dataset.subtopic,
       };
     });
   });
 
   return {
-    topic: topicName,
+    topic: cleanedDatasets[0]?.topic || systemTopic, // UI
+    systemTopic, // internal
     datasets: cleanedDatasets,
   };
 }
@@ -134,7 +136,7 @@ function buildTopic(topicName, globResult) {
 export const physicsTopics = [
   buildTopic("Mechanics", mechanics),
   buildTopic("Electricity", electricity),
-  buildTopic("Modern Physics", modernPhysics),
+  buildTopic("ModernPhysics", modernPhysics),
   buildTopic("Optics", optics),
   buildTopic("Thermodynamics", thermodynamics),
   buildTopic("Waves", waves),

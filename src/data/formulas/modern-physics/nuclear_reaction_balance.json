@@ -1,0 +1,67 @@
+{
+  "topic": "Modern-Physics",
+  "subtopic": "Nuclear Reaction",
+  "description": "The study of conservation of mass number (A) and atomic number (Z) during nuclear reactions.",
+  "variable_sub": [
+    { 
+      "key": "Ap_ModernPhysics", 
+      "symbol": "A_{p}", 
+      "name": "Parent mass number", 
+      "description": "Mass number of the parent nucleus (total protons and neutrons)." 
+    },
+    { 
+      "key": "Ad_ModernPhysics", 
+      "symbol": "A_{d}", 
+      "name": "Daughter mass number", 
+      "description": "Mass number of the daughter nucleus after the reaction." 
+    },
+    { 
+      "key": "Ax_ModernPhysics", 
+      "symbol": "A_{x}", 
+      "name": "Particle mass number", 
+      "description": "Mass number of the emitted or incoming particle." 
+    },
+    { 
+      "key": "Zp_ModernPhysics", 
+      "symbol": "Z_{p}", 
+      "name": "Parent atomic number", 
+      "description": "Number of protons in the parent nucleus." 
+    },
+    { 
+      "key": "Zd_ModernPhysics", 
+      "symbol": "Z_{d}", 
+      "name": "Daughter atomic number", 
+      "description": "Number of protons in the daughter nucleus." 
+    },
+    { 
+      "key": "Zx_ModernPhysics", 
+      "symbol": "Z_{x}", 
+      "name": "Particle atomic number", 
+      "description": "Number of protons in the emitted or incoming particle." 
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "nuc-reac-1",
+      "name": "Mass number conservation",
+      "formula": "A_p = A_d + A_x",
+      "variable": ["Ap_ModernPhysics", "Ad_ModernPhysics", "Ax_ModernPhysics"],
+      "calculate": {
+        "Ap_ModernPhysics": { "type": "expression", "value": "Ad_ModernPhysics + Ax_ModernPhysics" },
+        "Ad_ModernPhysics": { "type": "expression", "value": "Ap_ModernPhysics - Ax_ModernPhysics" },
+        "Ax_ModernPhysics": { "type": "expression", "value": "Ap_ModernPhysics - Ad_ModernPhysics" }
+      }
+    },
+    {
+      "id": "nuc-reac-2",
+      "name": "Atomic number conservation",
+      "formula": "Z_p = Z_d + Z_x",
+      "variable": ["Zp_ModernPhysics", "Zd_ModernPhysics", "Zx_ModernPhysics"],
+      "calculate": {
+        "Zp_ModernPhysics": { "type": "expression", "value": "Zd_ModernPhysics + Zx_ModernPhysics" },
+        "Zd_ModernPhysics": { "type": "expression", "value": "Zp_ModernPhysics - Zx_ModernPhysics" },
+        "Zx_ModernPhysics": { "type": "expression", "value": "Zp_ModernPhysics - Zd_ModernPhysics" }
+      }
+    }
+  ]
+}

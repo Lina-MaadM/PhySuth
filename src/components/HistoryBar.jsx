@@ -20,9 +20,11 @@ function HistoryBar({ history = [], onClear }) {
   const [maxVisible, setMaxVisible] = useState(getMaxVisible());
   const [startIndex, setStartIndex] = useState(0);
   const [flash, setFlash] = useState(false);
-  
-  // เปลี่ยนจาก index เป็น key เพื่อความแม่นยำ
   const [hoveredKey, setHoveredKey] = useState(null);
+
+  // 👇 เพิ่มระบบซ่อนบาร์ตอน scroll
+  const [visible, setVisible] = useState(true);
+  const lastScroll = useRef(0);
 
   const closeTimer = useRef(null);
 
@@ -42,13 +44,34 @@ function HistoryBar({ history = [], onClear }) {
     }
   }, [history, maxVisible]);
 
+  // 👇 ตรวจ scroll direction
+  useEffect(() => {
+    const handleScroll = () => {
+      const current = window.scrollY;
+
+      if (current > lastScroll.current && current > 120) {
+        setVisible(false);
+      } else {
+        setVisible(true);
+      }
+
+      lastScroll.current = current;
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const latest = history[history.length - 1];
 
   const warning = useMemo(() => {
     if (!latest) return null;
-    if (latest.disconnected) return { text: "⚠ No shared symbol with previous step", color: "bg-red-500" };
-    if (latest.crossTopic) return { text: `⚠ Cross topic: ${latest.topic}`, color: "bg-yellow-400" };
-    if (latest.repeat) return { text: "↻ Revisited", color: "bg-purple-400" };
+    if (latest.disconnected)
+      return { text: "⚠ No shared symbol with previous step", color: "bg-red-500" };
+    if (latest.crossTopic)
+      return { text: `⚠ Cross topic: ${latest.topic}`, color: "bg-yellow-400 text-black" };
+    if (latest.repeat)
+      return { text: "↻ Revisited", color: "bg-purple-400" };
     return null;
   }, [latest]);
 
@@ -68,7 +91,6 @@ function HistoryBar({ history = [], onClear }) {
     }
   };
 
-  // Smart Hover ใช้ Key แทน Index
   const handleMouseEnter = (key) => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setHoveredKey(key);
@@ -81,10 +103,14 @@ function HistoryBar({ history = [], onClear }) {
   };
 
   const handlePrev = () => setStartIndex((prev) => Math.max(prev - STEP, 0));
-  const handleNext = () => setStartIndex((prev) => {
-    const nextIndex = prev + STEP;
-    return nextIndex + maxVisible > history.length ? Math.max(history.length - maxVisible, 0) : nextIndex;
-  });
+
+  const handleNext = () =>
+    setStartIndex((prev) => {
+      const nextIndex = prev + STEP;
+      return nextIndex + maxVisible > history.length
+        ? Math.max(history.length - maxVisible, 0)
+        : nextIndex;
+    });
 
   const visibleHistory = history.slice(startIndex, startIndex + maxVisible);
   const canPrev = startIndex > 0;
@@ -92,116 +118,149 @@ function HistoryBar({ history = [], onClear }) {
 
   return (
     <>
-      {/* ส่วนแถบประวัติหลัก */}
-      <div className="w-full border-b bg-gray-50 p-3 flex items-center relative z-[40]">
-        
-        <button
-          onClick={handlePrev}
-          disabled={!canPrev}
-          className={`px-3 py-1 mr-3 text-lg font-bold rounded ${canPrev ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"}`}
-        >
-          {"←"}
-        </button>
+      {/* Floating Container */}
+      <div
+        className={`fixed left-0 right-0 top-16 z-40 transition-transform duration-300 ${
+          visible ? "translate-y-0" : "-translate-y-full"
+        }`}
+      >
+        {/* History Bar */}
+        <div className="w-full border-b bg-gray-50/90 backdrop-blur-sm p-3 flex items-center shadow-sm">
+          <button
+            onClick={handlePrev}
+            disabled={!canPrev}
+            className={`px-3 py-1 mr-3 text-lg font-bold rounded ${
+              canPrev ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"
+            }`}
+          >
+            {"←"}
+          </button>
 
-        {/* สำคัญ: เอา overflow-hidden ออกจาก div นี้ถ้า Tooltip โดนตัดขอบ */}
-        <div className="flex-1 flex justify-center">
-          <div className="flex gap-2">
-            {history.length === 0 && <span className="text-sm text-gray-400">No history yet</span>}
+          <div className="flex-1 flex justify-center">
+            <div className="flex gap-2">
+              {history.length === 0 && (
+                <span className="text-sm text-gray-400">No history yet</span>
+              )}
 
-            {visibleHistory.map((item, index) => {
-              let extraStyle = "bg-white";
-              if (item.repeat) extraStyle = "bg-purple-100 border-purple-400";
-              if (item.disconnected) extraStyle = "bg-red-100 border-red-400";
-              if (item.crossTopic) extraStyle = "bg-yellow-100 border-yellow-400";
+              {visibleHistory.map((item, index) => {
+                let extraStyle = "bg-white";
+                if (item.repeat) extraStyle = "bg-purple-100 border-purple-400";
+                if (item.disconnected) extraStyle = "bg-red-100 border-red-400";
+                if (item.crossTopic) extraStyle = "bg-yellow-100 border-yellow-400";
 
-              // สร้าง Unique Key สำหรับ Item นี้โดยเฉพาะ
-              const itemUniqueKey = `${item.page}-${getKey(item)}-${startIndex + index}`;
-              const isHovered = hoveredKey === itemUniqueKey;
+                const itemUniqueKey = `${item.page}-${getKey(item)}-${startIndex + index}`;
+                const isHovered = hoveredKey === itemUniqueKey;
 
-              return (
-                <div
-                  key={itemUniqueKey}
-                  className="relative"
-                  onMouseEnter={() => handleMouseEnter(itemUniqueKey)}
-                  onMouseLeave={handleMouseLeave}
-                >
+                return (
                   <div
-                    onClick={() => handleClick(item)}
-                    className={`px-3 py-1 border rounded text-sm cursor-pointer hover:bg-blue-50 whitespace-nowrap transition-colors ${extraStyle}`}
+                    key={itemUniqueKey}
+                    className="relative"
+                    onMouseEnter={() => handleMouseEnter(itemUniqueKey)}
+                    onMouseLeave={handleMouseLeave}
                   >
-                    <InlineMath math={item.label} />
-                  </div>
-
-                  {/* Tooltip Overlay */}
-                  {isHovered && (
                     <div
-                      className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-[999] w-64 p-3 bg-white border shadow-2xl rounded-lg text-sm"
-                      onMouseEnter={() => handleMouseEnter(itemUniqueKey)}
-                      onMouseLeave={handleMouseLeave}
+                      onClick={() => handleClick(item)}
+                      className={`px-3 py-1 border rounded text-sm cursor-pointer hover:bg-blue-50 whitespace-nowrap transition-colors ${extraStyle}`}
                     >
-                      <div className="font-semibold mb-1 border-b pb-1">
-                        <InlineMath math={item.label} />
-                      </div>
-
-                      {item.topic && (
-                        <div className="text-gray-600 text-xs mt-1">
-                          <span className="font-medium text-gray-800">{item.topic}</span>
-                          {item.subtopic && ` – ${item.subtopic}`}
-                        </div>
-                      )}
-
-                      {item.symbols && item.symbols.length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {item.symbols.map((sym, i) => (
-                            <span key={i} className="px-1.5 py-0.5 bg-gray-100 border rounded text-[10px]">
-                              <InlineMath math={sym} />
-                            </span>
-                          ))}
-                        </div>
-                      )}
-
-                      <div className="space-y-1 mt-2">
-                        {item.crossTopic && <div className="text-yellow-600 text-[10px] font-bold">⚠ Cross topic</div>}
-                        {item.disconnected && <div className="text-red-600 text-[10px] font-bold">⚠ Not connected</div>}
-                        {item.repeat && <div className="text-purple-600 text-[10px] font-bold">↻ Revisited</div>}
-                      </div>
-
-                      <button
-                        onClick={() => handleClick(item)}
-                        className="mt-3 w-full bg-blue-50 text-blue-600 font-medium border border-blue-200 rounded py-1 hover:bg-blue-600 hover:text-white transition-all text-xs"
-                      >
-                        View Details
-                      </button>
+                      <InlineMath math={item.label} />
                     </div>
-                  )}
-                </div>
-              );
-            })}
+
+                    {isHovered && (
+                      <div
+                        className="absolute top-full mt-2 left-1/2 -translate-x-1/2 z-[999] w-64 p-3 bg-white border shadow-2xl rounded-lg text-sm"
+                        onMouseEnter={() => handleMouseEnter(itemUniqueKey)}
+                        onMouseLeave={handleMouseLeave}
+                      >
+                        <div className="font-semibold mb-1 border-b pb-1">
+                          <InlineMath math={item.label} />
+                        </div>
+
+                        {item.topic && (
+                          <div className="text-gray-600 text-xs mt-1">
+                            <span className="font-medium text-gray-800">
+                              {item.topic}
+                            </span>
+                            {item.subtopic && ` – ${item.subtopic}`}
+                          </div>
+                        )}
+
+                        {item.symbols && item.symbols.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {item.symbols.map((sym, i) => (
+                              <span
+                                key={i}
+                                className="px-1.5 py-0.5 bg-gray-100 border rounded text-[10px]"
+                              >
+                                <InlineMath math={sym} />
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="space-y-1 mt-2">
+                          {item.crossTopic && (
+                            <div className="text-yellow-600 text-[10px] font-bold">
+                              ⚠ Cross topic
+                            </div>
+                          )}
+                          {item.disconnected && (
+                            <div className="text-red-600 text-[10px] font-bold">
+                              ⚠ Not connected
+                            </div>
+                          )}
+                          {item.repeat && (
+                            <div className="text-purple-600 text-[10px] font-bold">
+                              ↻ Revisited
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => handleClick(item)}
+                          className="mt-3 w-full bg-blue-50 text-blue-600 font-medium border border-blue-200 rounded py-1 hover:bg-blue-600 hover:text-white transition-all text-xs"
+                        >
+                          View Details
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
+
+          <button
+            onClick={handleNext}
+            disabled={!canNext}
+            className={`px-3 py-1 ml-3 text-lg font-bold rounded ${
+              canNext ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"
+            }`}
+          >
+            {"→"}
+          </button>
+
+          <button
+            onClick={() => {
+              setStartIndex(0);
+              onClear?.();
+            }}
+            className="ml-4 px-3 py-1 border rounded text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
+          >
+            Clear
+          </button>
         </div>
 
-        <button
-          onClick={handleNext}
-          disabled={!canNext}
-          className={`px-3 py-1 ml-3 text-lg font-bold rounded ${canNext ? "text-blue-600 hover:text-blue-800" : "text-gray-400 cursor-default"}`}
-        >
-          {"→"}
-        </button>
-
-        <button
-          onClick={() => { setStartIndex(0); onClear?.(); }}
-          className="ml-4 px-3 py-1 border rounded text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors"
-        >
-          Clear
-        </button>
+        {/* Warning Bar */}
+        {warning && (
+          <div
+            className={`w-full text-xs px-4 py-1 flex justify-center transition-all ${
+              warning.color
+            } ${flash ? "animate-pulse" : ""}`}
+          >
+            {warning.text}
+          </div>
+        )}
       </div>
-
-      {/* Warning Bar */}
-      {warning && (
-        <div className={`w-full text-xs text-white px-4 py-1 flex justify-center transition-all ${warning.color} ${flash ? "animate-pulse" : ""}`}>
-          {warning.text}
-        </div>
-      )}
     </>
   );
 }

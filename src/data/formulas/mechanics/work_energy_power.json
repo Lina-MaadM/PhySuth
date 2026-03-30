@@ -1,13 +1,14 @@
 {
   "topic": "Mechanics",
   "subtopic": "Work, Energy, Power",
+  "description": "The study of energy transfer through forces and the rate at which energy is transformed from one form to another in a system.",
   "variable_sub": [
     { 
       "key": "W_Mechanics", 
       "symbol": "W", 
       "name": "Work", 
       "unit": "J", 
-      "description": "Work done (can be negative depending on force direction)." 
+      "description": "Energy transferred by a force acting through a displacement (can be negative depending on direction)." 
     },
     { 
       "key": "F_Mechanics", 
@@ -15,7 +16,7 @@
       "name": "Force", 
       "unit": "N", 
       "min": 0, 
-      "description": "Magnitude of the constant force applied." 
+      "description": "Magnitude of the applied constant force." 
     },
     { 
       "key": "d_Mechanics", 
@@ -23,14 +24,14 @@
       "name": "Displacement", 
       "unit": "m", 
       "min": 0, 
-      "description": "Magnitude of displacement." 
+      "description": "Magnitude of the displacement during motion." 
     },
     { 
       "key": "theta_Mechanics", 
       "symbol": "\\theta", 
       "name": "Angle", 
       "unit": "deg", 
-      "description": "Angle between Force and Displacement (0-180 deg)." 
+      "description": "Angle between force and displacement (0–180 degrees)." 
     },
     { 
       "key": "KE_Mechanics", 
@@ -38,34 +39,36 @@
       "name": "Kinetic energy", 
       "unit": "J", 
       "min": 0,
-      "description": "Energy of motion (always non-negative)."
+      "description": "Energy associated with motion (always non-negative)."
     },
     { 
       "key": "PE_Mechanics", 
       "symbol": "PE", 
       "name": "Potential energy", 
       "unit": "J",
-      "description": "Gravitational potential energy (can be negative relative to datum)." 
+      "description": "Gravitational potential energy relative to a reference level."
     },
     { 
       "key": "m_Mechanics", 
       "symbol": "m", 
       "name": "Mass", 
       "unit": "kg", 
-      "min": 0.000001 
+      "min": 0.000001,
+      "description": "Mass of the object (always positive)."
     },
     { 
       "key": "v_Mechanics", 
       "symbol": "v", 
       "name": "Velocity/Speed", 
-      "unit": "m/s" 
+      "unit": "m/s",
+      "description": "Speed of the object during motion."
     },
     { 
       "key": "h_Mechanics", 
       "symbol": "h", 
       "name": "Height", 
       "unit": "m",
-      "description": "Vertical distance from reference level."
+      "description": "Vertical distance from the chosen reference level."
     },
     { 
       "key": "g_Mechanics", 
@@ -74,26 +77,28 @@
       "unit": "m/s^2", 
       "value": 9.8, 
       "min": 0,
-      "description": "Acceleration due to gravity (Default 9.8, not fixed)." 
+      "description": "Acceleration due to gravity near Earth's surface (default 9.8)."
     },
     { 
       "key": "P_Mechanics", 
       "symbol": "P", 
       "name": "Power", 
       "unit": "W", 
-      "min": 0 
+      "min": 0,
+      "description": "Rate at which work is done or energy is transferred."
     },
     { 
       "key": "t_Mechanics", 
       "symbol": "t", 
       "name": "Time", 
       "unit": "s", 
-      "min": 0.000001 
+      "min": 0.000001,
+      "description": "Duration over which work or energy transfer occurs."
     }
   ],
   "formula_sub": [
     {
-      "id": "wep-work",
+      "id": "wep-1",
       "name": "Work done by a constant force",
       "formula": "W = F d \\cos(\\theta)",
       "variable": ["W_Mechanics", "F_Mechanics", "d_Mechanics", "theta_Mechanics"],
@@ -105,7 +110,7 @@
       }
     },
     {
-      "id": "wep-ke",
+      "id": "wep-2",
       "name": "Kinetic Energy",
       "formula": "KE = \\frac{1}{2} m v^2",
       "variable": ["KE_Mechanics", "m_Mechanics", "v_Mechanics"],
@@ -116,7 +121,7 @@
       }
     },
     {
-      "id": "wep-pe",
+      "id": "wep-3",
       "name": "Potential energy",
       "formula": "PE = m g h",
       "variable": ["PE_Mechanics", "m_Mechanics", "g_Mechanics", "h_Mechanics"],
@@ -128,7 +133,7 @@
       }
     },
     {
-      "id": "wep-power",
+      "id": "wep-4",
       "name": "Power (average)",
       "formula": "P = \\frac{W}{t}",
       "variable": ["P_Mechanics", "W_Mechanics", "t_Mechanics"],

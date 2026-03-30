@@ -8,7 +8,7 @@
       "symbol": "x",
       "name": "Displacement",
       "unit": "m",
-      "description": "Displacement from equilibrium (Vector: can be negative)."
+      "description": "Position relative to equilibrium (can be positive or negative)."
     },
     {
       "key": "A_Mechanics",
@@ -16,14 +16,14 @@
       "name": "Amplitude",
       "unit": "m",
       "min": 0.000001,
-      "description": "Maximum displacement (Scalar: always positive)."
+      "description": "Maximum distance from equilibrium (always positive)."
     },
     {
       "key": "v_Mechanics",
       "symbol": "v",
       "name": "Velocity",
       "unit": "m/s",
-      "description": "Instantaneous velocity (Vector: can be negative)."
+      "description": "Velocity at a given moment (can be positive or negative)."
     },
     {
       "key": "vmax_Mechanics",
@@ -31,14 +31,14 @@
       "name": "Max Velocity",
       "unit": "m/s",
       "min": 0.000001,
-      "description": "Maximum speed (Magnitude: always positive)."
+      "description": "Maximum speed during the motion (always positive)."
     },
     {
       "key": "a_Mechanics",
       "symbol": "a",
       "name": "Acceleration",
       "unit": "m/s^2",
-      "description": "Instantaneous acceleration (Vector: can be negative)."
+      "description": "Acceleration at a given position (can be positive or negative)."
     },
     {
       "key": "amax_Mechanics",
@@ -54,7 +54,7 @@
       "name": "Angular frequency",
       "unit": "rad/s",
       "min": 0.000001,
-      "description": "Angular speed (Scalar: always positive)."
+      "description": "Angular frequency of the oscillation (always positive)."
     },
     {
       "key": "k_Mechanics",
@@ -62,7 +62,7 @@
       "name": "Spring constant",
       "unit": "N/m",
       "min": 0.000001,
-      "description": "Spring stiffness (Scalar: always positive)."
+      "description": "Spring stiffness constant (always positive)."
     },
     {
       "key": "m_Mechanics",
@@ -70,7 +70,7 @@
       "name": "Mass",
       "unit": "kg",
       "min": 0.000001,
-      "description": "Mass of the object (Scalar: always positive)."
+      "description": "Mass of the oscillating object (always positive)."
     },
     {
       "key": "E_Mechanics",
@@ -78,12 +78,12 @@
       "name": "Total energy",
       "unit": "J",
       "min": 0,
-      "description": "Total mechanical energy (Scalar: non-negative)."
+      "description": "Total mechanical energy of the oscillation (non-negative)."
     }
   ],
   "formula_sub": [
     {
-      "id": "shm-v-at-x",
+      "id": "shm-1",
       "name": "Velocity at Position x",
       "formula": "v = \\omega \\sqrt{A^2 - x^2}",
       "variable": ["v_Mechanics", "omega_Mechanics", "A_Mechanics", "x_Mechanics"],
@@ -94,7 +94,7 @@
       }
     },
     {
-      "id": "shm-accel",
+      "id": "shm-2",
       "name": "Acceleration at Position x",
       "formula": "a = -\\omega^2 x",
       "variable": ["a_Mechanics", "omega_Mechanics", "x_Mechanics"],
@@ -105,7 +105,7 @@
       }
     },
     {
-      "id": "shm-max-v",
+      "id": "shm-3",
       "name": "Maximum Velocity",
       "formula": "v_{max} = \\omega A",
       "variable": ["vmax_Mechanics", "omega_Mechanics", "A_Mechanics"],
@@ -116,7 +116,7 @@
       }
     },
     {
-      "id": "shm-max-a",
+      "id": "shm-4",
       "name": "Maximum Acceleration",
       "formula": "a_{max} = \\omega^2 A",
       "variable": ["amax_Mechanics", "omega_Mechanics", "A_Mechanics"],
@@ -127,7 +127,7 @@
       }
     },
     {
-      "id": "shm-spring-omega",
+      "id": "shm-5",
       "name": "Angular Frequency (Spring)",
       "formula": "\\omega = \\sqrt{k/m}",
       "variable": ["omega_Mechanics", "k_Mechanics", "m_Mechanics"],
@@ -138,7 +138,7 @@
       }
     },
     {
-      "id": "shm-energy",
+      "id": "shm-6",
       "name": "Total Energy",
       "formula": "E = \\frac{1}{2} k A^2",
       "variable": ["E_Mechanics", "k_Mechanics", "A_Mechanics"],

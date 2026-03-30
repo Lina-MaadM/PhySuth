@@ -44,7 +44,7 @@ function VariableCard({ varKey, symbol, name, unit, description }) {
 
       {/* Description */}
       {description && (
-        <div className="text-sm text-gray-500 mt-1 line-clamp-2">
+        <div className="text-sm text-gray-500 mt-1 line-clamp-3 min-h-[3.6rem]">
           {description}
         </div>
       )}

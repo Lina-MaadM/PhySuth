@@ -1,7 +1,7 @@
 {
   "topic": "Mechanics",
   "subtopic": "Gravitation",
-  "description": "Gravitational relationships: focusing on weight and gravitational acceleration on different planets.",
+  "description": "Gravitational interactions near a planetary surface including weight and gravitational potential energy.",
   "variable_sub": [
     {
       "key": "m_Mechanics",
@@ -9,23 +9,23 @@
       "name": "Mass",
       "unit": "kg",
       "min": 0.000001,
-      "description": "Mass of the object (invariant)"
+      "description": "A physical quantity representing the amount of matter in an object."
     },
     {
       "key": "g_Mechanics",
       "symbol": "g",
       "name": "Gravitational acceleration",
       "unit": "m/s^2",
-      "value": 9.8 ,
-      "min": 0 ,
-      "description": "Acceleration due to gravity on a specific planet."
+      "value": 9.8,
+      "min": 0,
+      "description": "The acceleration caused by gravity near the surface of a planet."
     },
     {
       "key": "W_Mechanics",
       "symbol": "W",
       "name": "Weight",
       "unit": "N",
-      "description": "The gravitational force acting on the mass (W = mg)."
+      "description": "The gravitational force acting on an object."
     },
     {
       "key": "h_Mechanics",
@@ -33,7 +33,7 @@
       "name": "Height",
       "unit": "m",
       "min": 0,
-      "description": "Height from the reference level."
+      "description": "The vertical distance from a chosen reference level."
     },
     {
       "key": "Epg_Mechanics",
@@ -41,7 +41,7 @@
       "name": "Gravitational Potential Energy",
       "unit": "J",
       "min": 0,
-      "description": "Potential energy due to height (mgh)."
+      "description": "The potential energy associated with an object's position in a gravitational field."
     }
   ],
   "formula_sub": [

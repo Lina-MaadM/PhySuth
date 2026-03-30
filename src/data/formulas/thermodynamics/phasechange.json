@@ -1,0 +1,84 @@
+{
+  "topic": "Thermodynamics",
+  "subtopic": "Heat and Phase Change",
+  "description": "The study of heat transfer during temperature change and phase change of a substance.",
+  "variable_sub": [
+    {
+      "key": "Q_Thermodynamics",
+      "symbol": "Q",
+      "name": "Heat energy",
+      "unit": "J",
+      "description": "Thermal energy transferred to or from a substance."
+    },
+    {
+      "key": "m_Thermodynamics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "min": 0,
+      "description": "Mass of the substance."
+    },
+    {
+      "key": "c_Thermodynamics",
+      "symbol": "c",
+      "name": "Specific heat capacity",
+      "unit": "J/(kg·K)",
+      "description": "Energy required to raise the temperature of 1 kg of a substance by 1 degree."
+    },
+    {
+      "key": "L_Thermodynamics",
+      "symbol": "L",
+      "name": "Latent heat",
+      "unit": "J/kg",
+      "description": "Energy required for a phase change without temperature change."
+    },
+    {
+      "key": "Tfinal_Thermodynamics",
+      "symbol": "T",
+      "name": "Final temperature",
+      "unit": "°C",
+      "description": "Temperature of the substance after heat transfer."
+    },
+    {
+      "key": "Tinitial_Thermodynamics",
+      "symbol": "T_0",
+      "name": "Initial temperature",
+      "unit": "°C",
+      "description": "Temperature of the substance before heat transfer."
+    }
+  ],
+  "formula_sub": [
+    {
+      "id": "phase-1",
+      "name": "Specific heat (temperature change)",
+      "formula": "Q = mc(T - T_0)",
+      "variable": [
+        "Q_Thermodynamics",
+        "m_Thermodynamics",
+        "c_Thermodynamics",
+        "Tfinal_Thermodynamics",
+        "Tinitial_Thermodynamics"
+      ],
+      "calculate": {
+        "Q_Thermodynamics": { "type": "expression", "value": "m_Thermodynamics * c_Thermodynamics * (Tfinal_Thermodynamics - Tinitial_Thermodynamics)" },
+        "Tfinal_Thermodynamics": { "type": "expression", "value": "(Q_Thermodynamics / (m_Thermodynamics * c_Thermodynamics)) + Tinitial_Thermodynamics" },
+        "Tinitial_Thermodynamics": { "type": "expression", "value": "Tfinal_Thermodynamics - (Q_Thermodynamics / (m_Thermodynamics * c_Thermodynamics))" }
+      }
+    },
+    {
+      "id": "phase-2",
+      "name": "Latent heat (phase change)",
+      "formula": "Q = mL",
+      "variable": [
+        "Q_Thermodynamics",
+        "m_Thermodynamics",
+        "L_Thermodynamics"
+      ],
+      "calculate": {
+        "Q_Thermodynamics": { "type": "expression", "value": "m_Thermodynamics * L_Thermodynamics" },
+        "m_Thermodynamics": { "type": "expression", "value": "Q_Thermodynamics / L_Thermodynamics" },
+        "L_Thermodynamics": { "type": "expression", "value": "Q_Thermodynamics / m_Thermodynamics" }
+      }
+    }
+  ]
+}
