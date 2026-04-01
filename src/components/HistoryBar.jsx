@@ -2,8 +2,9 @@ import { InlineMath } from "react-katex";
 import { useNavigate } from "react-router-dom";
 import { routeBuilder } from "../routes";
 import { useState, useEffect, useMemo, useRef } from "react";
+import { formulaIndex } from "../data/physicsData";
 
-function HistoryBar({ history = [], onClear }) {
+function HistoryBar({ history = [], onClear, setNavigationContext }) {
   const navigate = useNavigate();
   const STEP = 3;
 
@@ -22,7 +23,7 @@ function HistoryBar({ history = [], onClear }) {
   const [flash, setFlash] = useState(false);
   const [hoveredKey, setHoveredKey] = useState(null);
 
-  // 👇 เพิ่มระบบซ่อนบาร์ตอน scroll
+  // เพิ่มระบบซ่อนบาร์ตอน scroll
   const [visible, setVisible] = useState(true);
   const lastScroll = useRef(0);
 
@@ -44,7 +45,7 @@ function HistoryBar({ history = [], onClear }) {
     }
   }, [history, maxVisible]);
 
-  // 👇 ตรวจ scroll direction
+  // ตรวจ scroll direction
   useEffect(() => {
     const handleScroll = () => {
       const current = window.scrollY;
@@ -82,7 +83,11 @@ function HistoryBar({ history = [], onClear }) {
     return () => clearTimeout(timer);
   }, [warning]);
 
-  const handleClick = (item) => {
+  const handleClick = (item, absoluteIndex) => {
+    setNavigationContext?.({
+      source: "history",
+      fromIndex: absoluteIndex
+    })
     if (item.page === "formulaHistory") {
       navigate(routeBuilder.formula(item.id), { state: { fromHistory: true } });
     }
@@ -159,7 +164,7 @@ function HistoryBar({ history = [], onClear }) {
                     onMouseLeave={handleMouseLeave}
                   >
                     <div
-                      onClick={() => handleClick(item)}
+                      onClick={() => handleClick(item, startIndex + index)}
                       className={`px-3 py-1 border rounded text-sm cursor-pointer hover:bg-blue-50 whitespace-nowrap transition-colors ${extraStyle}`}
                     >
                       <InlineMath math={item.label} />
@@ -216,7 +221,7 @@ function HistoryBar({ history = [], onClear }) {
                         </div>
 
                         <button
-                          onClick={() => handleClick(item)}
+                          onClick={() => handleClick(item, startIndex + index)}
                           className="mt-3 w-full bg-blue-50 text-blue-600 font-medium border border-blue-200 rounded py-1 hover:bg-blue-600 hover:text-white transition-all text-xs"
                         >
                           View Details

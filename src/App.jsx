@@ -17,11 +17,12 @@ function App() {
 
   const [memory, setMemory] = useState({});
   const [history, setHistory] = useState([]);
+  const [navigationContext, setNavigationContext] = useState(null);
 
   function handleSaveMemory(data) {
-    setMemory(prev => ({
+    setMemory((prev) => ({
       ...prev,
-      ...data
+      ...data,
     }));
   }
 
@@ -34,43 +35,41 @@ function App() {
   }
 
   function addHistory(entry) {
-    setHistory(prev => {
-
+    setHistory((prev) => {
       if (!entry) return prev;
 
-      const last = prev[prev.length - 1];
+      let baseHistory = prev;
 
-      const sameFormula =
-        entry.id && last?.id === entry.id;
-
-      const sameVariable =
-        entry.key && last?.key === entry.key;
-
-      // กัน A → A
       if (
-        last &&
-        last.page === entry.page &&
-        (sameFormula || sameVariable)
+        navigationContext?.source === "history" &&
+        navigationContext?.fromIndex !== prev.length - 1
       ) {
-        return prev;
+        baseHistory = prev.slice(0, navigationContext.fromIndex + 1);
       }
 
-      const repeated = prev.some(
+      const last = baseHistory[baseHistory.length - 1];
+
+      const sameFormula = entry.id && last?.id === entry.id;
+      const sameVariable = entry.key && last?.key === entry.key;
+
+      if (last && last.page === entry.page && (sameFormula || sameVariable)) {
+        return baseHistory;
+      }
+
+      const repeated = baseHistory.some(
         (h) =>
           h.page === entry.page &&
-          (
-            (entry.id && h.id === entry.id) ||
-            (entry.key && h.key === entry.key)
-          )
+          ((entry.id && h.id === entry.id) ||
+            (entry.key && h.key === entry.key))
       );
 
       const newEntry = {
         ...entry,
         repeat: repeated,
-        time: Date.now()
+        time: Date.now(),
       };
 
-      const newHistory = [...prev, newEntry];
+      const newHistory = [...baseHistory, newEntry];
 
       const MAX = 20;
 
@@ -80,49 +79,60 @@ function App() {
 
       return newHistory;
     });
+
+    setNavigationContext(null);
   }
 
   return (
     <BrowserRouter>
-      <Navbar />
+      <div className="min-h-screen bg-[#FFF8F0]">
 
-      <HistoryAnalyze
-        history={history}
-        formulaIndex={formulaIndex}
-        variableIndex={variableIndex}
-        onClear={() => {
-          clearMemory();
-          clearHistory();
-        }}
-      />
+        <Navbar />
 
-      <VariableMem memory={memory} onClear={clearMemory} />
+        <HistoryAnalyze
+          history={history}
+          formulaIndex={formulaIndex}
+          variableIndex={variableIndex}
+          setNavigationContext={setNavigationContext}
+          onClear={() => {
+            clearMemory();
+            clearHistory();
+          }}
+        />
 
-        <div className="pt-24 px-6">
-          <Routes>
+        <VariableMem memory={memory} onClear={clearMemory} />
 
-            <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
+        <main className="pt-24 px-6">
+          <div className="max-w-6xl mx-auto">
 
-            <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />
+            <div className="bg-white rounded-xl shadow-sm min-h-[70vh] p-6">
+              <Routes>
+                <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
 
-            <Route
-              path={ROUTE_PATH.VARIABLE_DETAIL}
-              element={<RelationView addHistory={addHistory} />}
-            />
+                <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />
 
-            <Route
-              path={ROUTE_PATH.FORMULA_DETAIL}
-              element={
-                <FormulaDetail
-                  memory={memory}
-                  onSaveMemory={handleSaveMemory}
-                  addHistory={addHistory}
+                <Route
+                  path={ROUTE_PATH.VARIABLE_DETAIL}
+                  element={<RelationView addHistory={addHistory} />}
                 />
-              }
-            />
 
-          </Routes>
-        </div>
+                <Route
+                  path={ROUTE_PATH.FORMULA_DETAIL}
+                  element={
+                    <FormulaDetail
+                      memory={memory}
+                      onSaveMemory={handleSaveMemory}
+                      addHistory={addHistory}
+                    />
+                  }
+                />
+              </Routes>
+            </div>
+
+          </div>
+        </main>
+
+      </div>
     </BrowserRouter>
   );
 }
