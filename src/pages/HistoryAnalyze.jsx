@@ -6,7 +6,8 @@ function HistoryAnalyze({
   formulaIndex,
   variableIndex,
   onClear,
-  setNavigationContext
+  setNavigationContext,
+  navigationContext
 }) {
 
   const analyzedHistory = useMemo(() => {
@@ -130,6 +131,7 @@ function HistoryAnalyze({
       history={analyzedHistory}
       onClear={onClear}
       setNavigationContext={setNavigationContext}
+      navigationContext={navigationContext}
     />
   );
 }
