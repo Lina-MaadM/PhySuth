@@ -60,11 +60,11 @@ function HistoryBar({ history = [], onClear, setNavigationContext, navigationCon
     if (currentItem.crossTopic)
       return {
         text: `⚠ Cross topic: ${currentItem.topic}`,
-        color: "bg-yellow-400 text-black"
+        color: "bg-orange-500 text-black"
       };
 
     if (currentItem.repeat)
-      return { text: "↻ Revisited", color: "bg-purple-400" };
+      return { text: "↻ Revisited", color: "bg-pink-400" };
 
     return null;
   }, [currentItem]);
@@ -113,9 +113,9 @@ function HistoryBar({ history = [], onClear, setNavigationContext, navigationCon
         <div className="w-full border-b bg-gray-50/90 backdrop-blur-sm p-3 flex items-center shadow-sm">
           <button
             onClick={() => onClear?.()}
-            className="mr-4 px-3 py-1 border rounded text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-colors shrink-0"
+            className="mr-4 px-3 py-1 text-sm text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-md transition-all shrink-0 flex items-center gap-1"
           >
-            Clear
+            🗑 Clear
           </button>
 
           <div
@@ -132,7 +132,7 @@ function HistoryBar({ history = [], onClear, setNavigationContext, navigationCon
                 let hasWarning = false;
 
                 if (item.repeat) {
-                  extraStyle = "bg-purple-100 border-purple-400";
+                  extraStyle = "bg-pink-100 border-pink-400";
                   hasWarning = true;
                 }
                 if (item.disconnected) {
@@ -140,7 +140,7 @@ function HistoryBar({ history = [], onClear, setNavigationContext, navigationCon
                   hasWarning = true;
                 }
                 if (item.crossTopic) {
-                  extraStyle = "bg-yellow-100 border-yellow-400";
+                  extraStyle = "bg-orange-100 border-orange-400";
                   hasWarning = true;
                 }
 
@@ -150,9 +150,9 @@ function HistoryBar({ history = [], onClear, setNavigationContext, navigationCon
 
                 if (isCurrent) {
                   if (hasWarning) {
-                    if (item.repeat) highlightStyle = "bg-purple-500 text-white";
+                    if (item.repeat) highlightStyle = "bg-pink-500 text-white";
                     if (item.disconnected) highlightStyle = "bg-red-500 text-white";
-                    if (item.crossTopic) highlightStyle = "bg-yellow-500 text-white";
+                    if (item.crossTopic) highlightStyle = "bg-orange-500 text-white";
                   } else {
                     highlightStyle = "bg-blue-600 text-white";
                   }
