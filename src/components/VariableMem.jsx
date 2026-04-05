@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { InlineMath } from "react-katex";
 import { variableIndex } from "../data/physicsData"; 
 
 export default function VariableMem({ memory = {}, onClear = () => {} }) {
@@ -13,12 +14,12 @@ export default function VariableMem({ memory = {}, onClear = () => {} }) {
       const info = variableIndex[key];
       if (!info) continue;
 
-      const variable = key.split("_")[0];
-      const topic = info.topic; // ใช้ display topic จาก JSON
+      const topic = info.topic || "Others";
+      const symbol = info.symbol || key;
+      const unit = info.unit || "";
 
       if (!result[topic]) result[topic] = [];
-
-      result[topic].push({ variable, value });
+      result[topic].push({ key, value, symbol, unit });
     }
 
     return result;
@@ -26,144 +27,57 @@ export default function VariableMem({ memory = {}, onClear = () => {} }) {
 
   const topics = Object.keys(grouped);
 
-  const unitMap = {
-    v: "m/s",
-    a: "m/s²",
-    m: "kg",
-    F: "N",
-    p: "kg·m/s",
-    f: "Hz",
-    lambda: "m",
-    T: "s",
-    Q: "J",
-    c: "J/(kg·K)",
-    L: "J/kg"
-  };
-
   return (
     <>
       {/* Floating Button */}
       <button
         onClick={() => setOpen(prev => !prev)}
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          width: "60px",
-          height: "60px",
-          borderRadius: "50%",
-          border: "none",
-          background: "#3b82f6",
-          color: "white",
-          fontWeight: "bold",
-          fontSize: "18px",
-          cursor: "pointer",
-          boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
-          zIndex: 1000
-        }}
+        className="fixed bottom-6 right-6 w-15 h-15 rounded-full bg-blue-500 text-white font-bold text-lg shadow-md z-50"
       >
         M{entries.length > 0 ? `(${entries.length})` : ""}
       </button>
 
       {/* Panel */}
       {open && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: "100px",
-            right: "24px",
-            width: "320px",
-            maxHeight: "420px",
-            overflowY: "auto",
-            background: "white",
-            borderRadius: "12px",
-            padding: "1rem",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
-            border: "1px solid #ddd",
-            zIndex: 1000
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginBottom: "0.8rem"
-            }}
-          >
-            <strong>Saved Variables</strong>
-
+        <div className="fixed bottom-24 right-6 w-80 max-h-[420px] overflow-y-auto bg-white rounded-xl p-4 shadow-lg border border-gray-200 z-50">
+          <div className="flex justify-between mb-2">
+            <strong className="text-lg">Saved Variables</strong>
             <button
               onClick={onClear}
-              style={{
-                border: "none",
-                background: "transparent",
-                color: "#ef4444",
-                cursor: "pointer",
-                fontSize: "0.85rem"
-              }}
+              className="text-red-500 text-sm cursor-pointer bg-transparent border-none"
             >
               Clear
             </button>
           </div>
 
           {entries.length === 0 && (
-            <div style={{ opacity: 0.6, fontSize: "0.9rem" }}>
-              No values saved
-            </div>
+            <div className="opacity-60 text-sm">No values saved</div>
           )}
 
           {topics.map(topic => (
-            <div key={topic} style={{ marginBottom: "14px" }}>
-              <div
-                style={{
-                  fontWeight: 600,
-                  fontSize: "0.9rem",
-                  marginBottom: "6px",
-                  color: "#374151"
-                }}
-              >
+            <div key={topic} className="mb-3">
+              <div className="text-center font-semibold text-blue-700 text-lg mb-1">
                 {topic}
               </div>
 
               {grouped[topic].map((item, index) => (
                 <div
                   key={index}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "40px 1fr 80px",
-                    columnGap: "10px",
-                    alignItems: "center",
-                    fontSize: "0.9rem",
-                    paddingLeft: "6px",
-                    marginBottom: "2px"
-                  }}
+                  className="grid grid-cols-[40px_1fr_80px] gap-x-2 items-center text-sm pl-1 mb-0.5"
                 >
-                  {/* variable */}
-                  <span style={{ fontWeight: 500 }}>{item.variable}</span>
+                  {/* variable (symbol) */}
+                  <span className="font-medium">
+                    <InlineMath math={item.symbol} />
+                  </span>
 
                   {/* value */}
-                  <span
-                    style={{
-                      textAlign: "right",
-                      fontFamily: "monospace",
-                      color: "#2563eb",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
-                    }}
-                  >
+                  <span className="text-right font-mono text-blue-600 truncate">
                     {item.value}
                   </span>
 
                   {/* unit */}
-                  <span
-                    style={{
-                      opacity: 0.7,
-                      fontFamily: "monospace",
-                      fontSize: "0.8rem",
-                      whiteSpace: "nowrap" // ป้องกันหน่วยตกบรรทัด
-                    }}
-                  >
-                    {unitMap[item.variable] || ""}
+                  <span className="opacity-70 font-mono text-xs whitespace-nowrap">
+                    <InlineMath math={item.unit} />
                   </span>
                 </div>
               ))}
