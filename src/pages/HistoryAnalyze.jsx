@@ -6,134 +6,108 @@ function HistoryAnalyze({
   formulaIndex,
   variableIndex,
   onClear,
-  setNavigationContext,
-  navigationContext
+  currentEntry,
+  latestEntry,
+  onClickEntry,
 }) {
-
   const analyzedHistory = useMemo(() => {
-
     if (!history || history.length === 0) return [];
 
     const seen = new Set();
-
-    // helper: แปลง key -> symbol
-    const keyToSymbol = (key) => {
-      return variableIndex[key]?.symbol || key;
-    };
+    const keyToSymbol = (key) => variableIndex[key]?.symbol || key;
+    const getBaseKey = (key) => key?.split("_")[0] || "";
 
     return history.map((entry, i) => {
-
       const prev = history[i - 1];
-
       let topic = null;
       let subtopic = null;
       let symbols = [];
-
-      // --------------------
-      // CURRENT ENTRY
-      // --------------------
+      let variableKeys = [];
 
       if (entry.id && formulaIndex[entry.id]) {
         const f = formulaIndex[entry.id];
         topic = f.topic;
         subtopic = f.subtopic;
-
-        symbols = (f.variable || []).map(keyToSymbol);
+        variableKeys = f.variable || [];
+        symbols = variableKeys.map(keyToSymbol);
       }
 
       if (entry.key && variableIndex[entry.key]) {
         const v = variableIndex[entry.key];
         topic = v.topic;
         subtopic = v.subtopic;
-
+        variableKeys = [entry.key];
         symbols = [v.symbol];
       }
 
-      // --------------------
-      // PREVIOUS ENTRY
-      // --------------------
-
       let prevTopic = null;
-      let prevSymbols = [];
-
+      let prevVariableKeys = [];
       if (prev) {
-
         if (prev.id && formulaIndex[prev.id]) {
           const pf = formulaIndex[prev.id];
           prevTopic = pf.topic;
-
-          prevSymbols = (pf.variable || []).map(keyToSymbol);
+          prevVariableKeys = pf.variable || [];
         }
-
         if (prev.key && variableIndex[prev.key]) {
           const pv = variableIndex[prev.key];
           prevTopic = pv.topic;
-
-          prevSymbols = [pv.symbol];
+          prevVariableKeys = [prev.key];
         }
-
       }
 
-      // --------------------
-      // ANALYZE CONNECTION
-      // --------------------
-
-      let sharedSymbol = false;
-
+      let hasConnection = false;
       if (prev) {
-        sharedSymbol = symbols.some(s =>
-          prevSymbols.includes(s)
-        );
+        const currentBases = variableKeys.map(getBaseKey);
+        const prevBases = prevVariableKeys.map(getBaseKey);
+        hasConnection = currentBases.some((b) => prevBases.includes(b));
       }
 
+      const sameTopic = prev && prevTopic && topic ? prevTopic === topic : false;
       let crossTopic = false;
       let disconnected = false;
 
       if (prev) {
-        crossTopic =
-          sharedSymbol &&
-          prevTopic &&
-          topic &&
-          prevTopic !== topic;
-
-        disconnected = !sharedSymbol;
+        if (!hasConnection) {
+          disconnected = true;
+        } else if (!sameTopic) {
+          crossTopic = true;
+        }
       }
 
-      // --------------------
-      // REPEAT
-      // --------------------
-
+      // ✅ แก้ไข: REPEAT ให้ทำงานได้ทุกตัวที่เคยปรากฏมาแล้ว
       const uniqueKey = entry.id || entry.key;
-      let repeat = false;
-
-      if (seen.has(uniqueKey)) {
-        repeat = true;
-      }
-
+      const repeat = seen.has(uniqueKey); 
       seen.add(uniqueKey);
 
-      return {
-        ...entry,
-        topic,
-        subtopic,
-        symbols,
-        crossTopic,
-        disconnected,
-        repeat
-      };
+      // ✅ แก้ไข: เช็กแค่ว่า ID ตรงกับ URL หรือไม่ (ยังไม่ระบุว่าเป็น Active Index)
+      const isMatchUrl =
+        currentEntry &&
+        ((currentEntry.id && currentEntry.id === entry.id) ||
+          (currentEntry.key && currentEntry.key === entry.key));
 
-    });
 
-  }, [history, formulaIndex, variableIndex]);
+            return {
+              ...entry,
+              id: entry.id || entry.key,   // บังคับให้มี id
+              key: entry.id || entry.key,  // บังคับให้มี key (เพื่อความชัวร์ของหน้า Detail)
+              topic,
+              subtopic,
+              symbols,
+              crossTopic,
+              disconnected,
+              repeat,
+              isMatchUrl,
+              isLatest: i === history.length - 1,
+              label: entry.label || symbols[0] || "?", 
+              // 🔥 จุดสำคัญ: ต้องมั่นใจว่า onClick นี้ถูกส่งทอดไปยัง HistoryBar
+              onClick: () => onClickEntry?.(entry, i === history.length - 1),
+            };
+          });
+        }, [history, formulaIndex, variableIndex, currentEntry, latestEntry, onClickEntry]);
 
-  return (
-    <HistoryBar
-      history={analyzedHistory}
-      onClear={onClear}
-      setNavigationContext={setNavigationContext}
-      navigationContext={navigationContext}
-    />
-  );
+  // ✅ ตรงนี้สำคัญมาก: HistoryBar ต้องได้รับ analyzedHistory ที่มี onClick อยู่ข้างใน
+  return <HistoryBar history={analyzedHistory} onClear={onClear} />;
+
 }
 
 export default HistoryAnalyze;
