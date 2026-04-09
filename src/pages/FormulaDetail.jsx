@@ -36,17 +36,18 @@ function FormulaDetail({ memory, onSaveMemory, addHistory }) {
   }
 
   // history
-  useEffect(() => {
+useEffect(() => {
+  if (!targetEquation) return;
 
-    if (location.state?.fromHistory) return;
+  const entry = {
+    page: "formula",
+    id: id,
+    key: id,
+    label: targetEquation.formula
+  };
 
-    addHistory({
-      page: "formulaHistory",
-      id: id,
-      label: targetEquation.formula
-    });
-
-  }, [id]);
+  addHistory(entry, { fromHistory: location.state?.fromHistory });
+}, [id, targetEquation?.formula, location.state?.fromHistory, addHistory]);
 
   return (
     <div className="p-6 pt-24 max-w-3xl mx-auto space-y-8">

@@ -1,69 +1,30 @@
 import { InlineMath } from "react-katex";
-import { useNavigate, useLocation } from "react-router-dom";
-import { routeBuilder } from "../routes";
 import { useState, useEffect, useMemo, useRef } from "react";
 
-function HistoryBar({ history = [], onClear }) {
-  const navigate = useNavigate();
-  const location = useLocation();
-
+function HistoryBar({ history = [], activePointer, onClear }) {
   const [flash, setFlash] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
   const [visible, setVisible] = useState(true);
-  
-  const prevHistoryLength = useRef(history.length);
-  const [activeIndex, setActiveIndex] = useState(history.length - 1);
 
-  const [clickedIndex, setClickedIndex] = useState(null);
+  const activeIndex = activePointer;
+
   const lastScroll = useRef(0);
   const hoverTimer = useRef(null);
   const scrollRef = useRef(null);
 
-  // ฟังก์ชันช่วยดึงค่า ID/Key แบบเป็นกลาง
-  const getItemId = (item) => item.id || item.key;
-
   // =========================================================
-    // 🔥 CORE LOGIC: แก้ไขเรื่องการ Sync ไฮไลท์ไม่ให้ดีดกลับ
-    // =========================================================
-    useEffect(() => {
-      // กรณีที่ 1: มีการเพิ่มประวัติใหม่ (Length เพิ่มขึ้น)
-      if (history.length > prevHistoryLength.current) {
-        setActiveIndex(history.length - 1);
-        setClickedIndex(null); // ล้างค่าที่คลิก เพราะเราไปหน้าใหม่ล่าสุดแล้ว
-        
-        if (scrollRef.current) {
-          scrollRef.current.scrollTo({
-            left: scrollRef.current.scrollWidth,
-            behavior: "smooth"
-          });
-        }
-      } 
-      // กรณีที่ 2: กดย้อนดูหรือเปลี่ยนหน้า (Length เท่าเดิม)
-      else {
-        // ถ้าเพิ่งคลิกมา ให้เชื่อ index ที่คลิกเป็นอันดับแรก
-        if (clickedIndex !== null) {
-          setActiveIndex(clickedIndex);
-        } 
-        else {
-          // ถ้าไม่ได้คลิก (เช่น กด Back/Forward หรือพิมพ์ URL) 
-          // ให้ค้นหาจาก "ท้ายย้อนกลับมา" เพื่อให้เจอตัวล่าสุดที่ตรงกับหน้าปัจจุบัน
-          const reversedIndex = [...history].reverse().findIndex(item => {
-            const id = getItemId(item);
-            return id && location.pathname.includes(id);
-          });
-
-          if (reversedIndex !== -1) {
-            // แปลงจาก index ที่ reverse กลับเป็น index ปกติ
-            setActiveIndex(history.length - 1 - reversedIndex);
-          }
-        }
+  // AUTO SCROLL: เลื่อนไปหาตัวที่กำลัง Active
+  // =========================================================
+  useEffect(() => {
+    if (scrollRef.current) {
+      const activeEl = scrollRef.current.querySelector(".history-item-active");
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
       }
-      prevHistoryLength.current = history.length;
-    }, [history.length, location.pathname, clickedIndex]);
+    }
+  }, [activePointer]);
 
-  const currentItem = history[activeIndex];
-
-  // Logic การซ่อน/แสดง Bar เมื่อ Scroll
+  // ซ่อน/แสดง Bar เมื่อ scroll
   useEffect(() => {
     const handleScroll = () => {
       const current = window.scrollY;
@@ -74,6 +35,8 @@ function HistoryBar({ history = [], onClear }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // วิเคราะห์ Warning สำหรับแถบสถานะด้านล่าง
+  const currentItem = history[activeIndex];
   const warning = useMemo(() => {
     if (!currentItem) return null;
     if (currentItem.disconnected)
@@ -85,6 +48,7 @@ function HistoryBar({ history = [], onClear }) {
     return null;
   }, [currentItem]);
 
+  // เอฟเฟกต์ไฟกะพริบตอนเจอ Warning ใหม่
   useEffect(() => {
     if (!warning || warning.text.includes("Revisited")) return;
     setFlash(true);
@@ -103,15 +67,12 @@ function HistoryBar({ history = [], onClear }) {
     }, 1000);
   };
 
-  // 🔥 ฟังก์ชันคลิก: แก้ไขเรื่อง Key และการส่ง State
-  const handleClick = (item, index) => {
-    // 1. อัปเดตตำแหน่งไฮไลท์ทันที
-    setClickedIndex(index);
-    setActiveIndex(index);
-    
-    // 2. เรียก callback เดิม (ถ้ามี)
-    if (item.onClick) item.onClick(); 
-
+  // =========================================================
+  // CLICK HANDLER: ส่ง event ขึ้นไปให้ App จัดการอย่างเดียว
+  // navigate ถูกย้ายไปอยู่ที่ handleHistoryClick ใน App.jsx แล้ว
+  // =========================================================
+  const handleItemClick = (item) => {
+    item.onClick?.();
   };
 
   return (
@@ -154,10 +115,9 @@ function HistoryBar({ history = [], onClear }) {
                 hasWarning = true;
               }
 
-              // ไฮไลท์ตาม activeIndex
               const isCurrent = index === activeIndex;
               let highlightStyle = "";
-              
+
               if (isCurrent) {
                 if (hasWarning) {
                   if (item.repeat) highlightStyle = "bg-pink-500 text-white border-pink-600 shadow-md";
@@ -170,13 +130,13 @@ function HistoryBar({ history = [], onClear }) {
 
               return (
                 <div
-                  key={`${item.page}-${getItemId(item)}-${index}`}
-                  className="shrink-0 py-1"
+                  key={`${item.id}-${index}`}
+                  className={`shrink-0 py-1 ${isCurrent ? "history-item-active" : ""}`}
                   onMouseEnter={() => handleMouseEnter(item)}
                   onMouseLeave={handleMouseLeave}
                 >
                   <div
-                    onClick={() => handleClick(item, index)}
+                    onClick={() => handleItemClick(item)}
                     className={`px-5 py-1.5 rounded-full text-sm cursor-pointer whitespace-nowrap transition-all duration-300 hover:scale-110 hover:-translate-y-0.5 shadow-sm hover:shadow-md ${extraStyle} ${highlightStyle}`}
                   >
                     <InlineMath math={item.label} />
@@ -188,6 +148,7 @@ function HistoryBar({ history = [], onClear }) {
         </div>
       </div>
 
+      {/* Tooltip Hover */}
       {hoveredItem && (
         <div
           className="fixed left-1/2 -translate-x-1/2 top-[135px] z-[9999] w-60 p-4 bg-white/95 backdrop-blur-md border border-stone-200 shadow-2xl rounded-2xl text-sm animate-in fade-in zoom-in duration-200"
@@ -199,17 +160,26 @@ function HistoryBar({ history = [], onClear }) {
           <div className="font-bold mb-2 border-b border-stone-100 pb-2 text-stone-800">
             <InlineMath math={hoveredItem.label} />
           </div>
+
+          <div className="text-stone-500 text-xs mt-1">
+            <span className="font-mono bg-stone-100 px-1 rounded">ID: {hoveredItem.id}</span>
+          </div>
+
           {hoveredItem.topic && (
-            <div className="text-stone-500 text-xs">
+            <div className="text-stone-500 text-xs mt-1">
               <span className="font-bold text-[#2D241E] px-2 py-0.5 bg-stone-100 rounded-md mr-2">
                 {hoveredItem.topic}
               </span>
             </div>
           )}
+
           {hoveredItem.symbols?.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {hoveredItem.symbols.map((sym, i) => (
-                <span key={i} className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-lg text-[10px] text-stone-600 shadow-sm">
+                <span
+                  key={i}
+                  className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-lg text-[10px] text-stone-600 shadow-sm"
+                >
                   <InlineMath math={sym} />
                 </span>
               ))}
@@ -218,8 +188,11 @@ function HistoryBar({ history = [], onClear }) {
         </div>
       )}
 
+      {/* Warning Status Bar */}
       {warning && (
-        <div className={`w-full text-[11px] font-bold tracking-wide px-4 py-1.5 flex justify-center text-white transition-colors duration-500 ${warning.color} ${flash ? "animate-pulse" : ""}`}>
+        <div
+          className={`w-full text-[11px] font-bold tracking-wide px-4 py-1.5 flex justify-center text-white transition-colors duration-500 ${warning.color} ${flash ? "animate-pulse" : ""}`}
+        >
           {warning.text.toUpperCase()}
         </div>
       )}

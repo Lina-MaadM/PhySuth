@@ -16,29 +16,28 @@ function AppContent() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // --- States ---
   const [memory, setMemory] = useState({});
-  const [history, setHistory] = useState([]);
-  const [pointer, setPointer] = useState(-1);
+  const [historyState, setHistoryState] = useState({ list: [], pointer: -1 });
   const [warning, setWarning] = useState({ show: false, message: "", type: "info" });
 
-  // --- Refs ---
   const lastAddedId = useRef(null);
+  // แยก ref สำหรับบอกว่ากำลัง navigate จาก Bar
+  // ป้องกันหน้าปลายทาง re-render แล้วเรียก addHistory แล้วขยับ pointer โดยไม่ตั้งใจ
+  const isNavigatingFromHistory = useRef(false);
 
-  // --- Logic Functions ---
   function handleSaveMemory(data) {
     setMemory((prev) => ({ ...prev, ...data }));
   }
 
   function clearHistory() {
-    setHistory([]);
-    setPointer(-1);
+    setHistoryState({ list: [], pointer: -1 });
     setWarning({ show: false, message: "", type: "info" });
     lastAddedId.current = null;
+    isNavigatingFromHistory.current = false;
   }
 
   // =========================================================
-  // 🔥 [CORE ENGINE] Logic การบันทึกประวัติ
+  // [CORE ENGINE] Logic การบันทึกประวัติ
   // =========================================================
   function addHistory(entry, options = {}) {
     if (!entry) return;
@@ -46,78 +45,73 @@ function AppContent() {
     const newId = entry.id || entry.key;
     if (!newId) return;
 
-    // ถ้ามาจาก HistoryBar หรือ State ระบุว่ามาจาก History → ไม่เพิ่ม entry ใหม่
+    // กรณีที่ 1: มาจาก location.state (เช่น FormulaDetail อ่าน fromHistory จาก state)
     if (options.fromHistory || location.state?.fromHistory) return;
 
-    setHistory((prevList) => {
-      // 1. ถ้า entry นี้เหมือนตัวล่าสุดที่เพิ่งเพิ่ม (ป้องกัน Re-render เบิ้ล)
-      if (lastAddedId.current === newId) return prevList;
+    // กรณีที่ 2: กำลัง navigate จาก HistoryBar อยู่
+    // หน้าปลายทางจะ re-render แล้วเรียก addHistory — ให้หยุดครั้งแรกแล้วเปิด flag คืน
+    if (isNavigatingFromHistory.current) {
+      isNavigatingFromHistory.current = false;
+      return;
+    }
 
-      // 2. ตัด "อนาคต" ทิ้งถ้ามีการขยับจากตำแหน่งกลาง Timeline (Branching)
-      let updatedList = pointer >= 0 
-        ? prevList.slice(0, pointer + 1) 
-        : [...prevList];
+    // กรณีที่ 3: entry เดิมกับที่เพิ่งเพิ่ม (ป้องกัน re-render เบิ้ล)
+    if (lastAddedId.current === newId) return;
+    lastAddedId.current = newId;
 
-      // 3. เพิ่ม Entry ใหม่
-      const newEntry = { 
-        ...entry, 
-        id: newId, 
-        key: newId, 
-        time: Date.now() 
-      };
-      
-      updatedList.push(newEntry);
+    setHistoryState(({ list, pointer }) => {
+      // slice เกิดเฉพาะตอนนี้ เมื่อมี entry ใหม่เข้ามาจริงๆ
+      // และ pointer อยู่กลาง timeline (ไม่ได้อยู่ท้ายสุด)
+      const isInMiddle = pointer >= 0 && pointer < list.length - 1;
+      const base = isInMiddle ? list.slice(0, pointer + 1) : [...list];
 
-      // 4. จำกัดประวัติไม่เกิน 20 รายการ
-      if (updatedList.length > 20) {
-        updatedList.shift();
-      }
+      const newEntry = { ...entry, id: newId, key: newId, time: Date.now() };
+      const next = [...base, newEntry];
 
-      // 5. Sync Pointer และ Ref
-      setPointer(updatedList.length - 1);
-      lastAddedId.current = newId;
+      if (next.length > 20) next.shift();
 
-      return updatedList;
+      return { list: next, pointer: next.length - 1 };
     });
   }
 
   // =========================================================
-  // 🖱️ [NAVIGATION] คลิกจาก HistoryBar
+  // [NAVIGATION] คลิกจาก HistoryBar
   // =========================================================
-  const handleHistoryClick = (entry, index) => {
+  function handleHistoryClick(entry, index) {
     if (!entry) return;
 
-    setPointer(index);
-    lastAddedId.current = entry.id || entry.key; // อัปเดตเพื่อให้ addHistory รู้ว่าอยู่ที่ตัวนี้แล้ว
+    // เปิด flag ก่อน navigate เพื่อกัน addHistory จากหน้าปลายทาง
+    isNavigatingFromHistory.current = true;
+    lastAddedId.current = entry.id || entry.key;
+
+    // set pointer ตรงๆ ไม่ต้องแตะ list
+    setHistoryState((prev) => ({ ...prev, pointer: index }));
 
     const targetId = entry.id || entry.key;
-    const basePath = entry.page?.includes("variable") ? "/variable" : "/formula";
+    const basePath = entry.page === "variable" ? "/variable" : "/formula";
 
-    navigate(`${basePath}/${targetId}`, { 
-      state: { fromHistory: true }, 
-      replace: true 
+    navigate(`${basePath}/${targetId}`, {
+      state: { fromHistory: true },
+      replace: true,
     });
-  };
+  }
 
-  // --- Warning Auto-hide ---
+  // Warning Auto-hide
   useEffect(() => {
     if (!warning.show) return;
-
     const timer = setTimeout(() => {
       setWarning((p) => ({ ...p, show: false }));
     }, 1500);
-
     return () => clearTimeout(timer);
   }, [warning.show]);
 
-  // --- Render ---
   return (
     <div className="min-h-screen bg-[#FFF8F0]">
       <Navbar />
 
       <HistoryAnalyze
-        history={history}
-        pointer={pointer}
+        history={historyState.list}
+        pointer={historyState.pointer}
         formulaIndex={formulaIndex}
         variableIndex={variableIndex}
         onClear={clearHistory}
@@ -126,18 +120,17 @@ function AppContent() {
 
       <VariableMem memory={memory} onClear={() => setMemory({})} />
 
-      {/* Warning Toast */}
       {warning.show && (
-        <div 
+        <div
           className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg border flex items-center gap-3 
-            ${warning.type === "danger" 
-              ? "bg-red-100 border-red-200 text-red-700" 
+            ${warning.type === "danger"
+              ? "bg-red-100 border-red-200 text-red-700"
               : "bg-orange-100 border-orange-200 text-orange-700"
             }`}
         >
           <span>{warning.type === "danger" ? "ℹ" : "⚠"} {warning.message}</span>
-          <button 
-            onClick={() => setWarning((p) => ({ ...p, show: false }))} 
+          <button
+            onClick={() => setWarning((p) => ({ ...p, show: false }))}
             className="font-bold hover:opacity-70"
           >
             ×
@@ -151,19 +144,19 @@ function AppContent() {
             <Routes>
               <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
               <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />
-              <Route 
-                path={ROUTE_PATH.VARIABLE_DETAIL} 
-                element={<RelationView addHistory={addHistory} />} 
+              <Route
+                path={ROUTE_PATH.VARIABLE_DETAIL}
+                element={<RelationView addHistory={addHistory} />}
               />
-              <Route 
-                path={ROUTE_PATH.FORMULA_DETAIL} 
+              <Route
+                path={ROUTE_PATH.FORMULA_DETAIL}
                 element={
-                  <FormulaDetail 
-                    memory={memory} 
-                    onSaveMemory={handleSaveMemory} 
-                    addHistory={addHistory} 
+                  <FormulaDetail
+                    memory={memory}
+                    onSaveMemory={handleSaveMemory}
+                    addHistory={addHistory}
                   />
-                } 
+                }
               />
             </Routes>
           </div>

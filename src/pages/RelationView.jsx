@@ -58,16 +58,22 @@ function RelationView({ addHistory }) {
 
   const currentVariable = variableIndex[key] || relatedVariables[0];
 
-  useEffect(() => {
-    if (!currentVariable) return;
-    if (location.state?.fromHistory) return;
+useEffect(() => {
+  if (!currentVariable) return;
 
-    addHistory({
-      page: "variableHistory",
-      key: key,
-      label: currentVariable.symbol,
-    });
-  }, [key, currentVariable, addHistory, location.state]);
+  // สร้าง Entry ให้สะอาด
+  const entry = {
+    page: "variable",
+    id: key,
+    key: key,
+    label: currentVariable.symbol
+  };
+
+  // ส่ง flag ไปเช็คด้วย (กันเหนียว)
+  addHistory(entry, { fromHistory: location.state?.fromHistory });
+  
+  // สำคัญ: ใส่ Dependencies ให้ครบตามที่ ESLint แนะนำ
+}, [key, currentVariable?.symbol, location.state?.fromHistory, addHistory]);
 
   if (!currentVariable) {
     return (
