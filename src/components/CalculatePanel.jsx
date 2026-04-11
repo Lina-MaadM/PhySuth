@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from "react";
 import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
-const GLOBAL_MIN = -999999;
-const GLOBAL_MAX = 999999;
+const GLOBAL_MIN = -9999999;
+const GLOBAL_MAX = 9999999;
 
 export default function CalculatePanel({
   formula,
@@ -42,6 +42,7 @@ export default function CalculatePanel({
       if (variable?.isFixed) {
         initialInputs[key] = variable.value;
       } else if (memory[key] !== undefined) {
+        // ดึงค่าจาก memory ถ้ามี (ค่าที่บันทึกจากการคำนวณสูตรก่อนหน้า)
         initialInputs[key] = memory[key];
       } else if (variable?.value !== undefined) {
         initialInputs[key] = variable.value;
@@ -105,20 +106,6 @@ export default function CalculatePanel({
     setMissingFields(prev => prev.filter(k => k !== key));
   };
 
-  const validatePhysics = (targetKey, value) => {
-    const variable = variableMap[targetKey];
-    if (!variable) return null;
-
-    const min = variable.min ?? GLOBAL_MIN;
-    const max = variable.max ?? GLOBAL_MAX;
-
-    if (value < min || value > max) {
-      return "Not physically defined";
-    }
-
-    return null;
-  };
-
   const handleCalculate = () => {
     try {
       setError(null);
@@ -143,7 +130,7 @@ export default function CalculatePanel({
         const variable = variableMap[key];
         const val = Number(inputs[key]);
 
-        if (!isFinite(val)) throw new Error("Result is undefined or infinite"); // NaN, Infinity
+        if (!isFinite(val)) throw new Error("Result is undefined or infinite");
 
         const min = variable?.min ?? GLOBAL_MIN;
         const max = variable?.max ?? GLOBAL_MAX;
@@ -157,27 +144,30 @@ export default function CalculatePanel({
         ? calculation.value.split("=")[1].trim()
         : calculation.value;
 
-      // แทนค่าตัวแปร
-      for (const key in values) {
+      // แทนค่าตัวแปร input — sort จากชื่อยาวไปสั้นก่อน
+      // เพื่อป้องกัน key สั้น (เช่น s) แทนทับ key ยาว (เช่น s0) ก่อน
+      const sortedInputKeys = Object.keys(values).sort((a, b) => b.length - a.length);
+      for (const key of sortedInputKeys) {
         expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), values[key]);
       }
-      // แทนค่าตัวแปร fixed
-      variableKeys.forEach(key => {
-        const variable = variableMap[key];
-        if (variable?.isFixed) {
-          expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), variable.value);
-        }
-      });
+
+      // แทนค่าตัวแปร fixed — sort เช่นกัน
+      const sortedFixedKeys = variableKeys
+        .filter(key => variableMap[key]?.isFixed)
+        .sort((a, b) => b.length - a.length);
+      for (const key of sortedFixedKeys) {
+        expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), variableMap[key].value);
+      }
 
       // 4️⃣ คำนวณ
       let calculated;
       try {
         calculated = Function(
-          "sqrt","pow","sin","cos","tan","asin","acos","atan","PI",
+          "sqrt", "pow", "sin", "cos", "tan", "asin", "acos", "atan", "PI",
           `return ${expression}`
         )(
-          Math.sqrt,Math.pow,Math.sin,Math.cos,Math.tan,
-          Math.asin,Math.acos,Math.atan,Math.PI
+          Math.sqrt, Math.pow, Math.sin, Math.cos, Math.tan,
+          Math.asin, Math.acos, Math.atan, Math.PI
         );
       } catch {
         throw new Error("Not physically defined");
@@ -191,9 +181,12 @@ export default function CalculatePanel({
       if (calculated < minTarget || calculated > maxTarget) throw new Error("Result overflow");
 
       // 6️⃣ ตั้งผลลัพธ์และบันทึก memory
-      const formatted = Number(calculated.toFixed(6));
+      // ใช้ toPrecision(6) แทน toFixed(6) เพื่อรองรับทั้งเลขใหญ่และเลขเล็กมากๆ
+      const formatted = parseFloat(calculated.toPrecision(6));
       setResult(formatted);
 
+      // บันทึก input ทั้งหมดและผลลัพธ์ลง memory
+      // ครั้งถัดไปที่เปิดสูตรอื่นที่มีตัวแปรเดียวกัน จะดึงค่ามาใส่อัตโนมัติ
       const memoryData = { ...memory };
       requiredVariables.forEach(key => { memoryData[key] = values[key]; });
       memoryData[target] = formatted;
@@ -208,10 +201,10 @@ export default function CalculatePanel({
   const currentVariable = variableMap[target];
   if (!formula) return null;
 
-return (
+  return (
     <div className="flex justify-center mt-12 px-4 text-slate-900">
       <div className="w-full max-w-[480px] p-8 rounded-3xl bg-white border border-slate-200 shadow-xl shadow-slate-100/50">
-        
+
         {/* Title */}
         <h3 className="text-xl font-bold text-center mb-8 tracking-tight text-slate-800">
           Physics Calculator
@@ -267,8 +260,8 @@ return (
                       onChange={e => handleChange(key, e.target.value)}
                       placeholder="0.00"
                       className={`w-full p-3 rounded-xl text-right font-mono text-sm shadow-sm transition-all outline-none border
-                        ${isMissing 
-                          ? "border-red-300 bg-red-50 text-red-600 animate-pulse" 
+                        ${isMissing
+                          ? "border-red-300 bg-red-50 text-red-600 animate-pulse"
                           : "border-slate-200 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 text-slate-700"
                         }`}
                     />
@@ -284,36 +277,36 @@ return (
           })}
         </div>
 
-        {/* Display Area (Result & Live Preview) */}
+        {/* Display Area */}
         <div className="mt-8 min-h-[100px] flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50/50 px-6 py-4">
-          
-          {/* 1. Success State: เมื่อคำนวณได้ผลลัพธ์ */}
+
+          {/* 1. Success State */}
           {result !== null && !error && (
             <div className="text-center animate-in fade-in zoom-in duration-300">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 block mb-2">Solved Result</span>
               <div className="text-2xl font-bold text-blue-700">
                 <InlineMath math={`${currentVariable?.symbol} = ${result}`} />
                 <span className="ml-2 text-sm text-blue-400 font-medium lowercase">
-                   {currentVariable?.unit && <InlineMath math={currentVariable.unit} />}
+                  {currentVariable?.unit && <InlineMath math={currentVariable.unit} />}
                 </span>
               </div>
             </div>
           )}
 
-          {/* 2. Ready State: แสดงเป้าหมาย (สัญลักษณ์ = ?) */}
+          {/* 2. Ready State */}
           {result === null && !error && (
             <div className="text-center opacity-40 transition-opacity">
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 block mb-2">Target Equation</span>
               <div className="text-2xl font-medium text-slate-400">
                 <InlineMath math={`${currentVariable?.symbol} = \\text{?}`} />
                 <span className="ml-2 text-sm">
-                   {currentVariable?.unit && <InlineMath math={currentVariable.unit} />}
+                  {currentVariable?.unit && <InlineMath math={currentVariable.unit} />}
                 </span>
               </div>
             </div>
           )}
 
-          {/* 3. Error State: แจ้งเตือนข้อผิดพลาด */}
+          {/* 3. Error State */}
           {error && (
             <div className="flex flex-col items-center gap-2 animate-in slide-in-from-top-1">
               <div className="text-red-500 text-xs font-bold bg-red-50 py-2 px-4 rounded-full border border-red-100">

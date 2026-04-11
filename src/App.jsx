@@ -68,7 +68,33 @@ function AppContent() {
       const newEntry = { ...entry, id: newId, key: newId, time: Date.now() };
       const next = [...base, newEntry];
 
-      if (next.length > 20) next.shift();
+      const MAX = 20;
+
+      if (next.length > MAX) {
+        next.shift();
+
+        setWarning({
+          show: true,
+          message: "History full: Oldest entry removed.",
+          type: "danger",
+        });
+
+        setTimeout(() => {
+          setWarning((prev) => ({ ...prev, show: false }));
+        }, 1000);
+      }
+
+      else if (next.length > MAX - 3) {
+        setWarning({
+          show: true,
+          message: "History almost full.",
+          type: "warning",
+        });
+
+        setTimeout(() => {
+          setWarning((prev) => ({ ...prev, show: false }));
+        }, 1000);
+      }
 
       return { list: next, pointer: next.length - 1 };
     });
@@ -106,7 +132,7 @@ function AppContent() {
   }, [warning.show]);
 
   return (
-    <div className="min-h-screen bg-[#FFF8F0]">
+    <div className="min-h-screen bg-[#F4EBE2]  text-[#2D241E] font-sans">
       <Navbar />
 
       <HistoryAnalyze
@@ -138,9 +164,13 @@ function AppContent() {
         </div>
       )}
 
+      {/* MAIN CONTENT SECTION: ส่วนพื้นที่เนื้อหาหลัก */}
       <main className="pt-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="bg-white rounded-xl shadow-sm min-h-[70vh] p-6">
+
+        {/* CONTAINER LIMITER: ส่วนควบคุมความกว้างสูงสุดของเนื้อหาให้สมดุลกับสายตา */}
+        <div className="max-w-5xl mx-auto">
+          {/* PAGE CARD: แผ่นพื้นหลังสำหรับแสดงเนื้อหาจาก Routes */}
+          <div className="bg-white rounded-xl border-[#EADFD8] border-2 min-h-[70vh] p-6">
             <Routes>
               <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
               <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />

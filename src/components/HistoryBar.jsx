@@ -39,14 +39,24 @@ function HistoryBar({ history = [], activePointer, onClear }) {
   const currentItem = history[activeIndex];
   const warning = useMemo(() => {
     if (!currentItem) return null;
+    
     if (currentItem.disconnected)
       return { text: "⚠ No shared symbol with previous step", color: "bg-red-500" };
-    if (currentItem.crossTopic)
-      return { text: `⚠ Cross topic: ${currentItem.topic}`, color: "bg-orange-500 text-black" };
+      
+    if (currentItem.crossTopic) {
+      // ดึง Topic ก่อนหน้าจาก Index ลบหนึ่ง
+      const prevTopic = history[activeIndex - 1]?.topic || "Previous";
+      return { 
+        text: `⚠ Cross topic: ${prevTopic} → ${currentItem.topic}`, 
+        color: "bg-orange-500" 
+      };
+    }
+      
     if (currentItem.repeat)
       return { text: "↻ Revisited", color: "bg-pink-400" };
+      
     return null;
-  }, [currentItem]);
+  }, [currentItem, history, activeIndex]); 
 
   // เอฟเฟกต์ไฟกะพริบตอนเจอ Warning ใหม่
   useEffect(() => {
@@ -75,27 +85,37 @@ function HistoryBar({ history = [], activePointer, onClear }) {
     item.onClick?.();
   };
 
+  const shouldShowPopup = hoveredItem && visible;
   return (
     <div
       className={`fixed left-0 right-0 top-[72px] z-40 transition-transform duration-300 ${
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="w-full border-b border-[#EADFD8] bg-[#FFF8F0]/90 backdrop-blur-sm p-3 flex items-center shadow-sm">
+      {/* 1. MAIN BAR*/}
+      <div className="w-full border-y-2 border-[#EADFD8]/50 bg-[#FFF8F0]/95 backdrop-blur-sm h-[80px] flex items-center shadow-sm px-4">
+        {/* 2. CLEAR BUTTON*/}
         <button
           onClick={() => onClear?.()}
-          className="mr-4 px-4 py-1.5 text-xs font-bold tracking-wider text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all shrink-0 flex items-center gap-1"
+          className="px-3 py-1.5 text-xs font-bold tracking-wider text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0 flex items-center gap-1.5 border border-transparent hover:border-red-100"
         >
           🗑 Clear
         </button>
 
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-x-auto whitespace-nowrap pr-16 no-scrollbar"
+        {/* เส้นแบ่งโซน (Vertical Divider) เพื่อความชัดเจน */}
+        <div className="h-8 w-[1px] bg-stone-200 mx-2 shrink-0" />
+
+        {/* 3. SCROLL CONTAINER */}
+        <div 
+          ref={scrollRef} 
+          className="flex-1 overflow-x-auto whitespace-nowrap h-[80px] flex pt-4 scrollbar-thin"
         >
-          <div className="flex gap-3 items-center">
+          {/* 4. ITEM LIST */}
+          <div className="flex gap-3 pl-8 pr-16 h-full">
             {history.length === 0 && (
-              <span className="text-sm text-gray-400 ml-2">No history yet</span>
+              <div className="flex items-center h-full"> {/* เพิ่ม div หุ้มเพื่อคุมความสูง */}
+                <span className="text-sm text-gray-400 ml-2 italic">No history yet</span>
+              </div>
             )}
 
             {history.map((item, index) => {
@@ -148,45 +168,62 @@ function HistoryBar({ history = [], activePointer, onClear }) {
         </div>
       </div>
 
-      {/* Tooltip Hover */}
-      {hoveredItem && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 top-[135px] z-[9999] w-60 p-4 bg-white/95 backdrop-blur-md border border-stone-200 shadow-2xl rounded-2xl text-sm animate-in fade-in zoom-in duration-200"
-          onMouseEnter={() => {
-            if (hoverTimer.current) clearTimeout(hoverTimer.current);
-          }}
-          onMouseLeave={handleMouseLeave}
-        >
-          <div className="font-bold mb-2 border-b border-stone-100 pb-2 text-stone-800">
-            <InlineMath math={hoveredItem.label} />
-          </div>
+{/* 5. POPUP HOVER - ปรับสีสันและเอาลูกศรออก */}
+{shouldShowPopup && (
+  <div
+    className="fixed left-1/2 -translate-x-1/2 top-[110px] z-[9999] w-64 bg-[#FFF8F0] border-2 border-[#EADFD8] rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
+    onMouseEnter={() => {
+      if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    }}
+    onMouseLeave={handleMouseLeave}
+  >
+    {/* 1. Header Area: เน้นสูตรให้เด่น */}
+    <div className="bg-white/60 py-3 px-4 border-b-2 border-[#EADFD8]/30 text-center">
+      <div className="scale-125 inline-block text-[#5A3E36]">
+        <InlineMath math={hoveredItem.label} />
+      </div>
+    </div>
 
-          <div className="text-stone-500 text-xs mt-1">
-            <span className="font-mono bg-stone-100 px-1 rounded">ID: {hoveredItem.id}</span>
+    <div className="p-4 space-y-4">
+      {/* 2. Metadata Section */}
+      <div className="space-y-2">
+        {hoveredItem.topic && (
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Topic</span>
+            <span className="text-xs font-bold text-blue-700 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-lg shadow-sm">
+              {hoveredItem.topic}
+            </span>
           </div>
+        )}
+        {hoveredItem.subtopic && (
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Sub</span>
+            <span className="text-xs text-stone-600 font-medium italic">
+              {hoveredItem.subtopic}
+            </span>
+          </div>
+        )}
+      </div>
 
-          {hoveredItem.topic && (
-            <div className="text-stone-500 text-xs mt-1">
-              <span className="font-bold text-[#2D241E] px-2 py-0.5 bg-stone-100 rounded-md mr-2">
-                {hoveredItem.topic}
+      {/* 3. Relevant Symbols Section: ทำเป็นแคปซูลสีครีมอุ่นๆ */}
+      {hoveredItem.symbols?.length > 0 && (
+        <div className="pt-3 border-t border-[#EADFD8]/50">
+          <div className="text-[9px] text-stone-400 font-black uppercase tracking-widest mb-2">Symbols</div>
+          <div className="flex flex-wrap gap-1.5">
+            {hoveredItem.symbols.map((sym, i) => (
+              <span
+                key={i}
+                className="px-2.5 py-1 bg-[#F3E8E2] border border-[#DCCFCA] rounded-md text-[11px] text-[#5A3E36] font-bold"
+              >
+                <InlineMath math={sym} />
               </span>
-            </div>
-          )}
-
-          {hoveredItem.symbols?.length > 0 && (
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {hoveredItem.symbols.map((sym, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 bg-stone-50 border border-stone-100 rounded-lg text-[10px] text-stone-600 shadow-sm"
-                >
-                  <InlineMath math={sym} />
-                </span>
-              ))}
-            </div>
-          )}
+            ))}
+          </div>
         </div>
       )}
+    </div>
+  </div>
+)}
 
       {/* Warning Status Bar */}
       {warning && (
