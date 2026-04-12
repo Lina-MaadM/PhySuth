@@ -1,6 +1,6 @@
 import { InlineMath } from "react-katex";
 import { useState, useEffect, useMemo, useRef } from "react";
-
+import { allSweetFlavour } from "../allSweetFlavour";
 function HistoryBar({ history = [], activePointer, onClear }) {
   const [flash, setFlash] = useState(false);
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -168,62 +168,67 @@ function HistoryBar({ history = [], activePointer, onClear }) {
         </div>
       </div>
 
-{/* 5. POPUP HOVER - ปรับสีสันและเอาลูกศรออก */}
-{shouldShowPopup && (
-  <div
-    className="fixed left-1/2 -translate-x-1/2 top-[110px] z-[9999] w-64 bg-[#FFF8F0] border-2 border-[#EADFD8] rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200"
-    onMouseEnter={() => {
-      if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    }}
-    onMouseLeave={handleMouseLeave}
-  >
-    {/* 1. Header Area: เน้นสูตรให้เด่น */}
-    <div className="bg-white/60 py-3 px-4 border-b-2 border-[#EADFD8]/30 text-center">
-      <div className="scale-125 inline-block text-[#5A3E36]">
-        <InlineMath math={hoveredItem.label} />
-      </div>
-    </div>
+{/* 5. POPUP HOVER */}
+{shouldShowPopup && (() => {
+  // ดึงรสชาติสีตาม systemTopic (เช่น "Mechanics")
+  const flavour = allSweetFlavour[hoveredItem.systemTopic] || allSweetFlavour.default;
 
-    <div className="p-4 space-y-4">
-      {/* 2. Metadata Section */}
-      <div className="space-y-2">
-        {hoveredItem.topic && (
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Topic</span>
-            <span className="text-xs font-bold text-blue-700 px-2.5 py-1 bg-blue-50 border border-blue-100 rounded-lg shadow-sm">
-              {hoveredItem.topic}
-            </span>
-          </div>
-        )}
-        {hoveredItem.subtopic && (
-          <div className="flex items-center gap-3">
-            <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Sub</span>
-            <span className="text-xs text-stone-600 font-medium italic">
-              {hoveredItem.subtopic}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* 3. Relevant Symbols Section: ทำเป็นแคปซูลสีครีมอุ่นๆ */}
-      {hoveredItem.symbols?.length > 0 && (
-        <div className="pt-3 border-t border-[#EADFD8]/50">
-          <div className="text-[9px] text-stone-400 font-black uppercase tracking-widest mb-2">Symbols</div>
-          <div className="flex flex-wrap gap-1.5">
-            {hoveredItem.symbols.map((sym, i) => (
-              <span
-                key={i}
-                className="px-2.5 py-1 bg-[#F3E8E2] border border-[#DCCFCA] rounded-md text-[11px] text-[#5A3E36] font-bold"
-              >
-                <InlineMath math={sym} />
-              </span>
-            ))}
-          </div>
+  return (
+    <div
+      className={`fixed left-1/2 -translate-x-1/2 top-[110px] z-[9999] w-64 bg-white border-2 ${flavour.border} rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200 shadow-xl`}
+      onMouseEnter={() => {
+        if (hoverTimer.current) clearTimeout(hoverTimer.current);
+      }}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* 1. Header Area: ใช้สี Soft ของหัวข้อนั้นๆ */}
+      <div className={`${flavour.soft} py-4 px-4 border-b-2 border-stone-100 text-center`}>
+        <div className={`scale-150 inline-block ${flavour.deep}`}>
+          <InlineMath math={hoveredItem.label} />
         </div>
-      )}
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* 2. Metadata Section */}
+        <div className="space-y-2">
+          {hoveredItem.topic && (
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Topic</span>
+              <span className={`text-xs font-bold ${flavour.deep} ${flavour.light} border ${flavour.border} px-2.5 py-1 rounded-lg shadow-sm`}>
+                {hoveredItem.topic}
+              </span>
+            </div>
+          )}
+          {hoveredItem.subtopic && (
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest w-10">Sub</span>
+              <span className="text-xs text-stone-600 font-medium italic">
+                {hoveredItem.subtopic}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Symbols Section: เปลี่ยนสีแคปซูลตามหัวข้อ */}
+        {hoveredItem.symbols?.length > 0 && (
+          <div className="pt-3 border-t border-stone-100">
+            <div className="text-[9px] text-stone-400 font-black uppercase tracking-widest mb-2">Symbols</div>
+            <div className="flex flex-wrap gap-1.5">
+              {hoveredItem.symbols.map((sym, i) => (
+                <span
+                  key={i}
+                  className={`px-2.5 py-1 ${flavour.soft} border ${flavour.border} rounded-md text-[11px] ${flavour.deep} font-bold`}
+                >
+                  <InlineMath math={sym} />
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-)}
+  );
+})()}
 
       {/* Warning Status Bar */}
       {warning && (

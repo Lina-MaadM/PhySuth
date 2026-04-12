@@ -22,6 +22,7 @@ function HistoryAnalyze({
       const prev = history[i - 1];
       let topic = null;
       let subtopic = null;
+      let systemTopic = null;
       let symbols = [];
       let variableKeys = [];
 
@@ -30,6 +31,7 @@ function HistoryAnalyze({
         const f = formulaIndex[entry.id];
         topic = f.topic;
         subtopic = f.subtopic;
+        systemTopic = f.systemTopic;
         variableKeys = f.variable || [];
         symbols = variableKeys.map(keyToSymbol);
       }
@@ -38,6 +40,7 @@ function HistoryAnalyze({
         const v = variableIndex[entry.key];
         topic = v.topic;
         subtopic = v.subtopic;
+        systemTopic = v.systemTopic;
         variableKeys = [entry.key];
         symbols = [v.symbol];
       }
@@ -94,6 +97,7 @@ function HistoryAnalyze({
         key: entry.id || entry.key,
         topic,
         subtopic,
+        systemTopic,
         symbols,
         crossTopic,
         disconnected,
