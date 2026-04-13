@@ -1,5 +1,5 @@
 export const allSweetFlavour = {
-  "Mechanics": {
+  "Optics": {
     deep: "text-emerald-700",
     deepCode: "#047857", // Emerald 700
     border: "border-emerald-200",
@@ -27,7 +27,7 @@ export const allSweetFlavour = {
     light: "bg-amber-100",
     soft: "bg-amber-50",
   },
-  "Optics": {
+  "Mechanics": {
     deep: "text-rose-700",
     deepCode: "#be123c", // Rose 700
     border: "border-rose-200",

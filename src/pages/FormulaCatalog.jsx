@@ -33,7 +33,7 @@ function FormulaCatalog() {
                     </div>
 
                     {/* Grid System: แสดงผล 1 คอลัมน์ (Mobile), 2 (Tablet/Half Screen), 3 (Desktop) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-center">
                       {dataItem.formula_sub.map((formulaItem) => (
                         <FormulaCard
                           key={formulaItem.id}
