@@ -6,8 +6,8 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
   const navigate = useNavigate();
 
   return (
-    /* 1. กล่องนอกสุด (Wrapper): ล็อคความสูงไว้ที่ 170px เพื่อให้ Grid แถวเดียวกันไม่ขยับ */
-    <div className="relative h-[170px]">
+    /* 1. Wrapper: ล็อคขนาดพื้นที่ของการ์ดไว้ (กัน Grid ขยับ) */
+    <div className="w-[250px] h-[180px] relative group">
       <div
         onClick={() => varKey && navigate(routeBuilder.variable(varKey))}
         onMouseEnter={(e) => {
@@ -19,77 +19,50 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
           e.currentTarget.style.borderColor = "";
         }}
         className={`
-          /* 2. การ์ดจริง: ใช้ absolute และ z-index เพื่อให้ลอยทับใบอื่นเวลา Hover */
+          /* 2. เปลี่ยนจาก absolute เป็น relative หรือปรับการวางใหม่ */
+          /* ใช้ z-index เพื่อให้เวลา hover แล้วทับการ์ดข้างๆ ได้ */
           absolute top-0 left-0 w-full z-10
-          group cursor-pointer rounded-xl border
-          p-4 flex flex-col min-h-[170px]
+          cursor-pointer rounded-2xl border
+          p-5 flex flex-col min-h-[180px]
           transition-all duration-300 ease-out
           ${flavour.soft} ${flavour.border}
-          
-          /* เมื่อ Hover: ยืดความสูงอัตโนมัติ, ดันตัวขึ้นหน้าสุด, และยกตัวขึ้นเล็กน้อย */
-          hover:h-auto hover:z-50 hover:-translate-y-1 hover:shadow-xl
+          /* Hover: กางความสูงออก และลอยขึ้น */
+          hover:h-auto hover:z-50 hover:-translate-y-2 hover:shadow-2xl
         `}
       >
-        {/* SYMBOL */}
-        <div
-          className={`
-            min-w-[40px] w-fit h-10 px-2.5 flex items-center justify-center
-            rounded-md mb-3 shrink-0
-            ${flavour.light}
-            group-hover:bg-white/20
-            transition-all duration-300
-          `}
-        >
+        {/* SYMBOL: ปรับให้แสดงผลกึ่งกลาง (Centered) */}
+        <div className="flex justify-center mb-4">
           <div
             className={`
-              text-xl font-bold
-              ${flavour.deep}
-              group-hover:text-white
-              transition-all duration-300 group-hover:scale-100
-            `}
-          >
-            {symbol && <InlineMath math={symbol} />}
-          </div>
-        </div>
-
-        {/* NAME */}
-        <div
-          className={`
-            font-semibold text-sm text-[#3e2f23]
-            group-hover:text-white
-            transition-colors leading-tight
-          `}
-        >
-          {name}
-        </div>
-
-        {/* DESCRIPTION: ปกติ 2 บรรทัด แต่เมื่อ Hover จะกางออกทั้งหมด */}
-        {description && (
-          <div
-            className={`
-              text-xs mt-1 leading-relaxed
-              text-stone-600 group-hover:text-white/90
-              line-clamp-2 group-hover:line-clamp-none
+              min-w-[50px] h-12 px-3 flex items-center justify-center
+              rounded-xl shrink-0
+              ${flavour.light}
+              group-hover:bg-white/20
               transition-all duration-300
             `}
           >
+            <div className={`text-2xl font-bold ${flavour.deep} group-hover:text-white transition-all`}>
+              {symbol && <InlineMath math={symbol} />}
+            </div>
+          </div>
+        </div>
+
+        {/* NAME: ปรับให้กึ่งกลางตามไอคอน */}
+        <div className="font-bold text-center text-[#3e2f23] group-hover:text-white transition-colors leading-tight">
+          {name}
+        </div>
+
+        {/* DESCRIPTION */}
+        {description && (
+          <div className="text-[11px] mt-2 text-center text-stone-600 group-hover:text-white/90 line-clamp-2 group-hover:line-clamp-none transition-all">
             {description}
           </div>
         )}
 
-        {/* UNIT: ส่วนท้ายการ์ดที่จัดการ Baseline ใหม่ */}
-        <div
-          className={`
-            text-xs mt-auto pt-3 border-t
-            ${flavour.border}
-            ${flavour.deep}
-            group-hover:text-white group-hover:border-white/30
-            transition-colors flex items-center gap-1.5
-          `}
-        >
+        {/* UNIT: Baseline ที่ส่วนท้าย */}
+        <div className={`mt-auto pt-3 border-t border-dashed ${flavour.border} group-hover:border-white/30 flex justify-center items-center gap-1.5 text-xs ${flavour.deep} group-hover:text-white`}>
           <span className="opacity-70">Unit:</span>
-          {/* ขยับสัญลักษณ์คณิตศาสตร์ลงเล็กน้อยเพื่อให้ตรงกับสายตาคำว่า Unit */}
-          <span className="italic flex items-center leading-none translate-y-[0.5px]">
+          <span className="italic font-serif">
             <InlineMath math={unit || "N/A"} />
           </span>
         </div>

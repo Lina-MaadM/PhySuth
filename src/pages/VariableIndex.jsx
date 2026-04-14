@@ -44,7 +44,7 @@ function VariableIndex() {
             </div>
 
             {/* Grid Area: ใช้ Gap ที่กว้างขึ้นเพื่อให้หน้าเว็บดูไม่อึดอัด */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10 justify-items-center">
               {variables.map((v) => (
                 <VariableCard
                   key={v.key}

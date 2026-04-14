@@ -17,16 +17,19 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
         e.currentTarget.style.borderColor = "";
       }}
       className={`
-        group relative cursor-pointer rounded-xl p-4
-        flex flex-col transition-all duration-300 ease-out border
+        group cursor-pointer rounded-xl p-4
+        flex flex-col border transition-all duration-300 ease-out
         ${flavour.soft} ${flavour.border}
-        hover:scale-[1.015] hover:shadow-lg
-        
-        w-full max-w-[260px] md:max-w-[280px] min-h-[170px] mx-auto
+
+        /* ✅ FIX ขนาดให้คงที่ */
+        w-[240px] h-[160px]
+
+        /* ✅ ไม่ใช้ scale แล้ว */
+        hover:-translate-y-1 hover:shadow-lg
       `}
     >
       {/* Header */}
-      <div className="flex justify-between items-start gap-3 mb-1.5">
+      <div className="flex justify-between items-start gap-2 mb-1">
         <div className={`
           text-[8px] font-black uppercase tracking-wide px-2 py-[2px] rounded
           truncate bg-white/50 ${flavour.deep}
@@ -35,8 +38,8 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
           {subtopic}
         </div>
 
-        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-white text-[11px] font-semibold tracking-wide shrink-0 relative top-[1px]">
-          VIEW →
+        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-white text-[11px] font-semibold shrink-0">
+          &gt;
         </div>
       </div>
 
@@ -45,14 +48,14 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
         flex-1 flex items-center justify-center
         ${flavour.deep} group-hover:text-white transition-colors
       `}>
-        <div className="text-xl font-bold max-w-full overflow-hidden">
+        <div className="text-lg font-bold text-center leading-tight">
           <InlineMath math={formula} />
         </div>
       </div>
 
       {/* Footer */}
-      <div className="mt-1.5 pt-2 border-t border-stone-200/40 group-hover:border-white/20">
-        <h3 className="text-[12px] font-semibold text-stone-600 group-hover:text-white leading-snug line-clamp-2 min-h-[28px]">
+      <div className="mt-1 pt-2 border-t border-stone-200/40 group-hover:border-white/20">
+        <h3 className="text-[11px] font-semibold text-stone-600 group-hover:text-white leading-snug line-clamp-2">
           {name}
         </h3>
       </div>

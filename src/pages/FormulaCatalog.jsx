@@ -60,7 +60,14 @@ function FormulaCatalog() {
                     </div>
 
                     {/* 3. Grid System: FormulaCards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
+                    <div className="
+                      grid
+                      grid-cols-1
+                      sm:grid-cols-2
+                      lg:grid-cols-3
+                      gap-x-6 gap-y-10
+                      justify-items-center
+                      ">
                       {dataItem.formula_sub.map((formulaItem) => (
                         <FormulaCard
                           key={formulaItem.id}
