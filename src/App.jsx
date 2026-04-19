@@ -9,6 +9,7 @@ import VariableIndex from "./pages/VariableIndex";
 import FormulaDetail from "./pages/FormulaDetail";
 import RelationView from "./pages/RelationView";
 import HistoryAnalyze from "./pages/HistoryAnalyze";
+import SessionOverview from "./components/SessionOverview";
 
 import { formulaIndex, variableIndex } from "./data/physicsData";
 
@@ -68,7 +69,7 @@ function AppContent() {
       const newEntry = { ...entry, id: newId, key: newId, time: Date.now() };
       const next = [...base, newEntry];
 
-      const MAX = 20;
+      const MAX = 30;
 
       if (next.length > MAX) {
         next.shift();
@@ -145,6 +146,15 @@ function AppContent() {
       />
 
       <VariableMem memory={memory} onClear={() => setMemory({})} />
+
+      <SessionOverview
+        history={historyState.list}
+        pointer={historyState.pointer}
+        memory={memory}
+        formulaIndex={formulaIndex}
+        variableIndex={variableIndex}
+        onClickEntry={handleHistoryClick}
+      />
 
       {warning.show && (
         <div

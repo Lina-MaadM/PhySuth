@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { InlineMath } from "react-katex";
-import { variableIndex } from "../data/physicsData"; 
+import { variableIndex, physicsTopics } from "../data/physicsData"; 
+import { allSweetFlavour } from "../allSweetFlavour";
 
 export default function VariableMem({ memory = {}, onClear = () => {} }) {
   const [open, setOpen] = useState(false);
@@ -17,9 +18,13 @@ export default function VariableMem({ memory = {}, onClear = () => {} }) {
       const topic = info.topic || "Others";
       const symbol = info.symbol || key;
       const unit = info.unit || "";
+      
+      // หา systemTopic เพื่อเอาไว้ดึงสี flavour
+      const topicInfo = physicsTopics.find(t => t.topic === topic);
+      const systemTopic = topicInfo ? topicInfo.systemTopic : "default";
 
-      if (!result[topic]) result[topic] = [];
-      result[topic].push({ key, value, symbol, unit });
+      if (!result[topic]) result[topic] = { vars: [], systemTopic };
+      result[topic].vars.push({ key, value, symbol, unit });
     }
 
     return result;
@@ -29,60 +34,68 @@ export default function VariableMem({ memory = {}, onClear = () => {} }) {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button: สีน้ำตาลเข้ม (Brown-800) เด่นๆ */}
       <button
         onClick={() => setOpen(prev => !prev)}
-        className="fixed bottom-6 right-6 w-15 h-15 rounded-full bg-blue-500 text-white font-bold text-lg shadow-md z-50"
+        className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#3e2723] text-white font-bold text-lg shadow-2xl z-50 hover:scale-110 transition-transform flex items-center justify-center border-2 border-white/20"
       >
         M{entries.length > 0 ? `(${entries.length})` : ""}
       </button>
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 w-80 max-h-[420px] overflow-y-auto bg-white rounded-xl p-4 shadow-lg border border-gray-200 z-50">
-          <div className="flex justify-between mb-2">
-            <strong className="text-lg">Saved Variables</strong>
+        <div className="fixed bottom-24 right-6 w-80 max-h-[420px] overflow-y-auto bg-white rounded-2xl p-5 shadow-2xl border border-gray-100 z-50">
+          <div className="flex justify-between items-center mb-4 border-b pb-2">
+            <strong className="text-stone-800">Saved Variables</strong>
             <button
               onClick={onClear}
-              className="text-red-500 text-sm cursor-pointer bg-transparent border-none"
+              className="text-red-500 text-xs font-bold hover:underline cursor-pointer"
             >
-              Clear
+              Clear All
             </button>
           </div>
 
           {entries.length === 0 && (
-            <div className="opacity-60 text-sm">No values saved</div>
+            <div className="opacity-40 text-sm italic py-4 text-center">No values saved</div>
           )}
 
-          {topics.map(topic => (
-            <div key={topic} className="mb-3">
-              <div className="text-center font-semibold text-blue-700 text-lg mb-1">
-                {topic}
-              </div>
+          {topics.map(topicName => {
+            const { vars, systemTopic } = grouped[topicName];
+            const flavour = allSweetFlavour[systemTopic] || allSweetFlavour.default;
 
-              {grouped[topic].map((item, index) => (
-                <div
-                  key={index}
-                  className="grid grid-cols-[40px_1fr_80px] gap-x-2 items-center text-sm pl-1 mb-0.5"
-                >
-                  {/* variable (symbol) */}
-                  <span className="font-medium">
-                    <InlineMath math={item.symbol} />
-                  </span>
-
-                  {/* value */}
-                  <span className="text-right font-mono text-blue-600 truncate">
-                    {item.value}
-                  </span>
-
-                  {/* unit */}
-                  <span className="opacity-70 font-mono text-xs whitespace-nowrap">
-                    <InlineMath math={item.unit} />
-                  </span>
+            return (
+              <div key={topicName} className="mb-4">
+                {/* Topic: สีตามหัวข้อ (flavour.deep) */}
+                <div className={`text-center font-black text-sm mb-2 uppercase tracking-tighter ${flavour.deep}`}>
+                  {topicName}
                 </div>
-              ))}
-            </div>
-          ))}
+
+                <div className="space-y-1">
+                  {vars.map((item, index) => (
+                    <div
+                      key={index}
+                      className="grid grid-cols-[40px_1fr_70px] gap-x-2 items-center text-sm py-1 px-2 bg-stone-50 rounded-lg border border-stone-100"
+                    >
+                      {/* variable */}
+                      <span className="font-bold text-black">
+                        <InlineMath math={item.symbol} />
+                      </span>
+
+                      {/* value */}
+                      <span className="text-right font-mono font-bold text-black truncate">
+                        {item.value}
+                      </span>
+
+                      {/* unit: */}
+                      <span className="opacity-50 font-serif italic text-[10px] text-right">
+                        <InlineMath math={item.unit} />
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </>

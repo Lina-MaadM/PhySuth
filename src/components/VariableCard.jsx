@@ -7,7 +7,7 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
 
   return (
     /* 1. Wrapper: ล็อคขนาดพื้นที่ของการ์ดไว้ (กัน Grid ขยับ) */
-    <div className="w-[250px] h-[180px] relative group">
+    <div className="w-[200px] h-[180px] relative group">
       <div
         onClick={() => varKey && navigate(routeBuilder.variable(varKey))}
         onMouseEnter={(e) => {
@@ -19,22 +19,21 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
           e.currentTarget.style.borderColor = "";
         }}
         className={`
-          /* 2. เปลี่ยนจาก absolute เป็น relative หรือปรับการวางใหม่ */
-          /* ใช้ z-index เพื่อให้เวลา hover แล้วทับการ์ดข้างๆ ได้ */
-          absolute top-0 left-0 w-full z-10
+          relative w-full z-10
           cursor-pointer rounded-2xl border
           p-5 flex flex-col min-h-[180px]
           transition-all duration-300 ease-out
           ${flavour.soft} ${flavour.border}
+
           /* Hover: กางความสูงออก และลอยขึ้น */
           hover:h-auto hover:z-50 hover:-translate-y-2 hover:shadow-2xl
         `}
       >
         {/* SYMBOL: ปรับให้แสดงผลกึ่งกลาง (Centered) */}
-        <div className="flex justify-center mb-4">
+        <div className="flex justify-center mb-2">
           <div
             className={`
-              min-w-[50px] h-12 px-3 flex items-center justify-center
+              min-w-[45px] h-10 px-3 flex items-center justify-center
               rounded-xl shrink-0
               ${flavour.light}
               group-hover:bg-white/20
@@ -48,7 +47,13 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
         </div>
 
         {/* NAME: ปรับให้กึ่งกลางตามไอคอน */}
-        <div className="font-bold text-center text-[#3e2f23] group-hover:text-white transition-colors leading-tight">
+        <div className="
+          font-bold text-center text-[#3e2f23] 
+          group-hover:text-white 
+          transition-colors 
+          leading-tight h-[2.5rem] 
+          flex items-center justify-center 
+          line-clamp-2 overflow-hidden">
           {name}
         </div>
 
