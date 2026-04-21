@@ -180,6 +180,20 @@ export default function CalculatePanel({
       const maxTarget = variableMap[target]?.max ?? GLOBAL_MAX;
       if (calculated < minTarget || calculated > maxTarget) throw new Error("Result overflow");
 
+      // ✅ เพิ่ม: back-substitution check
+      // เอาผลลัพธ์ที่ได้ไปแทนกลับในสมการอื่นๆ ของ formula เดียวกัน
+      // เพื่อตรวจว่าค่าใน values ทุกตัว + ผลลัพธ์ ไม่ทำให้เกิด invalid input
+      const allValues = { ...values, [target]: calculated };
+
+      for (const key of Object.keys(allValues)) {
+        const v = variableMap[key];
+        const val = allValues[key];
+        const minVal = v?.min ?? GLOBAL_MIN;
+        const maxVal = v?.max ?? GLOBAL_MAX;
+        if (!isFinite(val) || val < minVal || val > maxVal) {
+          throw new Error("Result not physically valid");
+        }
+      }
       // 6️⃣ ตั้งผลลัพธ์และบันทึก memory
       // ใช้ toPrecision(6) แทน toFixed(6) เพื่อรองรับทั้งเลขใหญ่และเลขเล็กมากๆ
       const formatted = parseFloat(calculated.toPrecision(6));

@@ -10,6 +10,7 @@ import FormulaDetail from "./pages/FormulaDetail";
 import RelationView from "./pages/RelationView";
 import HistoryAnalyze from "./pages/HistoryAnalyze";
 import SessionOverview from "./components/SessionOverview";
+import FormulaMap from "./pages/FormulaMap";
 
 import { formulaIndex, variableIndex } from "./data/physicsData";
 
@@ -182,7 +183,8 @@ function AppContent() {
           {/* PAGE CARD: แผ่นพื้นหลังสำหรับแสดงเนื้อหาจาก Routes */}
           <div className="bg-white rounded-xl border-[#EADFD8] border-2 min-h-[70vh] p-6">
             <Routes>
-              <Route path={ROUTE_PATH.HOME} element={<FormulaCatalog />} />
+              <Route path={ROUTE_PATH.HOME}    element={<FormulaMap />} />
+              <Route path={ROUTE_PATH.CATALOG} element={<FormulaCatalog />} />
               <Route path={ROUTE_PATH.VARIABLES} element={<VariableIndex />} />
               <Route
                 path={ROUTE_PATH.VARIABLE_DETAIL}
@@ -198,6 +200,7 @@ function AppContent() {
                   />
                 }
               />
+
             </Routes>
           </div>
         </div>

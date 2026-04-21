@@ -1,49 +1,42 @@
 {
   "topic": "Mechanics",
   "subtopic": "Kinematics",
-  "description": "One-dimensional motion with constant acceleration, describing how position and velocity change over time.",
+  "description": "One-dimensional motion with constant acceleration. Position is measured as displacement from the initial point (s₀ = 0).",
   "variable_sub": [
     {
       "key": "s_Mechanics",
       "symbol": "s",
-      "name": "Position",
+      "name": "Displacement",
       "unit": "m",
-      "description": "The position of an object along the line of motion relative to a chosen origin. It describes where the object is during motion."
-    },
-    {
-      "key": "s0_Mechanics",
-      "symbol": "s_0",
-      "name": "Initial Position",
-      "unit": "m",
-      "description": "The position of the object at the start of the motion. It defines the reference point for displacement."
+      "description": "Displacement from the initial position. The origin is assumed at the starting point (s₀ = 0)."
     },
     {
       "key": "u_Mechanics",
       "symbol": "u",
       "name": "Initial Velocity",
       "unit": "m/s",
-      "description": "The velocity of the object at the beginning of the motion. It describes how fast and in which direction the object initially moves."
+      "description": "The velocity of the object at the beginning of the motion."
     },
     {
       "key": "v_Mechanics",
       "symbol": "v",
       "name": "Final Velocity",
       "unit": "m/s",
-      "description": "The velocity of the object at a later time during the motion. It shows the result of acceleration acting over time."
+      "description": "The velocity of the object at a later time during the motion."
     },
     {
       "key": "vavg_Mechanics",
       "symbol": "\\bar{v}",
       "name": "Average Velocity",
       "unit": "m/s",
-      "description": "The overall rate of displacement over a time interval. It describes motion across a period of time rather than at a single instant."
+      "description": "The average rate of displacement over time."
     },
     {
       "key": "a_Mechanics",
       "symbol": "a",
       "name": "Acceleration",
       "unit": "m/s^2",
-      "description": "The rate at which velocity changes during motion. It appears when an object's speed or direction is changing."
+      "description": "The rate of change of velocity."
     },
     {
       "key": "t_Mechanics",
@@ -51,7 +44,7 @@
       "name": "Time Interval",
       "unit": "s",
       "min": 0,
-      "description": "The time elapsed during the motion. It measures how long the motion lasts."
+      "description": "The duration of motion."
     }
   ],
   "formula_sub": [
@@ -75,67 +68,63 @@
     {
       "id": "kin-2",
       "name": "Displacement-Time Equation",
-      "formula": "s = s_0 + ut + \\frac{1}{2}at^2",
+      "formula": "s = ut + \\frac{1}{2}at^2",
       "variable": [
         "s_Mechanics",
-        "s0_Mechanics",
         "u_Mechanics",
         "a_Mechanics",
         "t_Mechanics"
       ],
       "calculate": {
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (u_Mechanics * t_Mechanics) + (0.5 * a_Mechanics * pow(t_Mechanics, 2))" },
-        "u_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics - 0.5 * a_Mechanics * pow(t_Mechanics, 2)) / t_Mechanics" },
-        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - s0_Mechanics - u_Mechanics * t_Mechanics) / pow(t_Mechanics, 2)" }
+        "s_Mechanics": { "type": "expression", "value": "(u_Mechanics * t_Mechanics) + (0.5 * a_Mechanics * pow(t_Mechanics, 2))" },
+        "u_Mechanics": { "type": "expression", "value": "(s_Mechanics - 0.5 * a_Mechanics * pow(t_Mechanics, 2)) / t_Mechanics" },
+        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - u_Mechanics * t_Mechanics) / pow(t_Mechanics, 2)" }
       }
     },
     {
       "id": "kin-3",
       "name": "Velocity-Displacement Equation",
-      "formula": "v^2 = u^2 + 2a(s - s_0)",
+      "formula": "v^2 = u^2 + 2as",
       "variable": [
         "v_Mechanics",
         "u_Mechanics",
         "a_Mechanics",
-        "s_Mechanics",
-        "s0_Mechanics"
+        "s_Mechanics"
       ],
       "calculate": {
-        "v_Mechanics": { "type": "expression", "value": "sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
-        "u_Mechanics": { "type": "expression", "value": "sqrt(pow(v_Mechanics, 2) - 2 * a_Mechanics * (s_Mechanics - s0_Mechanics))" },
-        "a_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * (s_Mechanics - s0_Mechanics))" }
+        "v_Mechanics": { "type": "expression", "value": "sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * s_Mechanics)" },
+        "u_Mechanics": { "type": "expression", "value": "sqrt(pow(v_Mechanics, 2) - 2 * a_Mechanics * s_Mechanics)" },
+        "a_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * s_Mechanics)" }
       }
     },
     {
       "id": "kin-4",
       "name": "Displacement from Average Velocity",
-      "formula": "s - s_0 = \\frac{(u + v)}{2}t",
+      "formula": "s = \\frac{(u + v)}{2}t",
       "variable": [
         "s_Mechanics",
-        "s0_Mechanics",
         "u_Mechanics",
         "v_Mechanics",
         "t_Mechanics"
       ],
       "calculate": {
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + ((u_Mechanics + v_Mechanics) / 2) * t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / ((u_Mechanics + v_Mechanics) / 2)" }
+        "s_Mechanics": { "type": "expression", "value": "((u_Mechanics + v_Mechanics) / 2) * t_Mechanics" },
+        "t_Mechanics": { "type": "expression", "value": "s_Mechanics / ((u_Mechanics + v_Mechanics) / 2)" }
       }
     },
     {
       "id": "kin-5",
       "name": "Average Velocity",
-      "formula": "\\bar{v} = (s - s_0) / t",
+      "formula": "\\bar{v} = s / t",
       "variable": [
         "vavg_Mechanics",
         "s_Mechanics",
-        "s0_Mechanics",
         "t_Mechanics"
       ],
       "calculate": {
-        "vavg_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / t_Mechanics" },
-        "s_Mechanics": { "type": "expression", "value": "s0_Mechanics + (vavg_Mechanics * t_Mechanics)" },
-        "t_Mechanics": { "type": "expression", "value": "(s_Mechanics - s0_Mechanics) / vavg_Mechanics" }
+        "vavg_Mechanics": { "type": "expression", "value": "s_Mechanics / t_Mechanics" },
+        "s_Mechanics": { "type": "expression", "value": "vavg_Mechanics * t_Mechanics" },
+        "t_Mechanics": { "type": "expression", "value": "s_Mechanics / vavg_Mechanics" }
       }
     }
   ]

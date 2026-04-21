@@ -1,5 +1,6 @@
 export const ROUTE_PATH = {
-  HOME: "/",
+  HOME: "/",           // FormulaMap (หน้าแรกใหม่)
+  CATALOG: "/catalog", // FormulaCatalog (ย้ายมาที่นี่)
   VARIABLES: "/variables",
   VARIABLE_DETAIL: "/variable/:key",
   FORMULA_DETAIL: "/formula/:id",

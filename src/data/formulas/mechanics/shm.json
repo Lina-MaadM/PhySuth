@@ -73,6 +73,14 @@
       "description": "Mass of the oscillating object (always positive)."
     },
     {
+      "key": "t_Mechanics",
+      "symbol": "t",
+      "name": "Time",
+      "unit": "s",
+      "min": 0,
+      "description": "Time elapsed since the start of motion."
+    },
+    {
       "key": "E_Mechanics",
       "symbol": "E",
       "name": "Total energy",
@@ -82,17 +90,7 @@
     }
   ],
   "formula_sub": [
-    {
-      "id": "shm-1",
-      "name": "Velocity at Position x",
-      "formula": "v = \\omega \\sqrt{A^2 - x^2}",
-      "variable": ["v_Mechanics", "omega_Mechanics", "A_Mechanics", "x_Mechanics"],
-      "calculate": {
-        "v_Mechanics": { "type": "expression", "value": "omega_Mechanics * sqrt(abs(pow(A_Mechanics, 2) - pow(x_Mechanics, 2)))" },
-        "omega_Mechanics": { "type": "expression", "value": "v_Mechanics / sqrt(abs(pow(A_Mechanics, 2) - pow(x_Mechanics, 2)))" },
-        "A_Mechanics": { "type": "expression", "value": "sqrt(pow(v_Mechanics / omega_Mechanics, 2) + pow(x_Mechanics, 2))" }
-      }
-    },
+
     {
       "id": "shm-2",
       "name": "Acceleration at Position x",
@@ -147,6 +145,38 @@
         "k_Mechanics": { "type": "expression", "value": "2 * E_Mechanics / pow(A_Mechanics, 2)" },
         "A_Mechanics": { "type": "expression", "value": "sqrt(2 * E_Mechanics / k_Mechanics)" }
       }
+    },
+{
+  "id": "shm-7",
+  "name": "Position-Time Equation",
+  "formula": "x = A \\cos(\\omega t)",
+  "variable": [
+    "x_Mechanics",
+    "A_Mechanics",
+    "omega_Mechanics",
+    "t_Mechanics"
+  ],
+  "calculate": {
+    "x_Mechanics": {
+      "type": "expression",
+      "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics)"
+    },
+
+    "A_Mechanics": {
+      "type": "expression",
+      "value": "x_Mechanics / cos(omega_Mechanics * t_Mechanics)"
+    },
+
+    "t_Mechanics": {
+      "type": "expression",
+      "value": "acos(x_Mechanics / A_Mechanics) / omega_Mechanics"
+    },
+
+    "omega_Mechanics": {
+      "type": "expression",
+      "value": "acos(x_Mechanics / A_Mechanics) / t_Mechanics"
     }
+  }
+}
   ]
 }
