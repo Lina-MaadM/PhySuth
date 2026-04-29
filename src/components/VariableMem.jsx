@@ -39,7 +39,7 @@ export default function VariableMem({ memory = {}, onClear = () => {} }) {
         onClick={() => setOpen(prev => !prev)}
         className="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-[#3e2723] text-white font-bold text-lg shadow-2xl z-50 hover:scale-110 transition-transform flex items-center justify-center border-2 border-white/20"
       >
-        M{entries.length > 0 ? `(${entries.length})` : ""}
+        V{entries.length > 0 ? `(${entries.length})` : ""}
       </button>
 
       {/* Panel */}

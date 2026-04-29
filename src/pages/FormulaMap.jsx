@@ -6,13 +6,14 @@ import { routeBuilder } from "../routes";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // latexToPlain — แปลง LaTeX formula string → plain text สำหรับแสดงบน Canvas
-// เรียกใช้เฉพาะตอนสร้าง node label ไม่แตะ data ต้นทาง
 // ─────────────────────────────────────────────────────────────────────────────
 export function latexToPlain(str) {
   if (!str) return "";
   let s = str;
 
-  // 1. Greek letters
+  const funcs = ["sin", "cos", "tan"];
+  funcs.forEach((fn) => { s = s.replaceAll(`\\${fn}`, fn); });
+
   const greek = {
     "\\omega": "ω", "\\Omega": "Ω",
     "\\alpha": "α", "\\beta": "β", "\\gamma": "γ", "\\Gamma": "Γ",
@@ -23,55 +24,52 @@ export function latexToPlain(str) {
     "\\chi": "χ", "\\epsilon": "ε", "\\eta": "η", "\\kappa": "κ",
   };
   Object.entries(greek).forEach(([k, v]) => {
-    s = s.replaceAll(k, v);
+    const regex = new RegExp(k.replace("\\", "\\\\"), "g");
+    s = s.replace(regex, v);
   });
 
-  // 2. \frac{num}{den} → num/den  (handles nested braces one level deep)
   s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)");
-  // second pass for remaining \frac after greek substitution
   s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)");
 
-  // 3. superscripts  ^{...} and ^single
   const supMap = { "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","+":"⁺","-":"⁻","n":"ⁿ" };
-  s = s.replace(/\^\{([^}]+)\}/g, (_, inner) =>
-    [...inner].map(c => supMap[c] || c).join("")
-  );
+  s = s.replace(/\^\{([^}]+)\}/g, (_, inner) => [...inner].map((c) => supMap[c] || c).join(""));
   s = s.replace(/\^([0-9])/g, (_, c) => supMap[c] || ("^" + c));
 
-  // 4. subscripts  _{...} and _single  → keep readable, wrap in nothing special
-  // _{max} → max  _{0} → ₀  etc.
-  const subMap = { "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉" };
-  s = s.replace(/_\{([^}]+)\}/g, (_, inner) => {
-    if ([...inner].every(c => subMap[c])) return [...inner].map(c => subMap[c]).join("");
-    return inner; // e.g. _{max} → max
-  });
-  s = s.replace(/_([0-9])/g, (_, c) => subMap[c] || c);
-
-  // 5. \sqrt{...} → √(...)
+  const subMap = {
+    "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉",
+    "a":"ₐ","e":"ₑ","h":"ₕ","i":"ᵢ","j":"ⱼ","k":"ₖ","l":"ₗ","m":"ₘ","n":"ₙ",
+    "o":"ₒ","p":"ₚ","r":"ᵣ","s":"ₛ","t":"ₜ","u":"ᵤ","v":"ᵥ","x":"ₓ","g":"₉",
+  };
+  function toSubscript(text) { return [...text].map((c) => subMap[c] || c).join(""); }
+  s = s.replace(/_\{([^}]+)\}/g, (_, inner) => toSubscript(inner));
+  s = s.replace(/_([a-zA-Z0-9]+)/g, (_, inner) => toSubscript(inner));
   s = s.replace(/\\sqrt\{([^}]*)\}/g, "√($1)");
 
-  // 6. \cdot → ·   \times → ×   \pm → ±   \infty → ∞   \approx → ≈
-  const ops = { "\\cdot":"·", "\\times":"×", "\\pm":"±", "\\infty":"∞", "\\approx":"≈", "\\neq":"≠", "\\leq":"≤", "\\geq":"≥" };
+  const ops = { "\\cdot":"·","\\times":"×","\\pm":"±","\\infty":"∞","\\approx":"≈","\\neq":"≠","\\leq":"≤","\\geq":"≥" };
   Object.entries(ops).forEach(([k, v]) => { s = s.replaceAll(k, v); });
 
-  // 7. strip remaining backslash-commands  e.g. \left \right \text{...}
   s = s.replace(/\\text\{([^}]*)\}/g, "$1");
   s = s.replace(/\\[a-zA-Z]+/g, "");
-
-  // 8. strip stray braces
   s = s.replace(/[{}]/g, "");
-
-  // 9. collapse multiple spaces
   s = s.replace(/\s+/g, " ").trim();
-
   return s;
 }
 
 // ── Topic meta ────────────────────────────────────────────────────────────────
 const TOPIC_ORDER  = ["Mechanics","Electricity","Waves","Thermodynamics","Optics","ModernPhysics"];
 const TOPIC_LABEL  = { Mechanics:"Mechanics", Electricity:"Electricity", Waves:"Waves", Thermodynamics:"Thermodynamics", Optics:"Optics", ModernPhysics:"Modern Physics" };
-const HEIGHT_SHARE = { Mechanics:0.44, Electricity:0.11, Waves:0.11, Thermodynamics:0.11, Optics:0.115, ModernPhysics:0.115 };
-const MAX_PER_ROW  = 4; // ไม่เกิน 4 ต่อแถว
+const MAX_PER_ROW  = 4;
+const CELL_H = 100;        // ระยะความสูงต่อ 1 แถวของโหนด
+const TOPIC_PADDING = 60;  // ระยะห่างจากขอบบนของ Topic ถึงโหนดแถวแรก (ที่ไว้วางชื่อ Topic)
+const BOTTOM_GAP = 40;     // ระยะเผื่อด้านล่างของแต่ละ Topic (สำหรับ Label ใต้โหนดแถวสุดท้าย)
+
+// Font sizes — ปรับขึ้นทุกส่วน
+const FONT = {
+  nodeNormal:   "500 13px monospace",   // เดิม 11px
+  nodeSelected: "700 13px monospace",
+  edgeBadge:    "600 11px monospace",   // เดิม 10px
+  bandLabel:    "700 13px sans-serif",  // เดิม 11px
+};
 
 function flColour(systemTopic) {
   const fl = allSweetFlavour[systemTopic] || allSweetFlavour.default;
@@ -82,11 +80,11 @@ function flColour(systemTopic) {
 function buildFormulaList() {
   return Object.values(formulaIndex).map((f) => ({
     id:       f.id,
-    label:    latexToPlain(f.formula), // ← แปลงตรงนี้เพียงที่เดียว
-    labelRaw: f.formula,               // เก็บ LaTeX ต้นฉบับสำหรับ detail panel (ใช้ KaTeX ได้)
+    label:    latexToPlain(f.formula),
+    labelRaw: f.formula,
     name:     f.name,
     topic:    f.systemTopic,
-    vars:     (f.variable || []).map((k) => variableIndex[k]?.symbol || k.split("_")[0]),
+    vars:     (f.variable || []).map((k) => latexToPlain(variableIndex[k]?.symbol || k.split("_")[0])),
     varKeys:  f.variable || [],
   }));
 }
@@ -105,7 +103,7 @@ function buildEdges(formulas) {
 }
 
 let _mCtx = null;
-function measureText(text, font = "500 11px monospace") {
+function measureText(text, font = FONT.nodeNormal) {
   if (!_mCtx) { const c = document.createElement("canvas"); _mCtx = c.getContext("2d"); }
   _mCtx.font = font;
   return _mCtx.measureText(text).width;
@@ -113,61 +111,157 @@ function measureText(text, font = "500 11px monospace") {
 
 function computeBandHeights(formulas) {
   const groups = {};
-  formulas.forEach((f) => {
-    if (!groups[f.topic]) groups[f.topic] = [];
-    groups[f.topic].push(f);
-  });
+  formulas.forEach((f) => { if (!groups[f.topic]) groups[f.topic] = []; groups[f.topic].push(f); });
   const heights = {};
   TOPIC_ORDER.forEach((tk) => {
     const members = groups[tk] || [];
     const cols = Math.min(Math.max(members.length, 1), MAX_PER_ROW);
     const rows = Math.ceil(members.length / cols);
-    heights[tk] = Math.max(rows * 64 + 32, 80); // fixed per-row height, no ratio
+    heights[tk] = Math.max(rows * 96 + 48, 110); // เพิ่มขึ้นจาก 90+40 เพื่อรองรับ node ที่ใหญ่ขึ้น
   });
   return heights;
 }
 
 function buildLayout(formulas, W) {
   const groups = {};
-  formulas.forEach((f) => { if (!groups[f.topic]) groups[f.topic] = []; groups[f.topic].push(f); });
+  formulas.forEach((f) => { 
+    if (!groups[f.topic]) groups[f.topic] = []; 
+    groups[f.topic].push(f); 
+  });
 
   const nodes = {};
-  let yOff = 0;
+  const bandHeights = {}; 
+  let yOff = 0; 
 
+  TOPIC_ORDER.forEach((tk) => {
+    const members = groups[tk] || [];
+    if (members.length === 0) {
+      bandHeights[tk] = 0;
+      return;
+    }
 
-  const bandHeights = computeBandHeights(formulas);
+    // --- ส่วนที่ 1: คำนวณหาจำนวนแถว (ต้องตรงกับตอนวาดโหนดเป๊ะ) ---
+    let rowCount = 0;
+    let tempIdx = 0;
+    while (tempIdx < members.length) {
+      const cols = (rowCount % 2 === 0) ? 4 : 3;
+      tempIdx += cols;
+      rowCount++;
+    }
 
-    TOPIC_ORDER.forEach((tk) => {
-      const members = groups[tk] || [];
-      const sliceH  = bandHeights[tk];
-      const cy       = yOff + sliceH / 2;
+    // --- ส่วนที่ 2: กำหนดความสูง Band ---
+    // ใช้เลขชุดเดียวกัน: TOPIC_PADDING(60) + (แถว * 100) + BOTTOM_GAP(40)
+    const sliceH = TOPIC_PADDING + (rowCount * CELL_H) + BOTTOM_GAP;
+    bandHeights[tk] = sliceH;
 
-      const cols  = Math.min(members.length, MAX_PER_ROW);
-      const rows  = Math.ceil(members.length / cols);
-      // generous horizontal spacing
-      const cellW = Math.min((W - 40) / cols, 160);
-      const cellH = 64;
+    // --- ส่วนที่ 3: วางตำแหน่งโหนด ---
+    let currentIdx = 0;
+    let row = 0;
+    while (currentIdx < members.length) {
+      const isEvenRow = row % 2 === 0;
+      const colsInRow = isEvenRow ? 4 : 3;
+      const rowMembers = members.slice(currentIdx, currentIdx + colsInRow);
+      const totalWForNodes = (rowMembers.length === 3) ? (W * 0.75) : (W - 40);
+      const cellW = totalWForNodes / rowMembers.length;
 
-      members.forEach((f, fi) => {
-        const col = fi % cols, row = Math.floor(fi / cols);
-        const x   = (W - cols * cellW) / 2 + col * cellW + cellW / 2;
-        const y   = cy - (rows * cellH) / 2 + row * cellH + cellH / 2;
-        const tw  = measureText(f.label);
-        nodes[f.id] = { x, y, rx: Math.max(tw / 2 + 14, 30), ry: 14 };
+      // ตำแหน่ง Y ของโหนด (กึ่งกลางแถว)
+      const rowY = yOff + TOPIC_PADDING + (row * CELL_H) + (CELL_H / 2);
+
+      rowMembers.forEach((f, colIdx) => {
+        const x = (W - (rowMembers.length * cellW)) / 2 + (colIdx * cellW) + (cellW / 2);
+        const tw = measureText(f.label, FONT.nodeNormal);
+        nodes[f.id] = {
+          x, 
+          y: rowY,
+          rx: Math.max(tw / 2 + 15, 40), 
+          ry: 20 
+        };
       });
+      currentIdx += rowMembers.length;
+      row++;
+    }
 
-      yOff += sliceH;
+    yOff += sliceH; 
+  });
+
+  return { nodes, totalH: yOff, bandHeights };
+}
+
+// ── Edge label placement helper ───────────────────────────────────────────────
+// แทน midpoint ด้วย "จุดที่ดีที่สุดบนเส้น" ที่หลีกเลี่ยง node ทั้งสองฝั่ง
+// และอยู่ใน canvas bounds
+function findEdgeLabelPos(na, nb, txt, nodes, placedLabels, W, H, ctx) {
+  ctx.font = FONT.edgeBadge;
+  const tw = ctx.measureText(txt).width;
+  const bw = tw + 12, bh = 16;
+
+  const MARGIN = 8; // ห่างจากขอบ canvas
+
+  // ลอง t ตั้งแต่ 0.3 → 0.7 (zone กลางเส้น) ทีละ 0.05
+  // ใน zone นั้น ลอง perpendicular offset ±0, ±20, ±35
+  const dx = nb.x - na.x, dy = nb.y - na.y;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  // เวกเตอร์ตั้งฉาก (perpendicular)
+  const px = -dy / len, py = dx / len;
+
+  const tValues   = [0.5, 0.45, 0.55, 0.4, 0.6, 0.35, 0.65];
+  const offsets   = [0, 18, -18, 32, -32, 48, -48];
+
+  function nodeHit(cx, cy) {
+    for (const n of Object.values(nodes)) {
+      const ex = (cx - n.x) / (n.rx + bw / 2 + 4);
+      const ey = (cy - n.y) / (n.ry + bh / 2 + 4);
+      if (ex * ex + ey * ey <= 1) return true;
+    }
+    return false;
+  }
+
+  function labelHit(cx, cy) {
+    const x1 = cx - bw / 2, x2 = cx + bw / 2;
+    const y1 = cy - bh / 2, y2 = cy + bh / 2;
+    return placedLabels.some((l) => {
+      const lx1 = l.x - l.w / 2, lx2 = l.x + l.w / 2;
+      const ly1 = l.y - l.h / 2, ly2 = l.y + l.h / 2;
+      return !(x2 + 3 < lx1 || x1 - 3 > lx2 || y2 + 3 < ly1 || y1 - 3 > ly2);
     });
-  return { nodes, totalH: yOff };
+  }
+
+  function inBounds(cx, cy) {
+    return cx - bw / 2 > MARGIN && cx + bw / 2 < W - MARGIN &&
+           cy - bh / 2 > MARGIN && cy + bh / 2 < H - MARGIN;
+  }
+
+  for (const t of tValues) {
+    const bx = na.x + dx * t, by = na.y + dy * t;
+    for (const off of offsets) {
+      const cx = bx + px * off, cy = by + py * off;
+      if (inBounds(cx, cy) && !nodeHit(cx, cy) && !labelHit(cx, cy)) {
+        return { x: cx, y: cy, tw, bw, bh };
+      }
+    }
+  }
+
+  // fallback — midpoint clamp ไว้ใน bounds ถึงแม้จะชน
+  const fallX = Math.max(bw / 2 + MARGIN, Math.min(W - bw / 2 - MARGIN, (na.x + nb.x) / 2));
+  const fallY = Math.max(bh / 2 + MARGIN, Math.min(H - bh / 2 - MARGIN, (na.y + nb.y) / 2));
+  return { x: fallX, y: fallY, tw, bw, bh };
 }
 
 // ── Canvas draw ───────────────────────────────────────────────────────────────
-function drawGraph({ bgCtx, fgCtx, W, H, nodes, formulas, edges, hiddenTopics, selectedId, hoveredId }) {
+function drawGraph({ 
+  bgCtx, fgCtx, W, H, nodes, formulas, edges, hiddenTopics, 
+  selectedId, hoveredId, bandHeights 
+}) {
+  // 1. ล้างกระแสไฟ (Clear Canvas)
   bgCtx.clearRect(0, 0, W, H);
   fgCtx.clearRect(0, 0, W, H);
 
-  function nodeVisible(id) { const f = formulas.find((f) => f.id === id); return f && !hiddenTopics.has(f.topic); }
-  function edgeVisible(e)  { return nodeVisible(e.a) && nodeVisible(e.b); }
+  // Helper functions
+  const nodeVisible = (id) => { 
+    const f = formulas.find((f) => f.id === id); 
+    return f && !hiddenTopics.has(f.topic); 
+  };
+  const edgeVisible = (e) => nodeVisible(e.a) && nodeVisible(e.b);
 
   const connectedToSelected = new Set();
   if (selectedId) {
@@ -178,94 +272,156 @@ function drawGraph({ bgCtx, fgCtx, W, H, nodes, formulas, edges, hiddenTopics, s
     });
   }
 
-  // ── band backgrounds ──
-  let yy = 0, cumH = 0;
-  // compute band heights same as buildLayout
-  const groups = {};
-  formulas.forEach((f) => { if (!groups[f.topic]) groups[f.topic] = []; groups[f.topic].push(f); });
-
+  // ── 2. วาดพื้นหลัง (Band Backgrounds) ──
+  // ใช้ค่า bandHeights ที่คำนวณมาจาก buildLayout เท่านั้น
+  let yy = 0;
   TOPIC_ORDER.forEach((tk) => {
-    const members = groups[tk] || [];
+    const sh = bandHeights[tk] || 0; 
     
-    const bandHeights = computeBandHeights(formulas);
-    const sh = bandHeights[tk];
-
-    if (!hiddenTopics.has(tk)) {
+    if (!hiddenTopics.has(tk) && sh > 0) {
       const c = flColour(tk);
+      
+      // วาดพื้นหลังสี Soft
       bgCtx.fillStyle = c.soft;
       bgCtx.fillRect(0, yy, W, sh);
-      bgCtx.font = "700 11px sans-serif";
+      
+      // วาดชื่อ Topic
+      bgCtx.font = FONT.bandLabel;
       bgCtx.fillStyle = c.text + "99";
-      bgCtx.textAlign = "left"; bgCtx.textBaseline = "top";
-      bgCtx.fillText(TOPIC_LABEL[tk] || tk, 10, yy + 10);
+      bgCtx.textAlign = "left"; 
+      bgCtx.textBaseline = "top";
+      bgCtx.fillText(TOPIC_LABEL[tk] || tk, 16, yy + 18);
+      
+      // วาดเส้นประคั่นระหว่าง Topic
       if (yy > 0) {
-        bgCtx.strokeStyle = "#E8D5BC"; bgCtx.lineWidth = 1;
+        bgCtx.strokeStyle = "#E8D5BC"; 
+        bgCtx.lineWidth = 1;
         bgCtx.setLineDash([4, 4]);
-        bgCtx.beginPath(); bgCtx.moveTo(0, yy); bgCtx.lineTo(W, yy); bgCtx.stroke();
+        bgCtx.beginPath(); 
+        bgCtx.moveTo(0, yy); 
+        bgCtx.lineTo(W, yy); 
+        bgCtx.stroke();
         bgCtx.setLineDash([]);
       }
     }
-    yy += sh;
+    // สะสมค่า yy เสมอแม้ Topic จะซ่อน เพื่อรักษาลำดับตำแหน่ง
+    yy += sh; 
   });
 
-  // ── edges ──
+  // ── 3. วาดเส้นเชื่อม (Edges) ──
+  // Pass 1: วาดเส้นปกติ (หรือจางลงถ้ามีการเลือกโหนด)
   edges.forEach((e) => {
     if (!edgeVisible(e)) return;
-    const na = nodes[e.a], nb = nodes[e.b]; if (!na || !nb) return;
+    const na = nodes[e.a], nb = nodes[e.b];
+    if (!na || !nb) return;
+
     const isHl = selectedId && (selectedId === e.a || selectedId === e.b);
-    const isFd = selectedId && !isHl;
+    if (isHl) return; // ข้ามไปวาดใน Pass Highlight เพื่อให้อยู่ด้านบน
 
-    fgCtx.beginPath(); fgCtx.moveTo(na.x, na.y); fgCtx.lineTo(nb.x, nb.y);
-    fgCtx.strokeStyle = isFd ? "#EEE5DC" : e.sameTopic ? "#6B3E26" : "#C07030";
-    fgCtx.lineWidth   = isFd ? 0.6 : e.sameTopic ? 2 : 1.5;
-    fgCtx.setLineDash(e.sameTopic ? [] : [5, 4]);
-    fgCtx.globalAlpha = isFd ? 0.1 : 0.5;
-    fgCtx.stroke(); fgCtx.setLineDash([]); fgCtx.globalAlpha = 1;
-
-    // shared var badge — larger font now
-    if (isHl) {
-      const mx = (na.x + nb.x) / 2, my = (na.y + nb.y) / 2;
-      const txt = e.shared.join(" · ");
-      fgCtx.font = "600 10px monospace";
-      const tw = fgCtx.measureText(txt).width;
-      fgCtx.fillStyle = "#FDF6EE";
-      fgCtx.fillRect(mx - tw / 2 - 5, my - 9, tw + 10, 15);
-      fgCtx.strokeStyle = e.sameTopic ? "#C8A882" : "#F5DFB8"; fgCtx.lineWidth = 1;
-      fgCtx.strokeRect(mx - tw / 2 - 5, my - 9, tw + 10, 15);
-      fgCtx.fillStyle = e.sameTopic ? "#6B3E26" : "#C07030";
-      fgCtx.textAlign = "center"; fgCtx.textBaseline = "middle";
-      fgCtx.fillText(txt, mx, my); fgCtx.textBaseline = "alphabetic";
-    }
+    fgCtx.beginPath();
+    fgCtx.moveTo(na.x, na.y);
+    fgCtx.lineTo(nb.x, nb.y);
+    
+    fgCtx.strokeStyle = selectedId ? "#EEE5DC" : (e.sameTopic ? "#6B3E26" : "#C07030");
+    fgCtx.lineWidth = selectedId ? 0.5 : (e.sameTopic ? 1.5 : 1);
+    fgCtx.setLineDash(e.sameTopic ? [] : [4, 4]);
+    fgCtx.globalAlpha = selectedId ? 0.1 : 0.3;
+    fgCtx.stroke();
+    fgCtx.setLineDash([]);
+    fgCtx.globalAlpha = 1;
   });
 
-  // ── nodes ──
+  // Pass 2: วาดเส้นที่ถูก Highlight
+  if (selectedId) {
+    edges.forEach((e) => {
+      if (!edgeVisible(e) || (e.a !== selectedId && e.b !== selectedId)) return;
+      const na = nodes[e.a], nb = nodes[e.b];
+      if (!na || !nb) return;
+
+      fgCtx.beginPath();
+      fgCtx.moveTo(na.x, na.y);
+      fgCtx.lineTo(nb.x, nb.y);
+      fgCtx.strokeStyle = e.sameTopic ? "#6B3E26" : "#C07030";
+      fgCtx.lineWidth = 2.5;
+      fgCtx.setLineDash(e.sameTopic ? [] : [5, 4]);
+      fgCtx.globalAlpha = 0.8;
+      fgCtx.stroke();
+      fgCtx.setLineDash([]);
+      fgCtx.globalAlpha = 1;
+
+      // วาด Badge ตัวแปรที่ใช้ร่วมกัน (Shared Variables)
+      const txt = e.shared.join(" · ");
+      fgCtx.font = FONT.edgeBadge;
+      const tw = fgCtx.measureText(txt).width;
+      const bw = tw + 10, bh = 18;
+      const targetNode = (e.a === selectedId) ? nb : na;
+      const lx = targetNode.x;
+      const ly = targetNode.y + targetNode.ry + 14; 
+
+      fgCtx.fillStyle = "#FDF6EE";
+      fgCtx.beginPath();
+      fgCtx.roundRect(lx - bw / 2, ly - bh / 2, bw, bh, 4); 
+      fgCtx.fill();
+      fgCtx.strokeStyle = e.sameTopic ? "#C8A882" : "#F5DFB8";
+      fgCtx.lineWidth = 1;
+      fgCtx.stroke();
+
+      fgCtx.fillStyle = e.sameTopic ? "#6B3E26" : "#C07030";
+      fgCtx.textAlign = "center";
+      fgCtx.textBaseline = "middle";
+      fgCtx.fillText(txt, lx, ly);
+      fgCtx.textBaseline = "alphabetic";
+    });
+  }
+
+  // ── 4. วาดโหนด (Nodes) ──
   formulas.forEach((f) => {
     if (!nodeVisible(f.id)) return;
-    const n = nodes[f.id]; if (!n) return;
-    const c     = flColour(f.topic);
-    const isSel = selectedId === f.id, isHov = hoveredId === f.id;
-    const isFd  = selectedId && !isSel && !connectedToSelected.has(f.id);
+    const n = nodes[f.id];
+    if (!n) return;
+
+    const c = flColour(f.topic);
+    const isSel = selectedId === f.id;
+    const isHov = hoveredId === f.id;
+    const isFd = selectedId && !isSel && !connectedToSelected.has(f.id);
+
     fgCtx.globalAlpha = isFd ? 0.2 : 1;
-    if (isSel) { fgCtx.shadowColor = "rgba(58,31,13,0.22)"; fgCtx.shadowBlur = 14; }
+    if (isSel) {
+      fgCtx.shadowColor = "rgba(58,31,13,0.22)";
+      fgCtx.shadowBlur = 14;
+    }
 
-    const rx = n.rx + (isHov || isSel ? 3 : 0), ry = n.ry + (isHov || isSel ? 3 : 0);
+    const rx = n.rx + (isHov || isSel ? 3 : 0);
+    const ry = n.ry + (isHov || isSel ? 3 : 0);
+    const rectW = rx * 2;
+    const rectH = ry * 2;
 
-    // cream backing — prevents edge bleed through text
-    fgCtx.beginPath(); fgCtx.ellipse(n.x, n.y, rx + 4, ry + 4, 0, 0, Math.PI * 2);
-    fgCtx.fillStyle = "#FDF6EE"; fgCtx.fill();
+    // 1. ขอบนอก (Backing)
+    fgCtx.beginPath();
+    fgCtx.roundRect(n.x - rx - 4, n.y - ry - 4, rectW + 8, rectH + 8, 8); 
+    fgCtx.fillStyle = "#FDF6EE"; 
+    fgCtx.fill();
 
-    // ellipse body
-    fgCtx.beginPath(); fgCtx.ellipse(n.x, n.y, rx, ry, 0, 0, Math.PI * 2);
-    fgCtx.fillStyle = isSel ? c.text : c.bg; fgCtx.fill();
-    fgCtx.strokeStyle = c.text; fgCtx.lineWidth = isSel ? 2.5 : 1.5; fgCtx.stroke();
+    // 2. ตัวโหนดหลัก
+    fgCtx.beginPath();
+    fgCtx.roundRect(n.x - rx, n.y - ry, rectW, rectH, 6); 
+    fgCtx.fillStyle = isSel ? c.text : c.bg; 
+    fgCtx.fill();
+    fgCtx.strokeStyle = c.text; 
+    fgCtx.lineWidth = isSel ? 2.5 : 1.5; 
+    fgCtx.stroke();
+    
     fgCtx.shadowBlur = 0;
 
-    // label — 11px monospace (ขึ้นจาก 9px)
-    fgCtx.font         = `${isSel ? 700 : 500} 11px monospace`;
-    fgCtx.fillStyle    = isSel ? "#FDF6EE" : c.text;
-    fgCtx.textAlign    = "center"; fgCtx.textBaseline = "middle";
+    // 3. ข้อความในโหนด
+    fgCtx.font = isSel ? FONT.nodeSelected : FONT.nodeNormal;
+    fgCtx.fillStyle = isSel ? "#FDF6EE" : c.text;
+    fgCtx.textAlign = "center"; 
+    fgCtx.textBaseline = "middle";
     fgCtx.fillText(f.label, n.x, n.y);
-    fgCtx.textBaseline = "alphabetic"; fgCtx.globalAlpha = 1;
+    
+    fgCtx.textBaseline = "alphabetic"; 
+    fgCtx.globalAlpha = 1;
   });
 }
 
@@ -276,7 +432,7 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
   if (!selectedId) {
     return (
       <div style={{ padding: "10px 16px", borderTop: "2px solid #E8D5BC", background: "#FFFAF5" }}>
-        <span style={{ fontSize: 11, color: "#C8A882", fontStyle: "italic" }}>
+        <span style={{ fontSize: 12, color: "#C8A882", fontStyle: "italic" }}>
           Click any formula node to explore its connections
         </span>
       </div>
@@ -306,17 +462,22 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
 
   return (
     <div style={{ borderTop: "2px solid #E8D5BC", background: "#FFFAF5" }}>
-
       {/* header */}
       <div style={{ padding: "13px 16px 11px", borderBottom: "1.5px dashed #E8D5BC", display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 16, color: c.text }}>{f.label}</span>
-        <span style={{ fontSize: 12, color: "#9A8070", flex: 1, minWidth: 0 }}>{f.name}</span>
-        <span className={`text-[10px] px-3 py-1 rounded-full font-bold whitespace-nowrap ${fl.deep} ${fl.light} border ${fl.border}`}>
+        <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 17, color: c.text }}>{f.label}</span>
+        <span style={{ fontSize: 13, color: "#9A8070", flex: 1, minWidth: 0 }}>{f.name}</span>
+        <span className={`text-[11px] px-3 py-1 rounded-full font-bold whitespace-nowrap ${fl.deep} ${fl.light} border ${fl.border}`}>
           {TOPIC_LABEL[f.topic] || f.topic}
         </span>
         <button
-          onClick={() => navigate(routeBuilder.formula(f.id))}
-          className="px-4 py-1.5 rounded-full bg-[#3A1F0D] text-[#FDF6EE] text-[11px] font-bold cursor-pointer border-0 hover:opacity-85 transition-opacity"
+
+          onClick={() => {
+            setTimeout(() => {
+            navigate(routeBuilder.formula(f.id));
+          },0);
+          }}
+          
+          className="px-4 py-1.5 rounded-full bg-[#3A1F0D] text-[#FDF6EE] text-[12px] font-bold cursor-pointer border-0 hover:opacity-85 transition-opacity"
         >
           Open formula →
         </button>
@@ -324,11 +485,11 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
 
       {/* variables */}
       <div style={{ padding: "10px 16px", borderBottom: "1.5px dashed #E8D5BC" }}>
-        <div className="text-[9px] font-bold text-[#A8601A] uppercase tracking-[.15em] mb-2">Variables</div>
+        <div className="text-[10px] font-bold text-[#A8601A] uppercase tracking-[.15em] mb-2">Variables</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
           {f.vars.map((sym) => (
             <span key={sym}
-              className={`text-[14px] px-3 py-1 rounded-full font-mono font-bold border ${fl.deep} ${fl.light} ${fl.border}`}
+              className={`text-[15px] px-3 py-1 rounded-full font-mono font-bold border ${fl.deep} ${fl.light} ${fl.border}`}
             >
               {sym}
             </span>
@@ -338,19 +499,19 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
 
       {/* connected formulas */}
       <div style={{ padding: "10px 16px 14px" }}>
-        <div className="text-[9px] font-bold text-[#A8601A] uppercase tracking-[.15em] mb-3">
+        <div className="text-[10px] font-bold text-[#A8601A] uppercase tracking-[.15em] mb-3">
           Connected formulas
         </div>
 
         {Object.keys(byTopic).length === 0 ? (
-          <span style={{ fontSize: 11, color: "#B83030" }}>No connections visible in current filter</span>
+          <span style={{ fontSize: 12, color: "#B83030" }}>No connections visible in current filter</span>
         ) : (
           TOPIC_ORDER.filter((tk) => byTopic[tk]).map((tk) => {
             const otc = flColour(tk);
             const ofl = allSweetFlavour[tk] || allSweetFlavour.default;
             return (
               <div key={tk} style={{ marginBottom: 14 }}>
-                <div className={`text-[11px] font-bold pb-1 mb-2 border-b ${ofl.deep} ${ofl.border}`}>
+                <div className={`text-[12px] font-bold pb-1 mb-2 border-b ${ofl.deep} ${ofl.border}`}>
                   {TOPIC_LABEL[tk] || tk}
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -362,16 +523,16 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
                       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#C8A882"; e.currentTarget.style.background = "#FDF6EE"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E8D5BC"; e.currentTarget.style.background = "white"; }}
                     >
-                      <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 13, color: otc.text, flexShrink: 0 }}>
+                      <span style={{ fontFamily: "monospace", fontWeight: 700, fontSize: 14, color: otc.text, flexShrink: 0 }}>
                         {of2.label}
                       </span>
-                      <span style={{ fontSize: 11, color: "#9A8070", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      <span style={{ fontSize: 12, color: "#9A8070", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {of2.name}
                       </span>
                       <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
                         {edge.shared.map((sym) => (
                           <span key={sym} style={{
-                            fontSize: 10, padding: "2px 7px", borderRadius: 99,
+                            fontSize: 11, padding: "2px 7px", borderRadius: 99,
                             fontFamily: "monospace", fontWeight: 700,
                             border: `1.5px solid ${edge.sameTopic ? "#6B3E26" : "#C07030"}`,
                             color:      edge.sameTopic ? "#3A1F0D" : "#7A3A0A",
@@ -383,7 +544,7 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
                       </div>
                       <button
                         onClick={(ev) => { ev.stopPropagation(); navigate(routeBuilder.formula(of2.id)); }}
-                        className="px-3 py-1 rounded-full bg-[#3A1F0D] text-[#FDF6EE] text-[10px] font-bold cursor-pointer border-0 whitespace-nowrap hover:opacity-85 transition-opacity"
+                        className="px-3 py-1 rounded-full bg-[#3A1F0D] text-[#FDF6EE] text-[11px] font-bold cursor-pointer border-0 whitespace-nowrap hover:opacity-85 transition-opacity"
                       >
                         Open →
                       </button>
@@ -411,37 +572,75 @@ export default function FormulaMap() {
   const [selectedId,   setSelectedId]   = useState(null);
   const [hoveredId,    setHoveredId]    = useState(null);
   const [canvasH,      setCanvasH]      = useState(600);
+  const [currentBandHeights, setCurrentBandHeights] = useState({});
 
   const formulas = useMemo(() => buildFormulaList(), []);
   const edges    = useMemo(() => buildEdges(formulas), [formulas]);
 
-  const redraw = useCallback(() => {
-    const bg = bgRef.current, fg = fgRef.current;
-    if (!bg || !fg) return;
-    const W = bg.width / dpr, H = bg.height / dpr;
-    drawGraph({ bgCtx: bg.getContext("2d"), fgCtx: fg.getContext("2d"), W, H, nodes: nodesRef.current, formulas, edges, hiddenTopics, selectedId, hoveredId });
-  }, [formulas, edges, hiddenTopics, selectedId, hoveredId, dpr]);
+// แก้ในส่วน redraw
+const redraw = useCallback(() => {
+  const bg = bgRef.current, fg = fgRef.current;
+  if (!bg || !fg) return;
+  const W = bg.width / dpr, H = bg.height / dpr;
 
-  useEffect(() => {
-    const wrap = wrapRef.current; if (!wrap) return;
+  // ส่ง currentBandHeights เข้าไปด้วย
+  drawGraph({ 
+    bgCtx: bg.getContext("2d"), 
+    fgCtx: fg.getContext("2d"), 
+    W, H, 
+    nodes: nodesRef.current, 
+    formulas, 
+    edges, 
+    hiddenTopics, 
+    selectedId, 
+    hoveredId,
+    bandHeights: currentBandHeights // <--- เพิ่มตรงนี้
+  });
+}, [formulas, edges, hiddenTopics, selectedId, hoveredId, dpr, currentBandHeights]);
+
+useEffect(() => {
+    const wrap = wrapRef.current; 
+    if (!wrap) return;
+
+    let ro = null;
+
     function doResize() {
       const W = wrap.clientWidth;
-      const { nodes, totalH } = buildLayout(formulas, W, 600);
+      const { nodes, totalH, bandHeights } = buildLayout(formulas, W); 
       nodesRef.current = nodes;
+      
+      setCurrentBandHeights(bandHeights);
       const H = Math.max(totalH, 400);
       setCanvasH(H);
+
       [bgRef, fgRef].forEach((ref) => {
         const c = ref.current; if (!c) return;
         c.width = W * dpr; c.height = H * dpr;
         c.style.width = W + "px"; c.style.height = H + "px";
-        c.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+        const ctx = c.getContext("2d");
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       });
       redraw();
     }
-    doResize();
-    const ro = new ResizeObserver(doResize);
+
+    // ใช้ requestAnimationFrame ช่วยให้การวาดครั้งแรกไม่ขัดจังหวะการเปลี่ยนหน้า
+    const animId = requestAnimationFrame(doResize);
+    ro = new ResizeObserver(() => {
+      requestAnimationFrame(doResize);
+    });
     ro.observe(wrap);
-    return () => ro.disconnect();
+
+    return () => {
+      cancelAnimationFrame(animId);
+      if (ro) ro.disconnect();
+      // ล้าง Canvas ทิ้งเพื่อคืน Memory ทันที
+      [bgRef, fgRef].forEach(ref => {
+        if (ref.current) {
+          ref.current.width = 0;
+          ref.current.height = 0;
+        }
+      });
+    };
   }, [formulas, dpr, redraw]);
 
   useEffect(() => { redraw(); }, [redraw]);
@@ -476,10 +675,9 @@ export default function FormulaMap() {
 
   return (
     <div className="pb-8">
-
       {/* ── Hero ── */}
       <div className="text-center py-8 px-4 max-w-[600px] mx-auto">
-        <div className="inline-flex items-center gap-2 bg-[#FDF6EE] border border-[#E8D5BC] rounded-full px-4 py-1 text-[8px] font-bold text-[#A8601A] uppercase tracking-[.2em] mb-4">
+        <div className="inline-flex items-center gap-2 bg-[#FDF6EE] border border-[#E8D5BC] rounded-full px-4 py-1 text-[9px] font-bold text-[#A8601A] uppercase tracking-[.2em] mb-4">
           <div className="w-[5px] h-[5px] rounded-full bg-[#D4831A]" />
           Physics Formula System
         </div>
@@ -488,12 +686,12 @@ export default function FormulaMap() {
         </div>
         <div className="flex items-center justify-center gap-3 mb-1">
           <div className="w-6 h-px bg-[#D5C8BC]" />
-          <span className="text-[9px] font-bold text-[#9A8070] uppercase tracking-[.22em]">
+          <span className="text-[10px] font-bold text-[#9A8070] uppercase tracking-[.22em]">
             ระบบแสดงความเชื่อมโยงสูตรฟิสิกส์จากตัวแปร
           </span>
           <div className="w-6 h-px bg-[#D5C8BC]" />
         </div>
-        <div className="text-[11px] text-[#A8601A] mb-5 leading-relaxed">เพื่อการแก้โจทย์ปัญหา</div>
+        <div className="text-[12px] text-[#A8601A] mb-5 leading-relaxed">เพื่อการแก้โจทย์ปัญหา</div>
 
         {/* topic pills */}
         <div className="flex flex-wrap justify-center gap-2">
@@ -502,7 +700,7 @@ export default function FormulaMap() {
             const off = hiddenTopics.has(tk);
             return (
               <button key={tk} onClick={() => toggleTopic(tk)}
-                className={`px-4 py-1 rounded-full border-2 text-[9px] font-black uppercase tracking-[.12em] transition-all duration-200 active:scale-95 ${off ? "border-stone-200 text-stone-300 bg-transparent opacity-50" : `${fl.border} ${fl.deep} bg-white hover:-translate-y-0.5 hover:shadow-md`}`}
+                className={`px-4 py-1 rounded-full border-2 text-[10px] font-black uppercase tracking-[.12em] transition-all duration-200 active:scale-95 ${off ? "border-stone-200 text-stone-300 bg-transparent opacity-50" : `${fl.border} ${fl.deep} bg-white hover:-translate-y-0.5 hover:shadow-md`}`}
                 onMouseEnter={(e) => { if (!off) { e.currentTarget.style.background = fl.deepCode; e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = fl.deepCode; } }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = ""; e.currentTarget.style.color = ""; e.currentTarget.style.borderColor = ""; }}
               >
@@ -526,11 +724,11 @@ export default function FormulaMap() {
 
         {/* legend */}
         <div className="flex flex-wrap gap-4 items-center px-4 py-2 border-t border-[#E8D5BC] bg-[#F2E6D4]">
-          <div className="flex items-center gap-2 text-[9px] font-semibold text-[#6B4A30]">
+          <div className="flex items-center gap-2 text-[10px] font-semibold text-[#6B4A30]">
             <div className="w-5 h-[2.5px] bg-[#6B3E26] rounded" />
             shared variable (same topic)
           </div>
-          <div className="flex items-center gap-2 text-[9px] font-semibold text-[#6B4A30]">
+          <div className="flex items-center gap-2 text-[10px] font-semibold text-[#6B4A30]">
             <svg width="20" height="4"><line x1="0" y1="2" x2="20" y2="2" stroke="#C07030" strokeWidth="1.5" strokeDasharray="4 3" /></svg>
             same symbol, different topic
           </div>
