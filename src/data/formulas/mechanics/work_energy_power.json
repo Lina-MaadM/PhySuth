@@ -76,7 +76,6 @@
       "name": "Gravity", 
       "unit": "m/s^2", 
       "value": 9.8, 
-      "min": 0,
       "description": "Acceleration due to gravity near Earth's surface (default 9.8)."
     },
     { 
@@ -92,7 +91,7 @@
       "symbol": "t", 
       "name": "Time", 
       "unit": "s", 
-      "min": 0.000001,
+      "min": 0,
       "description": "Duration over which work or energy transfer occurs."
     }
   ],

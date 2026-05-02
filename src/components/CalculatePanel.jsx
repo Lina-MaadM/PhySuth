@@ -130,11 +130,11 @@ export default function CalculatePanel({
         const variable = variableMap[key];
         const val = Number(inputs[key]);
 
-        if (!isFinite(val)) throw new Error("Result is undefined or infinite");
+        if (!isFinite(val)) throw new Error("Invalid input");
 
         const min = variable?.min ?? GLOBAL_MIN;
         const max = variable?.max ?? GLOBAL_MAX;
-        if (val < min || val > max) throw new Error("Input out of allowed range");
+        if (val < min || val > max) throw new Error(`Input out of range ${min} to ${max}`);
 
         values[key] = val;
       }
@@ -170,30 +170,16 @@ export default function CalculatePanel({
           Math.asin, Math.acos, Math.atan, Math.PI
         );
       } catch {
-        throw new Error("Not physically defined");
+        throw new Error("Invalid output");
       }
 
-      if (!isFinite(calculated)) throw new Error("Not physically defined");
+      if (!isFinite(calculated)) throw new Error("Invalid output");
 
       // 5️⃣ ตรวจสอบ result เกิน min/max
       const minTarget = variableMap[target]?.min ?? GLOBAL_MIN;
       const maxTarget = variableMap[target]?.max ?? GLOBAL_MAX;
-      if (calculated < minTarget || calculated > maxTarget) throw new Error("Result overflow");
+      if (calculated < minTarget || calculated > maxTarget) throw new Error(`Output out of range ${minTarget} to ${maxTarget}`);
 
-      // ✅ เพิ่ม: back-substitution check
-      // เอาผลลัพธ์ที่ได้ไปแทนกลับในสมการอื่นๆ ของ formula เดียวกัน
-      // เพื่อตรวจว่าค่าใน values ทุกตัว + ผลลัพธ์ ไม่ทำให้เกิด invalid input
-      const allValues = { ...values, [target]: calculated };
-
-      for (const key of Object.keys(allValues)) {
-        const v = variableMap[key];
-        const val = allValues[key];
-        const minVal = v?.min ?? GLOBAL_MIN;
-        const maxVal = v?.max ?? GLOBAL_MAX;
-        if (!isFinite(val) || val < minVal || val > maxVal) {
-          throw new Error("Result not physically valid");
-        }
-      }
       // 6️⃣ ตั้งผลลัพธ์และบันทึก memory
       // ใช้ toPrecision(6) แทน toFixed(6) เพื่อรองรับทั้งเลขใหญ่และเลขเล็กมากๆ
       const formatted = parseFloat(calculated.toPrecision(6));

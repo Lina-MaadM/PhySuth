@@ -15,7 +15,7 @@
       "symbol": "m",
       "name": "Mass",
       "unit": "kg",
-      "min": 0,
+      "min": 0.000001,
       "description": "Mass of the substance."
     },
     {
@@ -23,6 +23,7 @@
       "symbol": "c",
       "name": "Specific heat capacity",
       "unit": "J/(kg·K)",
+      "min": 0.000001,
       "description": "Energy required to raise the temperature of 1 kg of a substance by 1 degree."
     },
     {
@@ -30,6 +31,7 @@
       "symbol": "L",
       "name": "Latent heat",
       "unit": "J/kg",
+      "min": 0.000001,
       "description": "Energy required for a phase change without temperature change."
     },
     {

@@ -31,7 +31,6 @@
       "name": "Gravity",
       "unit": "m/s^2",
       "value": 9.8,
-      "min": 0,
       "description": "The acceleration due to gravity near the surface of a planet."
     },
     {

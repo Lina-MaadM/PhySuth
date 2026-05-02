@@ -24,6 +24,7 @@
       "symbol": "\\omega",
       "name": "Angular Velocity",
       "unit": "rad/s",
+      "min": 0,
       "description": "A physical quantity representing the rate of change of angular position with respect to time."
     },
     {

@@ -17,7 +17,6 @@
       "name": "Gravitational acceleration",
       "unit": "m/s^2",
       "value": 9.8,
-      "min": 0,
       "description": "The acceleration caused by gravity near the surface of a planet."
     },
     {
@@ -32,7 +31,6 @@
       "symbol": "h",
       "name": "Height",
       "unit": "m",
-      "min": 0,
       "description": "The vertical distance from a chosen reference level."
     },
     {
@@ -40,7 +38,6 @@
       "symbol": "E_{pg}",
       "name": "Gravitational Potential Energy",
       "unit": "J",
-      "min": 0,
       "description": "The potential energy associated with an object's position in a gravitational field."
     }
   ],
@@ -73,6 +70,7 @@
       "calculate": {
         "Epg_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics * h_Mechanics" },
         "m_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (g_Mechanics * h_Mechanics)" },
+        "g_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (m_Mechanics * h_Mechanics)" },
         "h_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (m_Mechanics * g_Mechanics)" }
       }
     }
