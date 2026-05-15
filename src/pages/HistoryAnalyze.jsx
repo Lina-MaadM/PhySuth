@@ -27,6 +27,7 @@ function HistoryAnalyze({
       let variableKeys = [];
 
       // 1. ดึงข้อมูลจาก Index (สูตร หรือ ตัวแปร)
+
       if (entry.id && formulaIndex[entry.id]) {
         const f = formulaIndex[entry.id];
         topic = f.topic;
@@ -85,6 +86,7 @@ function HistoryAnalyze({
       // "cross-topic" — base symbol เหมือนกัน แต่คนละ topic
       // "new"         — ไม่มีใน entry ก่อนหน้าเลย
       // null          — entry แรก ไม่มีตัวเปรียบ
+      
       const symbolRelations = variableKeys.map((key) => {
         if (!prev) return null;
         if (disconnected) return "new";

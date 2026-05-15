@@ -4,14 +4,10 @@ import { allSweetFlavour } from "../allSweetFlavour";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function baseOf(key) {
-  return key?.split("_")[0] || "";
-}
+function baseOf(key) { return key?.split("_")[0] || ""; }
 
 function getVarKeys(entry, formulaIndex, variableIndex) {
-  if (entry.page === "formula") {
-    return formulaIndex[entry.id]?.variable || [];
-  }
+  if (entry.page === "formula") return formulaIndex[entry.id]?.variable || [];
   return variableIndex[entry.key] ? [entry.key] : [];
 }
 
@@ -19,12 +15,8 @@ function getSharedWithPrev(currEntry, prevEntry, formulaIndex, variableIndex) {
   if (!prevEntry) return [];
   const curr = getVarKeys(currEntry, formulaIndex, variableIndex);
   const prev = getVarKeys(prevEntry, formulaIndex, variableIndex);
-
   const prevMap = {};
-  prev.forEach((k) => {
-    prevMap[baseOf(k)] = k;
-  });
-
+  prev.forEach((k) => { prevMap[baseOf(k)] = k; });
   return curr
     .filter((k) => prevMap[baseOf(k)] !== undefined)
     .map((k) => {
@@ -32,8 +24,7 @@ function getSharedWithPrev(currEntry, prevEntry, formulaIndex, variableIndex) {
       const cInfo = variableIndex[k] || {};
       const pInfo = variableIndex[prevKey] || {};
       return {
-        key: k,
-        base: baseOf(k),
+        key: k, base: baseOf(k),
         symbol: cInfo.symbol || baseOf(k),
         isCross: cInfo.systemTopic !== pInfo.systemTopic,
       };
@@ -47,7 +38,67 @@ function isRepeatEntry(entry, idx, history) {
   return false;
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Confirm dialog ────────────────────────────────────────────────────────────
+
+function ConfirmClearDialog({ onConfirm, onCancel }) {
+  return (
+    <div className="fixed inset-0 z-[500] flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
+
+      {/* Dialog */}
+      <div className="relative bg-[#FBF4EC] border-2 border-[#C8A882] rounded-2xl
+        shadow-2xl w-[300px] overflow-hidden z-10 animate-in fade-in zoom-in duration-150">
+
+        {/* Header */}
+        <div className="bg-[#F2E6D8] border-b border-[#E2CDB8] px-5 py-4">
+          <div className="text-[13px] font-black text-[#3B2415] tracking-tight">
+            Clear everything?
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="px-5 py-4 space-y-2">
+          <p className="text-[12px] text-[#5A3E2B] leading-relaxed">
+            This will permanently delete:
+          </p>
+          <ul className="text-[12px] text-[#5A3E2B] space-y-1 ml-1">
+            <li className="flex items-start gap-2">
+              <span className="mt-[3px] w-1.5 h-1.5 rounded-full bg-[#C8A882] flex-shrink-0" />
+              Session history (all visited formulas)
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-[3px] w-1.5 h-1.5 rounded-full bg-[#C8A882] flex-shrink-0" />
+              All saved variable values from memory
+            </li>
+          </ul>
+          <p className="text-[11px] text-[#8C6A56] pt-1">This cannot be undone.</p>
+        </div>
+
+        {/* Actions */}
+        <div className="px-5 pb-5 flex gap-2">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2 rounded-xl border-2 border-[#D7C4B4]
+              text-[12px] font-bold text-[#6B5344]
+              hover:bg-[#F0E4D8] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2 rounded-xl bg-red-600 hover:bg-red-700
+              text-[12px] font-bold text-white transition-colors"
+          >
+            Clear all
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── VarChip ───────────────────────────────────────────────────────────────────
 
 function VarChip({ varKey, variableIndex, memory, sharedMap }) {
   const info = variableIndex[varKey] || {};
@@ -56,45 +107,32 @@ function VarChip({ varKey, variableIndex, memory, sharedMap }) {
   const sharedInfo = sharedMap[varKey];
   const isSharedSame = sharedInfo && !sharedInfo.isCross;
   const isSharedCross = sharedInfo?.isCross;
-
   const fl = allSweetFlavour[info.systemTopic] || allSweetFlavour.default;
 
-  let className =
-    "text-[10px] px-[7px] py-[2px] rounded-full font-mono border ";
-  let style = {};
+  let className = "text-[11px] px-[8px] py-[2px] rounded-full font-mono border ";
   let title = `${info.name || sym}${info.unit ? ` (${info.unit})` : ""}`;
 
   if (inMem) {
-    className += "border-emerald-400 text-emerald-800 bg-emerald-50 font-medium";
+    className += "border-emerald-500 text-emerald-900 bg-emerald-100 font-medium";
     title += " · saved in memory";
   } else if (isSharedCross) {
-    className += "border-orange-300 text-orange-800 bg-orange-50 font-medium";
-    title += " · same symbol — different topic, meaning may differ";
+    className += "border-orange-400 text-orange-900 bg-orange-100 font-medium";
+    title += " · same symbol — different topic";
   } else if (isSharedSame) {
-    // use topic colour inline
-    style = {
-      borderColor: fl.deepCode,
-      color: fl.deepCode,
-      backgroundColor: fl.deepCode + "18",
-      fontWeight: 500,
-    };
+    className += "border-emerald-400 text-emerald-800 bg-emerald-50 font-medium";
     title += " · shared with previous entry";
   } else {
-    className += "border-[#E8DDD5] text-[#6B5344] bg-[#FFF8F2]";
+    className += "border-[#C8B8A8] text-[#4A3020] bg-[#EDE0D0]";
   }
 
   return (
-    <span className={className} style={style} title={title}>
-      {inMem ? (
-        <>
-          <InlineMath math={sym} /> = {memory[varKey]}
-        </>
-      ) : (
-        <InlineMath math={sym} />
-      )}
+    <span className={className} title={title}>
+      {inMem ? <><InlineMath math={sym} /> = {memory[varKey]}</> : <InlineMath math={sym} />}
     </span>
   );
 }
+
+// ── Bridge ────────────────────────────────────────────────────────────────────
 
 function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
   const shared = getSharedWithPrev(entryB, entryA, formulaIndex, variableIndex);
@@ -102,41 +140,36 @@ function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
   if (!shared.length) {
     return (
       <div className="ml-[35px] px-2 py-[3px] flex items-center gap-1">
-        <span className="text-[9px] text-red-600">⚠ no shared variable</span>
+        <span className="text-[10px] text-red-700 font-medium">⚠ no shared variable</span>
       </div>
     );
   }
 
   const allCross = shared.every((b) => b.isCross);
   const someCross = shared.some((b) => b.isCross);
-
-  const label = allCross
-    ? "same symbol, may differ in meaning"
-    : someCross
-    ? "some may differ in meaning"
-    : "shared with next";
-
-  const labelColor = allCross || someCross ? "text-orange-600" : "text-[#9A8070]";
+  const label = allCross ? "same symbol, may differ" : someCross ? "some may differ" : "shared";
+  const labelColor = allCross || someCross ? "text-orange-700" : "text-[#7A5C44]";
 
   return (
     <div className="ml-[35px] px-2 py-[3px] flex items-center gap-[5px] flex-wrap">
       {shared.map((b) => (
         <span
           key={b.key}
-          className={`text-[10px] px-[6px] py-[1px] rounded-full font-mono border ${
+          className={`text-[11px] px-[7px] py-[1px] rounded-full font-mono border ${
             b.isCross
-              ? "border-orange-300 text-orange-800 bg-orange-50"
-              : "border-purple-300 text-purple-800 bg-purple-50"
+              ? "border-orange-400 text-orange-900 bg-orange-100"
+              : "border-purple-400 text-purple-900 bg-purple-100"
           }`}
-          title={b.isCross ? "Same symbol — different topic" : "Shared variable"}
         >
           <InlineMath math={b.symbol} />
         </span>
       ))}
-      <span className={`text-[9px] ${labelColor}`}>{label}</span>
+      <span className={`text-[10px] font-medium ${labelColor}`}>{label}</span>
     </div>
   );
 }
+
+// ── EntryCard ─────────────────────────────────────────────────────────────────
 
 function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, memory, onClickEntry }) {
   const fData = formulaIndex[entry.id];
@@ -156,65 +189,93 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
   const isDisc = hasPrev && swp.length === 0 && !repeat;
   const isCross = !isDisc && swp.some((v) => v.isCross);
 
-  // state → dot + card border/bg
-  let dotClass = "absolute left-[12px] top-[13px] w-3 h-3 rounded-full border-2 ";
-  let cardBorder = "border-[#EEE5DC]";
-  let cardBg = "bg-white";
+  // ── dot style ──
+  let dotClass = "absolute left-[12px] top-[14px] w-[13px] h-[13px] rounded-full border-2 ";
+
+  // ── card style — เดียวกับ HistoryBar ──
+  let cardBorder, cardBg, formulaColor, nameColor;
 
   if (isActive) {
-    dotClass += "border-blue-600 bg-blue-100";
-    cardBorder = "border-blue-500";
-    cardBg = "bg-blue-50";
-  } else if (repeat) {
-    dotClass += "border-pink-600 bg-pink-100";
-    cardBorder = "border-pink-300";
-    cardBg = "bg-pink-50/40";
-  } else if (isDisc) {
-    dotClass += "border-red-600 bg-red-100";
-    cardBorder = "border-red-300";
-    cardBg = "bg-red-50/40";
-  } else if (isCross) {
-    dotClass += "border-orange-500 bg-orange-100";
-    cardBorder = "border-orange-300";
-    cardBg = "bg-orange-50/30";
+    if (repeat) {
+      dotClass += "border-pink-600 bg-pink-300";
+      cardBorder = "border-pink-600";
+      cardBg = "bg-pink-500";
+      formulaColor = "text-white";
+      nameColor = "text-pink-100";
+    } else if (isDisc) {
+      dotClass += "border-red-600 bg-red-300";
+      cardBorder = "border-red-600";
+      cardBg = "bg-red-500";
+      formulaColor = "text-white";
+      nameColor = "text-red-100";
+    } else if (isCross) {
+      dotClass += "border-orange-600 bg-orange-300";
+      cardBorder = "border-orange-600";
+      cardBg = "bg-orange-500";
+      formulaColor = "text-white";
+      nameColor = "text-orange-100";
+    } else {
+      dotClass += "border-blue-700 bg-blue-300";
+      cardBorder = "border-blue-700";
+      cardBg = "bg-blue-600";
+      formulaColor = "text-white";
+      nameColor = "text-blue-100";
+    }
   } else {
-    dotClass += "border-[#D5C8BC] bg-[#FFFAF6]";
+    // ไม่ active — สีอ่อนตาม warning เหมือน HistoryBar extraStyle
+    if (repeat) {
+      dotClass += "border-pink-500 bg-pink-200";
+      cardBorder = "border-pink-300";
+      cardBg = "bg-pink-100";
+      formulaColor = "text-[#3B1020]";
+      nameColor = "text-pink-700";
+    } else if (isDisc) {
+      dotClass += "border-red-500 bg-red-200";
+      cardBorder = "border-red-300";
+      cardBg = "bg-red-100";
+      formulaColor = "text-[#3B0A0A]";
+      nameColor = "text-red-700";
+    } else if (isCross) {
+      dotClass += "border-orange-500 bg-orange-200";
+      cardBorder = "border-orange-300";
+      cardBg = "bg-orange-100";
+      formulaColor = "text-[#3B1800]";
+      nameColor = "text-orange-700";
+    } else {
+      dotClass += "border-[#B8A090] bg-[#E0CFC0]";
+      cardBorder = "border-[#CDBBA8]";
+      cardBg = "bg-[#F5EDE0]";
+      formulaColor = "text-[#2D1A0E]";
+      nameColor = "text-[#7A5A44]";
+    }
   }
 
-  // build sharedMap for VarChip
   const sharedMap = {};
-  swp.forEach((s) => {
-    sharedMap[s.key] = s;
-  });
-
+  swp.forEach((s) => { sharedMap[s.key] = s; });
   const varKeys = getVarKeys(entry, formulaIndex, variableIndex);
 
   return (
     <div className="relative pl-9 pr-[14px]">
-      {/* spine */}
       {idx < history.length - 1 && (
-        <div className="absolute left-[18px] top-7 bottom-0 w-[1.5px] bg-[#EEE5DC]" />
+        <div className="absolute left-[18px] top-7 bottom-0 w-[1.5px] bg-[#D4C0AE]" />
       )}
-
-      {/* dot */}
       <div className={dotClass} />
-
-      {/* card */}
       <div
-        className={`my-[5px] px-[11px] py-[10px] border-[1.5px] ${cardBorder} ${cardBg} rounded-xl cursor-pointer hover:border-[#D5C8BC] transition-colors duration-150`}
+        className={`my-[5px] px-[12px] py-[10px] border-2 ${cardBorder} ${cardBg}
+          rounded-xl cursor-pointer hover:brightness-95 transition-all duration-150 shadow-sm`}
         onClick={() => onClickEntry?.(entry, idx)}
       >
         {/* top row */}
         <div className="flex items-start justify-between gap-2 mb-[3px]">
-          <span className="text-[12px] font-medium font-mono text-[#2D241E] flex-1 min-w-0 break-all">
+          <span className={`text-[13px] font-semibold font-mono ${formulaColor} flex-1 min-w-0 break-all`}>
             <InlineMath math={formula} />
           </span>
           <span
-            className="text-[9px] px-[7px] py-[2px] rounded-full border font-medium whitespace-nowrap flex-shrink-0"
+            className="text-[10px] px-[8px] py-[2px] rounded-full border font-bold whitespace-nowrap flex-shrink-0"
             style={{
-              color: fl.deepCode,
-              borderColor: fl.deepCode + "55",
-              backgroundColor: fl.deepCode + "15",
+              color: isActive ? "#fff" : fl.deepCode,
+              borderColor: isActive ? "rgba(255,255,255,0.4)" : fl.deepCode + "66",
+              backgroundColor: isActive ? "rgba(255,255,255,0.18)" : fl.deepCode + "18",
             }}
           >
             {topic}
@@ -222,25 +283,27 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
         </div>
 
         {/* name */}
-        <div className="text-[10px] text-[#9A8070] mb-[5px]">
+        <div className={`text-[11px] ${nameColor} mb-[5px]`}>
           {name}
-          {repeat && (
-            <span className="text-pink-600 ml-1">· revisited</span>
-          )}
+          {repeat && <span className={`ml-1 ${isActive ? "text-pink-100" : "text-pink-600"}`}>· revisited</span>}
         </div>
 
-        {/* variables */}
+        {/* variables — พื้นหลังสีอ่อนเสมอเพื่อให้ chip อ่านได้บนการ์ดสีเข้ม */}
         {varKeys.length > 0 && (
-          <div className="flex flex-wrap gap-[3px] pt-[6px] mt-[5px] border-t border-[#F0E8E0]">
-            {varKeys.map((k) => (
-              <VarChip
-                key={k}
-                varKey={k}
-                variableIndex={variableIndex}
-                memory={memory}
-                sharedMap={sharedMap}
-              />
-            ))}
+          <div className={`mt-[6px] pt-[1px] rounded-lg overflow-hidden ${
+            isActive ? "bg-black/15" : ""
+          }`}>
+            <div className="flex flex-wrap gap-[4px] p-[6px] bg-[#F5EDE0] rounded-lg">
+              {varKeys.map((k) => (
+                <VarChip
+                  key={k}
+                  varKey={k}
+                  variableIndex={variableIndex}
+                  memory={memory}
+                  sharedMap={sharedMap}
+                />
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -251,77 +314,108 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
 // ── Legend ────────────────────────────────────────────────────────────────────
 
 const LEGEND = [
-  { cls: "border-blue-600 bg-blue-100",   label: "Current" },
-  { cls: "border-[#D5C8BC] bg-[#FFFAF6]", label: "Normal" },
-  { cls: "border-orange-500 bg-orange-100",label: "Cross-topic symbol" },
-  { cls: "border-red-600 bg-red-100",      label: "No shared variable" },
-  { cls: "border-pink-600 bg-pink-100",    label: "Revisited" },
+  { bg: "bg-blue-600",   border: "border-blue-700",   label: "Current" },
+  { bg: "bg-[#E0CFC0]", border: "border-[#B8A090]",  label: "Normal" },
+  { bg: "bg-orange-200", border: "border-orange-500", label: "Cross-topic" },
+  { bg: "bg-red-200",    border: "border-red-500",    label: "No shared var" },
+  { bg: "bg-pink-200",   border: "border-pink-500",   label: "Revisited" },
 ];
 
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 
-function SessionOverview({ history = [], pointer = -1, memory = {}, formulaIndex = {}, variableIndex = {}, onClickEntry }) {
+function SessionOverview({
+  history = [],
+  pointer = -1,
+  memory = {},
+  formulaIndex = {},
+  variableIndex = {},
+  onClickEntry,
+  onClearAll,   // callback ที่ลบทั้ง history + memory
+}) {
   const [open, setOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { entryCount, topicCount } = useMemo(() => {
-    const topics = new Set(
-      history.map((e) => formulaIndex[e.id]?.topic).filter(Boolean)
-    );
+    const topics = new Set(history.map((e) => formulaIndex[e.id]?.topic).filter(Boolean));
     return { entryCount: history.length, topicCount: topics.size };
   }, [history, formulaIndex]);
 
+  const handleConfirmClear = () => {
+    onClearAll?.();
+    setConfirmOpen(false);
+    setOpen(false);
+  };
+
   return (
     <>
-      {/* Floating trigger */}
+      {/* FAB */}
       <button
         onClick={() => setOpen((p) => !p)}
-        className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-[10px] bg-[#2D241E] text-[#FDF8F4] rounded-full text-[13px] font-medium shadow-lg hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97] transition-all duration-150 border-2 border-white/10"
+        className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-[10px]
+          bg-[#3B2415] text-[#F5EDE0] rounded-full text-[13px] font-medium shadow-lg
+          hover:-translate-y-0.5 hover:shadow-xl active:scale-[0.97]
+          transition-all duration-150 border-2 border-white/10"
       >
-        <div className="w-[18px] h-[18px] rounded-full bg-[#FDF8F4] text-[#2D241E] flex items-center justify-center text-[9px] font-bold flex-shrink-0">
+        <div className="w-[18px] h-[18px] rounded-full bg-[#F5EDE0] text-[#3B2415]
+          flex items-center justify-center text-[9px] font-bold flex-shrink-0">
           {history.length}
         </div>
         Session overview
       </button>
 
       {/* Backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/20 z-[200]"
-          onClick={() => setOpen(false)}
+      {open && !confirmOpen && (
+        <div className="fixed inset-0 bg-black/20 z-[200]" onClick={() => setOpen(false)} />
+      )}
+
+      {/* Confirm dialog */}
+      {confirmOpen && (
+        <ConfirmClearDialog
+          onConfirm={handleConfirmClear}
+          onCancel={() => setConfirmOpen(false)}
         />
       )}
 
       {/* Panel */}
       <div
-        className={`fixed left-6 bottom-20 w-[340px] max-h-[72vh] bg-[#FFFAF6] border-[1.5px] border-[#E8DDD5] rounded-2xl overflow-hidden flex flex-col z-[300] transition-all duration-200 ${
-          open
-            ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
-            : "opacity-0 translate-y-3 scale-[0.97] pointer-events-none"
-        }`}
+        className={`fixed left-6 bottom-20 w-[340px] max-h-[72vh] bg-[#FBF4EC]
+          border-2 border-[#C8A882] rounded-2xl overflow-hidden flex flex-col
+          z-[300] transition-all duration-200 shadow-xl ${
+            open
+              ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
+              : "opacity-0 translate-y-3 scale-[0.97] pointer-events-none"
+          }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-[14px] py-[11px] border-b border-[#EEE5DC] bg-[#FFF8F2] flex-shrink-0">
+        <div className="flex items-center justify-between px-[14px] py-[11px]
+          border-b-2 border-[#D4B896] bg-[#EDD8BE] flex-shrink-0">
           <div>
-            <div className="text-[13px] font-medium text-[#2D241E]">Session overview</div>
-            <div className="text-[10px] text-[#9A8070] mt-[1px]">
+            <div className="text-[13px] font-black text-[#2D1A0E]">Session overview</div>
+            <div className="text-[11px] text-[#7A5230] mt-[1px]">
               {entryCount === 0
                 ? "No entries yet"
                 : `${entryCount} entr${entryCount !== 1 ? "ies" : "y"} · ${topicCount} topic${topicCount !== 1 ? "s" : ""}`}
             </div>
           </div>
+          {/* Clear button แทน × */}
           <button
-            onClick={() => setOpen(false)}
-            className="w-[26px] h-[26px] flex items-center justify-center rounded-md text-[#9A8070] hover:bg-[#F0E8E0] hover:text-[#2D241E] text-lg transition-colors"
+            onClick={() => setConfirmOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
+              text-[11px] font-bold text-red-700
+              border-2 border-red-300 bg-red-50
+              hover:bg-red-100 hover:border-red-400
+              transition-colors cursor-pointer"
           >
-            ×
+            🗑 Clear all
           </button>
         </div>
 
         {/* Timeline */}
         <div className="flex-1 overflow-y-auto py-2">
           {history.length === 0 ? (
-            <div className="px-4 py-8 text-center text-[#9A8070] text-[12px] leading-relaxed">
-              No history yet.<br />Browse formulas to start building a session.
+            <div className="px-4 py-8 text-center text-[#8C6A56] text-[13px] leading-relaxed">
+              No history yet.<br />
+              <span className="text-[11px] opacity-70">Browse formulas to start a session.</span>
             </div>
           ) : (
             history.map((entry, i) => (
@@ -353,11 +447,12 @@ function SessionOverview({ history = [], pointer = -1, memory = {}, formulaIndex
         </div>
 
         {/* Legend */}
-        <div className="flex-shrink-0 px-[14px] py-2 border-t border-[#EEE5DC] bg-[#FFF8F2] flex flex-wrap gap-x-[14px] gap-y-[5px]">
-          {LEGEND.map(({ cls, label }) => (
-            <div key={label} className="flex items-center gap-1">
-              <div className={`w-2 h-2 rounded-full border-2 ${cls}`} />
-              <span className="text-[9px] text-[#9A8070]">{label}</span>
+        <div className="flex-shrink-0 px-[14px] py-[10px] border-t-2 border-[#D4B896]
+          bg-[#EDD8BE] flex flex-wrap gap-x-[12px] gap-y-[6px]">
+          {LEGEND.map(({ bg, border, label }) => (
+            <div key={label} className="flex items-center gap-[5px]">
+              <div className={`w-[10px] h-[10px] rounded-full border-2 ${bg} ${border}`} />
+              <span className="text-[10px] font-medium text-[#6B4A2A]">{label}</span>
             </div>
           ))}
         </div>

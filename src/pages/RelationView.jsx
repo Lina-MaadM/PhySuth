@@ -77,7 +77,8 @@ function RelationView({ addHistory }) {
       
       {/* HEADER */}
       <div className="flex flex-col items-center text-center space-y-3">
-        <div className="bg-[#2d241e] text-[#fdfaf5] w-20 h-20 flex items-center justify-center rounded-md">
+        <div className="bg-[#2d241e] text-[#fdfaf5] w-20 h-20 
+             flex items-center justify-center rounded-md">
           <div className="text-3xl font-semibold">
             <InlineMath math={currentVariable.symbol} />
           </div>
@@ -143,7 +144,8 @@ function RelationView({ addHistory }) {
                     </div>
 
                     {/* FORMULAS GRID (3 ต่อแถว) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 
+                         gap-5 lg:gap-6 w-full">
                       {subGroup.formulas.map((f) => (
                         <div key={f.id} className="flex justify-center">
                           <FormulaCard

@@ -9,7 +9,9 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
     /* 1. Wrapper: ล็อคขนาดพื้นที่ของการ์ดไว้ (กัน Grid ขยับ) */
     <div className="w-[200px] h-[180px] relative group">
       <div
+
         onClick={() => varKey && navigate(routeBuilder.variable(varKey))}
+
         onMouseEnter={(e) => {
           e.currentTarget.style.backgroundColor = flavour.deepCode;
           e.currentTarget.style.borderColor = flavour.deepCode;
@@ -25,7 +27,7 @@ function VariableCard({ varKey, symbol, name, unit, description, flavour }) {
           transition-all duration-300 ease-out
           ${flavour.soft} ${flavour.border}
 
-          /* Hover: กางความสูงออก และลอยขึ้น */
+
           hover:h-auto hover:z-50 hover:-translate-y-2 hover:shadow-2xl
         `}
       >

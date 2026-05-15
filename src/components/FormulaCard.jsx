@@ -8,6 +8,7 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
   return (
     <div
       onClick={() => id && navigate(routeBuilder.formula(id))}
+      
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = flavour.deepCode;
         e.currentTarget.style.borderColor = flavour.deepCode;
@@ -21,10 +22,8 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
         flex flex-col border transition-all duration-300 ease-out
         ${flavour.soft} ${flavour.border}
 
-        /* ✅ FIX ขนาดให้คงที่ */
         w-[240px] h-[160px]
 
-        /* ✅ ไม่ใช้ scale แล้ว */
         hover:-translate-y-1 hover:shadow-lg
       `}
     >

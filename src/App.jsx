@@ -23,14 +23,22 @@ function AppContent() {
   const [warning, setWarning] = useState({ show: false, message: "", type: "info" });
 
   const lastAddedId = useRef(null);
-  // แยก ref สำหรับบอกว่ากำลัง navigate จาก Bar
-  // ป้องกันหน้าปลายทาง re-render แล้วเรียก addHistory แล้วขยับ pointer โดยไม่ตั้งใจ
   const isNavigatingFromHistory = useRef(false);
 
   function handleSaveMemory(data) {
     setMemory((prev) => ({ ...prev, ...data }));
   }
 
+  // ลบทั้ง history และ memory พร้อมกัน — ใช้โดย SessionOverview
+  function clearAll() {
+    setHistoryState({ list: [], pointer: -1 });
+    setMemory({});
+    setWarning({ show: false, message: "", type: "info" });
+    lastAddedId.current = null;
+    isNavigatingFromHistory.current = false;
+  }
+
+  // ลบเฉพาะ history — ใช้โดย HistoryAnalyze
   function clearHistory() {
     setHistoryState({ list: [], pointer: -1 });
     setWarning({ show: false, message: "", type: "info" });
@@ -38,32 +46,23 @@ function AppContent() {
     isNavigatingFromHistory.current = false;
   }
 
-  // =========================================================
-  // [CORE ENGINE] Logic การบันทึกประวัติ
-  // =========================================================
   function addHistory(entry, options = {}) {
     if (!entry) return;
 
     const newId = entry.id || entry.key;
     if (!newId) return;
 
-    // กรณีที่ 1: มาจาก location.state (เช่น FormulaDetail อ่าน fromHistory จาก state)
     if (options.fromHistory || location.state?.fromHistory) return;
 
-    // กรณีที่ 2: กำลัง navigate จาก HistoryBar อยู่
-    // หน้าปลายทางจะ re-render แล้วเรียก addHistory — ให้หยุดครั้งแรกแล้วเปิด flag คืน
     if (isNavigatingFromHistory.current) {
       isNavigatingFromHistory.current = false;
       return;
     }
 
-    // กรณีที่ 3: entry เดิมกับที่เพิ่งเพิ่ม (ป้องกัน re-render เบิ้ล)
     if (lastAddedId.current === newId) return;
     lastAddedId.current = newId;
 
     setHistoryState(({ list, pointer }) => {
-      // slice เกิดเฉพาะตอนนี้ เมื่อมี entry ใหม่เข้ามาจริงๆ
-      // และ pointer อยู่กลาง timeline (ไม่ได้อยู่ท้ายสุด)
       const isInMiddle = pointer >= 0 && pointer < list.length - 1;
       const base = isInMiddle ? list.slice(0, pointer + 1) : [...list];
 
@@ -74,45 +73,23 @@ function AppContent() {
 
       if (next.length > MAX) {
         next.shift();
-
-        setWarning({
-          show: true,
-          message: "History full: Oldest entry removed.",
-          type: "danger",
-        });
-
-        setTimeout(() => {
-          setWarning((prev) => ({ ...prev, show: false }));
-        }, 1000);
-      }
-
-      else if (next.length > MAX - 3) {
-        setWarning({
-          show: true,
-          message: "History almost full.",
-          type: "warning",
-        });
-
-        setTimeout(() => {
-          setWarning((prev) => ({ ...prev, show: false }));
-        }, 1000);
+        setWarning({ show: true, message: "History full: Oldest entry removed.", type: "danger" });
+        setTimeout(() => setWarning((prev) => ({ ...prev, show: false })), 1000);
+      } else if (next.length > MAX - 3) {
+        setWarning({ show: true, message: "History almost full.", type: "warning" });
+        setTimeout(() => setWarning((prev) => ({ ...prev, show: false })), 1000);
       }
 
       return { list: next, pointer: next.length - 1 };
     });
   }
 
-  // =========================================================
-  // [NAVIGATION] คลิกจาก HistoryBar
-  // =========================================================
   function handleHistoryClick(entry, index) {
     if (!entry) return;
 
-    // เปิด flag ก่อน navigate เพื่อกัน addHistory จากหน้าปลายทาง
     isNavigatingFromHistory.current = true;
     lastAddedId.current = entry.id || entry.key;
 
-    // set pointer ตรงๆ ไม่ต้องแตะ list
     setHistoryState((prev) => ({ ...prev, pointer: index }));
 
     const targetId = entry.id || entry.key;
@@ -124,17 +101,14 @@ function AppContent() {
     });
   }
 
-  // Warning Auto-hide
   useEffect(() => {
     if (!warning.show) return;
-    const timer = setTimeout(() => {
-      setWarning((p) => ({ ...p, show: false }));
-    }, 1500);
+    const timer = setTimeout(() => setWarning((p) => ({ ...p, show: false })), 1500);
     return () => clearTimeout(timer);
   }, [warning.show]);
 
   return (
-    <div className="min-h-screen bg-[#F4EBE2]  text-[#2D241E] font-sans">
+    <div className="min-h-screen bg-[#F4EBE2] text-[#2D241E] font-sans">
       <Navbar />
 
       <HistoryAnalyze
@@ -155,6 +129,7 @@ function AppContent() {
         formulaIndex={formulaIndex}
         variableIndex={variableIndex}
         onClickEntry={handleHistoryClick}
+        onClearAll={clearAll}
       />
 
       {warning.show && (
@@ -175,12 +150,8 @@ function AppContent() {
         </div>
       )}
 
-      {/* MAIN CONTENT SECTION: ส่วนพื้นที่เนื้อหาหลัก */}
       <main className="pt-24 px-6">
-
-        {/* CONTAINER LIMITER: ส่วนควบคุมความกว้างสูงสุดของเนื้อหาให้สมดุลกับสายตา */}
         <div className="max-w-5xl mx-auto">
-          {/* PAGE CARD: แผ่นพื้นหลังสำหรับแสดงเนื้อหาจาก Routes */}
           <div className="bg-white rounded-xl border-[#EADFD8] border-2 min-h-[70vh] p-6">
             <Routes>
               <Route path={ROUTE_PATH.HOME}    element={<FormulaMap />} />
@@ -200,7 +171,6 @@ function AppContent() {
                   />
                 }
               />
-
             </Routes>
           </div>
         </div>

@@ -15,6 +15,8 @@ function FormulaCatalog() {
       
       
       {physicsTopics.map((topic) => {
+
+        
         if (!topic || !Array.isArray(topic.datasets)) return null;
         
         const flavour = allSweetFlavour[topic.systemTopic] || allSweetFlavour.default;

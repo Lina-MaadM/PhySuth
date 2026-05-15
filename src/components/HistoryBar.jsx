@@ -128,18 +128,24 @@ function HistoryBar({ history = [], activePointer, onClear }) {
               let extraStyle = "bg-[#FFFAF5] border border-[#F3E8E2] text-[#5A3E36]";
               let hasWarning = false;
 
-              if (item.repeat) { extraStyle = "bg-pink-100 text-black border-pink-200"; hasWarning = true; }
-              if (item.disconnected) { extraStyle = "bg-red-100 text-black border-red-200"; hasWarning = true; }
-              if (item.crossTopic) { extraStyle = "bg-orange-100 text-black border-orange-200"; hasWarning = true; }
+              if (item.repeat) 
+                { extraStyle = "bg-pink-100 text-black border-pink-200"; hasWarning = true; }
+              if (item.disconnected) 
+                { extraStyle = "bg-red-100 text-black border-red-200"; hasWarning = true; }
+              if (item.crossTopic) 
+                { extraStyle = "bg-orange-100 text-black border-orange-200"; hasWarning = true; }
 
               const isCurrent = index === activeIndex;
               let highlightStyle = "";
 
               if (isCurrent) {
                 if (hasWarning) {
-                  if (item.repeat) highlightStyle = "bg-pink-500 text-white border-pink-600 shadow-md";
-                  if (item.disconnected) highlightStyle = "bg-red-500 text-white border-red-600 shadow-md";
-                  if (item.crossTopic) highlightStyle = "bg-orange-500 text-white border-orange-600 shadow-md";
+                  if (item.repeat) 
+                    highlightStyle = "bg-pink-500 text-white border-pink-600 shadow-md";
+                  if (item.disconnected) 
+                    highlightStyle = "bg-red-500 text-white border-red-600 shadow-md";
+                  if (item.crossTopic) 
+                    highlightStyle = "bg-orange-500 text-white border-orange-600 shadow-md";
                 } else {
                   highlightStyle = "bg-blue-600 text-white border-blue-700 shadow-md";
                 }
