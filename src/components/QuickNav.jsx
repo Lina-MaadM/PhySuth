@@ -16,11 +16,12 @@ function QuickNav({ pageTitle, pageSubtitle, topics }) {
 
   return (
     <div className="mb-16 space-y-8 animate-in fade-in duration-1000">
-      {/* Title เล็กๆ มินิมอล */}
+      {/* Title */}
       <div className="flex flex-col items-center text-center space-y-5">
         <h1 className="text-3xl font-black text-[#4a3728] tracking-[0.2em] uppercase italic opacity-90">
           {pageTitle}
         </h1>
+        
         <div className="flex items-center gap-3">
           <div className="h-[1px] w-8 bg-stone-200"></div>
           <p className="text-[9px] font-bold text-stone-400 uppercase tracking-[0.3em]">

@@ -3,21 +3,31 @@ import { InlineMath } from "react-katex";
 import { allSweetFlavour } from "../allSweetFlavour";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
-
+// Logic: ดึงชื่อ base ของตัวแปร
+// เช่น v_mechanic → v
 function baseOf(key) { return key?.split("_")[0] || ""; }
 
+// Logic: ดึงรายการตัวแปรของ entry
+// formula → ใช้ formula.variable
+// variable → คืน key ของตัวเอง
 function getVarKeys(entry, formulaIndex, variableIndex) {
   if (entry.page === "formula") return formulaIndex[entry.id]?.variable || [];
   return variableIndex[entry.key] ? [entry.key] : [];
 }
 
+// Logic: ตรวจสอบตัวแปรที่เชื่อมกับ entry ก่อนหน้า
+// ใช้ base variable เช่น v_x และ v_y → v
 function getSharedWithPrev(currEntry, prevEntry, formulaIndex, variableIndex) {
   if (!prevEntry) return [];
   const curr = getVarKeys(currEntry, formulaIndex, variableIndex);
   const prev = getVarKeys(prevEntry, formulaIndex, variableIndex);
+
+  // Map: เก็บตัวแปรก่อนหน้าในรูป base key
   const prevMap = {};
   prev.forEach((k) => { prevMap[baseOf(k)] = k; });
   return curr
+
+    // Filter: เลือกเฉพาะตัวแปรที่มี base ตรงกัน
     .filter((k) => prevMap[baseOf(k)] !== undefined)
     .map((k) => {
       const prevKey = prevMap[baseOf(k)];
@@ -44,6 +54,7 @@ function ConfirmClearDialog({ onConfirm, onCancel }) {
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center">
       {/* Backdrop */}
+      {/* UI: คลิกพื้นที่ด้านนอกเพื่อปิด dialog */}
       <div className="absolute inset-0 bg-black/30" onClick={onCancel} />
 
       {/* Dialog */}
@@ -99,10 +110,13 @@ function ConfirmClearDialog({ onConfirm, onCancel }) {
 }
 
 // ── VarChip ───────────────────────────────────────────────────────────────────
-
+// UI: แสดงสถานะตัวไอเทมในประวัติ
+// saved, shared, cross-topic
 function VarChip({ varKey, variableIndex, memory, sharedMap }) {
   const info = variableIndex[varKey] || {};
   const sym = info.symbol || baseOf(varKey);
+
+  // State: ตรวจสอบสถานะความสัมพันธ์ของตัวแปร
   const inMem = memory[varKey] !== undefined;
   const sharedInfo = sharedMap[varKey];
   const isSharedSame = sharedInfo && !sharedInfo.isCross;
@@ -112,6 +126,8 @@ function VarChip({ varKey, variableIndex, memory, sharedMap }) {
   let className = "text-[11px] px-[8px] py-[2px] rounded-full font-mono border ";
   let title = `${info.name || sym}${info.unit ? ` (${info.unit})` : ""}`;
 
+  // Priority:
+  // memory > cross-topic > shared > normal
   if (inMem) {
     className += "border-emerald-500 text-emerald-900 bg-emerald-100 font-medium";
     title += " · saved in memory";
@@ -133,14 +149,16 @@ function VarChip({ varKey, variableIndex, memory, sharedMap }) {
 }
 
 // ── Bridge ────────────────────────────────────────────────────────────────────
-
+// Logic: หาความเชื่อมโยงระหว่าง entry ปัจจุบันและก่อนหน้า
 function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
   const shared = getSharedWithPrev(entryB, entryA, formulaIndex, variableIndex);
 
+  // ไม่มีตัวแปรร่วมระหว่าง entry
   if (!shared.length) {
     return (
       <div className="ml-[35px] px-2 py-[3px] flex items-center gap-1">
-        <span className="text-[10px] text-red-700 font-medium">⚠ no shared variable</span>
+        <span className="text-[10px] text-red-700 font-medium">
+          ⚠ no shared variable</span>
       </div>
     );
   }
@@ -164,7 +182,8 @@ function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
           <InlineMath math={b.symbol} />
         </span>
       ))}
-      <span className={`text-[10px] font-medium ${labelColor}`}>{label}</span>
+      <span className={`text-[10px] font-medium ${labelColor}`}>
+        {label}</span>
     </div>
   );
 }
@@ -174,9 +193,12 @@ function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
 function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, memory, onClickEntry }) {
   const fData = formulaIndex[entry.id];
   const vData = variableIndex[entry.key];
+
+  // เลือกสีตาม Topic
   const sysT = fData?.systemTopic || vData?.systemTopic || "default";
   const fl = allSweetFlavour[sysT] || allSweetFlavour.default;
 
+  // ใช้ค่า default หากข้อมูลไม่ครบ
   const topic = fData?.topic || vData?.topic || "—";
   const name = fData?.name || vData?.name || "—";
   const formula = fData?.formula || entry.label || "?";
@@ -190,11 +212,14 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
   const isCross = !isDisc && swp.some((v) => v.isCross);
 
   // ── dot style ──
+  // UI: จุดแสดงสถานะบน timeline
   let dotClass = "absolute left-[12px] top-[14px] w-[13px] h-[13px] rounded-full border-2 ";
 
   // ── card style — เดียวกับ HistoryBar ──
   let cardBorder, cardBg, formulaColor, nameColor;
 
+  // Theme: เปลี่ยนสีการ์ดตามสถานะ
+  // active / disconnected / revisited / cross-topic
   if (isActive) {
     if (repeat) {
       dotClass += "border-pink-600 bg-pink-300";
@@ -222,7 +247,6 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
       nameColor = "text-blue-100";
     }
   } else {
-    // ไม่ active — สีอ่อนตาม warning เหมือน HistoryBar extraStyle
     if (repeat) {
       dotClass += "border-pink-500 bg-pink-200";
       cardBorder = "border-pink-300";
@@ -250,8 +274,10 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
     }
   }
 
+  // แปลง shared variable เป็น object สำหรับ lookup
   const sharedMap = {};
   swp.forEach((s) => { sharedMap[s.key] = s; });
+  // Logic: ดึงตัวแปรทั้งหมดที่เกี่ยวข้องกับ entry นี้
   const varKeys = getVarKeys(entry, formulaIndex, variableIndex);
 
   return (
@@ -288,7 +314,7 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
           {repeat && <span className={`ml-1 ${isActive ? "text-pink-100" : "text-pink-600"}`}>· revisited</span>}
         </div>
 
-        {/* variables — พื้นหลังสีอ่อนเสมอเพื่อให้ chip อ่านได้บนการ์ดสีเข้ม */}
+        {/* variables*/}
         {varKeys.length > 0 && (
           <div className={`mt-[6px] pt-[1px] rounded-lg overflow-hidden ${
             isActive ? "bg-black/15" : ""
@@ -322,7 +348,7 @@ const LEGEND = [
 ];
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-
+// UI State: ควบคุม panel และ confirm dialog
 function SessionOverview({
   history = [],
   pointer = -1,
@@ -334,12 +360,12 @@ function SessionOverview({
 }) {
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-
+  // Summary: คำนวณจำนวน entry และ topic ใน session
   const { entryCount, topicCount } = useMemo(() => {
     const topics = new Set(history.map((e) => formulaIndex[e.id]?.topic).filter(Boolean));
     return { entryCount: history.length, topicCount: topics.size };
   }, [history, formulaIndex]);
-
+  // Action: ล้าง session ทั้งหมด
   const handleConfirmClear = () => {
     onClearAll?.();
     setConfirmOpen(false);
@@ -349,6 +375,7 @@ function SessionOverview({
   return (
     <>
       {/* FAB */}
+      {/* ─── Floating Session Button ─── */}
       <button
         onClick={() => setOpen((p) => !p)}
         className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-4 py-[10px]
@@ -397,7 +424,7 @@ function SessionOverview({
                 : `${entryCount} entr${entryCount !== 1 ? "ies" : "y"} · ${topicCount} topic${topicCount !== 1 ? "s" : ""}`}
             </div>
           </div>
-          {/* Clear button แทน × */}
+          {/* Clear button */}
           <button
             onClick={() => setConfirmOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg
@@ -411,6 +438,7 @@ function SessionOverview({
         </div>
 
         {/* Timeline */}
+        {/* UI: เส้นเชื่อมระหว่าง timeline entries */}
         <div className="flex-1 overflow-y-auto py-2">
           {history.length === 0 ? (
             <div className="px-4 py-8 text-center text-[#8C6A56] text-[13px] leading-relaxed">
@@ -447,6 +475,7 @@ function SessionOverview({
         </div>
 
         {/* Legend */}
+        {/* UI: อธิบายความหมายของสีและสถานะ */}
         <div className="flex-shrink-0 px-[14px] py-[10px] border-t-2 border-[#D4B896]
           bg-[#EDD8BE] flex flex-wrap gap-x-[12px] gap-y-[6px]">
           {LEGEND.map(({ bg, border, label }) => (

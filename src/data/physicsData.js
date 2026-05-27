@@ -87,10 +87,10 @@ function buildTopic(systemTopic, globResult) {
     .filter((d) => d !== null);
 
   cleanedDatasets.forEach((dataset) => {
-    // ⭐ ใช้ topic จาก JSON ถ้ามี (สำหรับ UI)
+    // ช้ topic จาก JSON ถ้ามี (สำหรับ UI)
     const displayTopic = dataset.topic || systemTopic;
 
-    // ⭐ บังคับให้ทุก dataset ใช้ topic เดียวกันในระบบ
+    // บังคับให้ทุก dataset ใช้ topic เดียวกันในระบบ
     dataset.topic = displayTopic;
     dataset.systemTopic = systemTopic;
 

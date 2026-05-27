@@ -2,7 +2,11 @@ import { InlineMath } from "react-katex";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { allSweetFlavour } from "../allSweetFlavour";
 
-// สีและ label สำหรับแต่ละประเภท relation
+// ─── สีและ label สำหรับแต่ละประเภทความสัมพันธ์ระหว่างตัวแปร ─────────────────
+// ใช้ใน popup hover เพื่อแสดงว่าตัวแปรแต่ละตัวมีความสัมพันธ์กับสูตรก่อนหน้าอย่างไร
+// "shared"      = มีตัวแปรเดียวกันกับสูตรก่อนหน้า (ใน topic เดียวกัน)
+// "cross-topic" = มีตัวแปรเดียวกัน แต่ข้าม topic
+// "new"         = ตัวแปรใหม่ที่ไม่มีในสูตรก่อนหน้า
 const RELATION_STYLE = {
   "shared": {
     bg: "bg-emerald-50",
@@ -27,17 +31,28 @@ const RELATION_STYLE = {
   },
 };
 
+// ─── HistoryBar ───────────────────────────────────────────────────────────────
+// แถบประวัติการเลือกสูตร — fixed ที่ top ของหน้า ซ่อนเมื่อ scroll ลง
+//
+// Props:
+//   history       — array ของ item ที่เคยเลือก
+//                   แต่ละ item: { id, label, topic, subtopic, systemTopic,
+//                                 symbols[], symbolRelations[], onClick,
+//                                 repeat, disconnected, crossTopic }
+//   activePointer — index ของ item ที่กำลัง active อยู่
+//   onClear       — callback เมื่อกด Clear
 function HistoryBar({ history = [], activePointer, onClear }) {
-  const [flash, setFlash] = useState(false);
-  const [hoveredItem, setHoveredItem] = useState(null);
-  const [visible, setVisible] = useState(true);
+  const [flash, setFlash] = useState(false);        // trigger animation เมื่อมี warning ใหม่
+  const [hoveredItem, setHoveredItem] = useState(null); // item ที่ mouse อยู่เหนือ (สำหรับ popup)
+  const [visible, setVisible] = useState(true);     // ซ่อน/แสดง bar เมื่อ scroll
 
   const activeIndex = activePointer;
 
-  const lastScroll = useRef(0);
-  const hoverTimer = useRef(null);
-  const scrollRef = useRef(null);
+  const lastScroll = useRef(0);       // จำ scrollY ก่อนหน้าเพื่อตรวจทิศทาง scroll
+  const hoverTimer = useRef(null);    // timer delay ปิด popup เมื่อ mouse leave
+  const scrollRef  = useRef(null);    // ref ของ scroll container (ใช้ scrollIntoView)
 
+  // ─── Auto-scroll: เลื่อน bar ให้ active item อยู่กลางจอ ──────────────────
   useEffect(() => {
     if (scrollRef.current) {
       const activeEl = scrollRef.current.querySelector(".history-item-active");
@@ -47,9 +62,11 @@ function HistoryBar({ history = [], activePointer, onClear }) {
     }
   }, [activePointer]);
 
+  // ─── Hide-on-scroll: ซ่อน bar เมื่อ scroll ลง, แสดงเมื่อ scroll ขึ้น ─────
   useEffect(() => {
     const handleScroll = () => {
       const current = window.scrollY;
+      // ซ่อนเฉพาะเมื่อ scroll ลง และเลย 120px แล้ว (ไม่กระตุกตอนเพิ่ง load)
       setVisible(!(current > lastScroll.current && current > 120));
       lastScroll.current = current;
     };
@@ -57,6 +74,10 @@ function HistoryBar({ history = [], activePointer, onClear }) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ─── Warning: ตรวจสอบ item ปัจจุบันว่ามีปัญหาอะไรไหม ─────────────────────
+  // disconnected = ไม่มีตัวแปรร่วมกับสูตรก่อนหน้าเลย (chain ขาด)
+  // crossTopic   = ข้าม topic โดยไม่มีตัวแปรร่วม
+  // repeat       = เลือกสูตรซ้ำ
   const currentItem = history[activeIndex];
   const warning = useMemo(() => {
     if (!currentItem) return null;
@@ -74,6 +95,8 @@ function HistoryBar({ history = [], activePointer, onClear }) {
     return null;
   }, [currentItem, history, activeIndex]);
 
+  // ─── Flash animation: กระพริบ warning bar เมื่อ warning เปลี่ยน ─────────
+  // ยกเว้น "Revisited" เพราะไม่ถือว่าร้ายแรง ไม่ต้องดึงดูดความสนใจมาก
   useEffect(() => {
     if (!warning || warning.text.includes("Revisited")) return;
     setFlash(true);
@@ -81,6 +104,8 @@ function HistoryBar({ history = [], activePointer, onClear }) {
     return () => clearTimeout(timer);
   }, [warning]);
 
+  // ─── Hover handlers: เปิด/ปิด popup พร้อม delay ─────────────────────────
+  // delay ปิด 1000ms เพื่อให้ mouse เคลื่อนจาก item เข้า popup ได้
   const handleMouseEnter = (item) => {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
     setHoveredItem(item);
@@ -91,9 +116,10 @@ function HistoryBar({ history = [], activePointer, onClear }) {
   };
 
   const handleItemClick = (item) => {
-    item.onClick?.();
+    item.onClick?.();  // เรียก callback ที่ผู้ใช้ส่งมาใน item object
   };
 
+  // popup แสดงเฉพาะเมื่อ mouse อยู่บน item และ bar กำลัง visible อยู่
   const shouldShowPopup = hoveredItem && visible;
 
   return (
@@ -102,8 +128,10 @@ function HistoryBar({ history = [], activePointer, onClear }) {
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      {/* MAIN BAR */}
+      {/* ── Main bar ─────────────────────────────────────────────────────── */}
       <div className="w-full border-y-2 border-[#EADFD8]/50 bg-[#FFF8F0]/95 backdrop-blur-sm h-[80px] flex items-center shadow-sm px-4">
+
+        {/* ปุ่ม Clear ล้างประวัติ */}
         <button
           onClick={() => onClear?.()}
           className="px-3 py-1.5 text-xs font-bold tracking-wider text-stone-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0 flex items-center gap-1.5 border border-transparent hover:border-red-100"
@@ -113,40 +141,44 @@ function HistoryBar({ history = [], activePointer, onClear }) {
 
         <div className="h-8 w-[1px] bg-stone-200 mx-2 shrink-0" />
 
+        {/* ── Scrollable history list ──────────────────────────────────── */}
         <div
           ref={scrollRef}
           className="flex-1 overflow-x-auto whitespace-nowrap h-[80px] flex pt-4 scrollbar-thin"
         >
           <div className="flex gap-3 pl-8 pr-16 h-full">
+
+            {/* Empty state */}
             {history.length === 0 && (
               <div className="flex items-center h-full">
                 <span className="text-sm text-gray-400 ml-2 italic">No history yet</span>
               </div>
             )}
 
+            {/* History items */}
             {history.map((item, index) => {
+              // ── กำหนดสี background ตาม warning state ──────────────────
               let extraStyle = "bg-[#FFFAF5] border border-[#F3E8E2] text-[#5A3E36]";
               let hasWarning = false;
 
-              if (item.repeat) 
+              if (item.repeat)
                 { extraStyle = "bg-pink-100 text-black border-pink-200"; hasWarning = true; }
-              if (item.disconnected) 
+              if (item.disconnected)
                 { extraStyle = "bg-red-100 text-black border-red-200"; hasWarning = true; }
-              if (item.crossTopic) 
+              if (item.crossTopic)
                 { extraStyle = "bg-orange-100 text-black border-orange-200"; hasWarning = true; }
 
+              // ── item ที่ active จะ override สีเป็นสีเข้ม (filled) ──────
               const isCurrent = index === activeIndex;
               let highlightStyle = "";
 
               if (isCurrent) {
                 if (hasWarning) {
-                  if (item.repeat) 
-                    highlightStyle = "bg-pink-500 text-white border-pink-600 shadow-md";
-                  if (item.disconnected) 
-                    highlightStyle = "bg-red-500 text-white border-red-600 shadow-md";
-                  if (item.crossTopic) 
-                    highlightStyle = "bg-orange-500 text-white border-orange-600 shadow-md";
+                  if (item.repeat)       highlightStyle = "bg-pink-500 text-white border-pink-600 shadow-md";
+                  if (item.disconnected) highlightStyle = "bg-red-500 text-white border-red-600 shadow-md";
+                  if (item.crossTopic)   highlightStyle = "bg-orange-500 text-white border-orange-600 shadow-md";
                 } else {
+                  // active ปกติ → สีน้ำเงิน
                   highlightStyle = "bg-blue-600 text-white border-blue-700 shadow-md";
                 }
               }
@@ -171,23 +203,27 @@ function HistoryBar({ history = [], activePointer, onClear }) {
         </div>
       </div>
 
-      {/* POPUP HOVER */}
+      {/* ── Hover popup ──────────────────────────────────────────────────── */}
+      {/* แสดงรายละเอียดของ item ที่ mouse hover: topic, subtopic, ตัวแปร + relation */}
       {shouldShowPopup && (() => {
         const flavour = allSweetFlavour[hoveredItem.systemTopic] || allSweetFlavour.default;
-        const symbols = hoveredItem.symbols || [];
+        const symbols   = hoveredItem.symbols || [];
         const relations = hoveredItem.symbolRelations || [];
+
+        // entry แรกใน history ไม่มีสูตรก่อนหน้าให้เปรียบเทียบ → relations ทั้งหมดเป็น null
         const isFirstEntry = relations.every((r) => r === null);
 
-        // หา relation ประเภทที่มีจริงในไอเทมนี้ เพื่อแสดง legend เฉพาะที่จำเป็น
+        // หา relation type ที่มีจริงใน item นี้ → แสดง legend เฉพาะที่จำเป็น
         const presentRelations = [...new Set(relations.filter(Boolean))];
 
         return (
           <div
             className={`fixed left-1/2 -translate-x-1/2 top-[110px] z-[9999] w-64 bg-white border-2 ${flavour.border} rounded-2xl overflow-hidden animate-in fade-in zoom-in duration-200 shadow-xl`}
+            // เมื่อ mouse เข้า popup → ยกเลิก timer ปิด (ให้ popup คงอยู่)
             onMouseEnter={() => { if (hoverTimer.current) clearTimeout(hoverTimer.current); }}
             onMouseLeave={handleMouseLeave}
           >
-            {/* Header */}
+            {/* Header: แสดงสูตร LaTeX ขยายใหญ่ พื้นสี soft ของ topic */}
             <div className={`${flavour.soft} py-4 px-4 border-b-2 border-stone-100 text-center`}>
               <div className={`scale-150 inline-block ${flavour.deep}`}>
                 <InlineMath math={hoveredItem.label} />
@@ -195,7 +231,8 @@ function HistoryBar({ history = [], activePointer, onClear }) {
             </div>
 
             <div className="p-4 space-y-4">
-              {/* Metadata */}
+
+              {/* Metadata: Topic + Subtopic */}
               <div className="space-y-2">
                 {hoveredItem.topic && (
                   <div className="flex items-center gap-3">
@@ -215,21 +252,22 @@ function HistoryBar({ history = [], activePointer, onClear }) {
                 )}
               </div>
 
-              {/* Symbols + Relations */}
+              {/* Symbols + Relation pills ─────────────────────────────────── */}
               {symbols.length > 0 && (
                 <div className="pt-3 border-t border-stone-100 space-y-2">
-                  {/* หัวข้อบอก context ว่านี่คือการเปรียบเทียบกับตัวก่อนหน้า */}
+
+                  {/* หัวข้อ: entry แรก = "Symbols", ถัดไป = "Compared with previous" */}
                   <div className="text-[9px] text-stone-400 font-black uppercase tracking-widest">
                     {isFirstEntry ? "Symbols" : "Compared with previous"}
                   </div>
 
-                  {/* Symbol pills */}
+                  {/* Symbol pills — สีตาม relation กับสูตรก่อนหน้า */}
                   <div className="flex flex-wrap gap-1.5">
                     {symbols.map((sym, i) => {
-                      const rel = relations[i];
+                      const rel   = relations[i];
                       const style = rel ? RELATION_STYLE[rel] : null;
 
-                      // entry แรก ใช้สีตาม topic เหมือนเดิม
+                      // entry แรก (rel = null) → ใช้สีธีมของ topic เหมือน idle
                       if (!style) {
                         return (
                           <span
@@ -241,6 +279,7 @@ function HistoryBar({ history = [], activePointer, onClear }) {
                         );
                       }
 
+                      // entry ถัดไป → สีตาม relation type
                       return (
                         <span
                           key={i}
@@ -252,7 +291,7 @@ function HistoryBar({ history = [], activePointer, onClear }) {
                     })}
                   </div>
 
-                  {/* Legend — แสดงเฉพาะ relation ที่มีจริง */}
+                  {/* Legend — แสดงเฉพาะ relation type ที่มีจริงใน item นี้ */}
                   {!isFirstEntry && presentRelations.length > 0 && (
                     <div className="flex flex-col gap-1 pt-1">
                       {presentRelations.map((rel) => {
@@ -273,7 +312,8 @@ function HistoryBar({ history = [], activePointer, onClear }) {
         );
       })()}
 
-      {/* Warning Status Bar */}
+      {/* ── Warning status bar ────────────────────────────────────────────── */}
+      {/* แถบสีด้านล่าง bar แสดง warning text เมื่อ active item มีปัญหา */}
       {warning && (
         <div
           className={`w-full text-[11px] font-bold tracking-wide px-4 py-1.5 flex justify-center text-white transition-colors duration-500 ${warning.color} ${flash ? "animate-pulse" : ""}`}

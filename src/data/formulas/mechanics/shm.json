@@ -4,6 +4,14 @@
   "description": "Basic SHM formulas for high school level: focus on position-based relationships and energy.",
   "variable_sub": [
     {
+  "key": "T_Mechanics",
+  "symbol": "T",
+  "name": "Period",
+  "unit": "s",
+  "min": 0.000001,
+  "description": "Time taken for one complete oscillation."
+},
+    {
       "key": "x_Mechanics",
       "symbol": "x",
       "name": "Displacement",
@@ -159,22 +167,19 @@
   "calculate": {
     "x_Mechanics": {
       "type": "expression",
-      "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics)"
+      "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics * 180 / 3.141592)"
     },
-
     "A_Mechanics": {
       "type": "expression",
-      "value": "x_Mechanics / cos(omega_Mechanics * t_Mechanics)"
+      "value": "x_Mechanics / cos(omega_Mechanics * t_Mechanics * 180 / 3.141592)"
     },
-
-    "t_Mechanics": {
-      "type": "expression",
-      "value": "acos(x_Mechanics / A_Mechanics) / omega_Mechanics"
-    },
-
     "omega_Mechanics": {
       "type": "expression",
-      "value": "acos(x_Mechanics / A_Mechanics) / t_Mechanics"
+      "value": "(acos(x_Mechanics / A_Mechanics) * 3.141592 / 180) / t_Mechanics"
+    },
+    "t_Mechanics": {
+      "type": "expression",
+      "value": "(acos(x_Mechanics / A_Mechanics) * 3.141592 / 180) / omega_Mechanics"
     }
   }
 }

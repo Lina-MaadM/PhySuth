@@ -86,6 +86,31 @@
         "mu_Mechanics": { "type": "expression", "value": "Ff_Mechanics / W_Mechanics" },
         "W_Mechanics": { "type": "expression", "value": "Ff_Mechanics / mu_Mechanics" }
       }
+    },
+      {
+      "id": "force-3",
+      "name": "Weight Equation",
+      "formula": "W = mg",
+      "variable": [
+        "W_Mechanics",
+        "m_Mechanics",
+        "g_Mechanics"
+      ],
+      "calculate": {
+        "W_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * g_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / g_Mechanics"
+        },
+        "g_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / m_Mechanics"
+        }
+      }
+      
     }
   ]
 }

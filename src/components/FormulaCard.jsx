@@ -3,16 +3,23 @@ import { InlineMath } from "react-katex";
 import { routeBuilder } from "../routes";
 
 function FormulaCard({ id, name, formula, flavour, subtopic }) {
+
+   // ─── Navigation ───
   const navigate = useNavigate();
 
   return (
+
+    // ─── Card Container ───
     <div
       onClick={() => id && navigate(routeBuilder.formula(id))}
       
+      // ─── Hover Interaction ───
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = flavour.deepCode;
         e.currentTarget.style.borderColor = flavour.deepCode;
       }}
+
+      // UI: คืนค่าสีเดิมเมื่อเลิก hover
       onMouseLeave={(e) => {
         e.currentTarget.style.backgroundColor = "";
         e.currentTarget.style.borderColor = "";
@@ -27,25 +34,36 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
         hover:-translate-y-1 hover:shadow-lg
       `}
     >
+      {/* ─── Card Layout ─── */}
       {/* Header */}
       <div className="flex justify-between items-start gap-2 mb-1">
+
+        {/* Subtopic Tag */}
         <div className={`
-          text-[8px] font-black uppercase tracking-wide px-2 py-[2px] rounded
+          text-[8px] font-black uppercase tracking-wide 
+          px-2 py-[2px] rounded
           truncate bg-white/50 ${flavour.deep}
-          group-hover:bg-white/20 group-hover:text-white transition-colors
+          group-hover:bg-white/20 
+          group-hover:text-white 
+          transition-colors
         `}>
           {subtopic}
         </div>
 
-        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 text-white text-[11px] font-semibold shrink-0">
+        <div className="
+        opacity-0 
+        group-hover:opacity-100 
+        transition-all duration-300 
+        text-white text-[11px] font-semibold shrink-0">
           &gt;
         </div>
       </div>
 
-      {/* Formula */}
+      {/* ─── Formula Display ─── */}
       <div className={`
         flex-1 flex items-center justify-center
-        ${flavour.deep} group-hover:text-white transition-colors
+        ${flavour.deep} 
+        group-hover:text-white transition-colors
       `}>
         <div className="text-lg font-bold text-center leading-tight">
           <InlineMath math={formula} />
@@ -53,8 +71,14 @@ function FormulaCard({ id, name, formula, flavour, subtopic }) {
       </div>
 
       {/* Footer */}
-      <div className="mt-1 pt-2 border-t border-stone-200/40 group-hover:border-white/20">
-        <h3 className="text-[11px] font-semibold text-stone-600 group-hover:text-white leading-snug line-clamp-2">
+      <div className="
+      mt-1 pt-2 border-t border-stone-200/40 
+      group-hover:border-white/20">
+        <h3 className="text-[11px] font-semibold 
+        text-stone-600 
+        group-hover:text-white 
+        leading-snug line-clamp-2">
+          {/* Note:line-clamp-2 จำกัดข้อความไม่เกิน 2 บรรทัด*/}
           {name}
         </h3>
       </div>

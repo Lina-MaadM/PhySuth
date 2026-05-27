@@ -65,7 +65,7 @@ function Navbar() {
           </NavLink>
         </div>
 
-        {/* Course code */}
+        {/* code */}
         <div className="flex-shrink-0 border-l border-stone-700 pl-6">
           <span className="text-[9px] text-orange-200/30 uppercase tracking-[0.3em] font-light">
             68-1_45_wlr-r1
@@ -77,3 +77,61 @@ function Navbar() {
 }
 
 export default Navbar;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{/* Brand
+<div className="flex items-center gap-3 shrink-0">
+
+  <img
+    src="/logo.png"
+    alt="PHYSUTH logo"
+    className="w-10 h-10 object-contain"
+  />
+
+  <div className="text-orange-100/90 font-black tracking-[0.1em] lg:tracking-[0.2em] text-xl lg:text-2xl">
+    PHYSUTH
+  </div>
+
+</div>
+*/}
