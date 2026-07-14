@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build && node scripts/spa-github-pages.mjs",
     "deploy": "gh-pages -d dist",
     "data:validate": "node scripts/validate-data.mjs"
   },

@@ -348,7 +348,8 @@ function AppContent() {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    // basename จาก Vite base (/PhySuth/) — ลิงก์ต้องอยู่ภายใต้ path นี้บน GitHub Pages
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AppContent />
     </BrowserRouter>
   );
