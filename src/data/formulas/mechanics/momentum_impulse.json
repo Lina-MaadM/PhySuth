@@ -2,81 +2,6 @@
   "topic": "Mechanics",
   "subtopic": "Momentum & Impulse",
   "description": "Momentum and impulse in one-dimensional motion, describing how motion changes when forces act over a time interval.",
-  "variable_sub": [
-    {
-      "key": "p_Mechanics",
-      "symbol": "p",
-      "name": "Momentum",
-      "unit": "kg·m/s",
-      "description": "The quantity of motion of an object related to its mass and velocity. It appears when describing moving objects and collisions."
-    },
-    {
-      "key": "p0_Mechanics",
-      "symbol": "p_0",
-      "name": "Initial Momentum",
-      "unit": "kg·m/s",
-      "description": "The momentum of an object before an interaction or applied force. It represents the motion at the beginning of the event."
-    },
-    {
-      "key": "deltap_Mechanics",
-      "symbol": "\\Delta p",
-      "name": "Change in Momentum",
-      "unit": "kg·m/s",
-      "description": "The change in an object's momentum during an interaction. It occurs when a force acts over time."
-    },
-    {
-      "key": "J_Mechanics",
-      "symbol": "J",
-      "name": "Impulse",
-      "unit": "N·s",
-      "description": "The effect of a force acting over a time interval on an object. It represents how motion changes during impacts or interactions."
-    },
-    {
-      "key": "m_Mechanics",
-      "symbol": "m",
-      "name": "Mass",
-      "unit": "kg",
-      "min": 0.000001,
-      "description": "A measure of the amount of matter in an object. It determines how strongly the object resists changes in motion."
-    },
-    {
-      "key": "u_Mechanics",
-      "symbol": "u",
-      "name": "Initial Velocity",
-      "unit": "m/s",
-      "description": "The velocity of the object before an interaction occurs. It describes the motion at the start of the event."
-    },
-    {
-      "key": "v_Mechanics",
-      "symbol": "v",
-      "name": "Final Velocity",
-      "unit": "m/s",
-      "description": "The velocity of the object after a force has acted. It shows the motion following the interaction."
-    },
-    {
-      "key": "t_Mechanics",
-      "symbol": "t",
-      "name": "Final Time",
-      "unit": "s",
-      "min": 0,
-      "description": "The time at which the force interaction ends. It marks the end of the interval during which the force acts."
-    },
-    {
-      "key": "t0_Mechanics",
-      "symbol": "t_0",
-      "name": "Initial Time",
-      "unit": "s",
-      "min": 0,
-      "description": "The time when the force begins acting on the object. It marks the start of the interaction interval."
-    },
-    {
-      "key": "Favg_Mechanics",
-      "symbol": "F_{avg}",
-      "name": "Average Force",
-      "unit": "N",
-      "description": "The average force applied to an object during a time interval. It represents the overall effect of a varying force."
-    }
-  ],
   "formula_sub": [
     {
       "id": "mom-1",
@@ -88,9 +13,18 @@
         "v_Mechanics"
       ],
       "calculate": {
-        "p_Mechanics": { "type": "expression", "value": "m_Mechanics * v_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "p_Mechanics / v_Mechanics" },
-        "v_Mechanics": { "type": "expression", "value": "p_Mechanics / m_Mechanics" }
+        "p_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * v_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "p_Mechanics / v_Mechanics"
+        },
+        "v_Mechanics": {
+          "type": "expression",
+          "value": "p_Mechanics / m_Mechanics"
+        }
       }
     },
     {
@@ -104,10 +38,22 @@
         "u_Mechanics"
       ],
       "calculate": {
-        "deltap_Mechanics": { "type": "expression", "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
-        "m_Mechanics": { "type": "expression", "value": "deltap_Mechanics / (v_Mechanics - u_Mechanics)" },
-        "v_Mechanics": { "type": "expression", "value": "(deltap_Mechanics / m_Mechanics) + u_Mechanics" },
-        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - (deltap_Mechanics / m_Mechanics)" }
+        "deltap_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * (v_Mechanics - u_Mechanics)"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "deltap_Mechanics / (v_Mechanics - u_Mechanics)"
+        },
+        "v_Mechanics": {
+          "type": "expression",
+          "value": "(deltap_Mechanics / m_Mechanics) + u_Mechanics"
+        },
+        "u_Mechanics": {
+          "type": "expression",
+          "value": "v_Mechanics - (deltap_Mechanics / m_Mechanics)"
+        }
       }
     },
     {
@@ -121,10 +67,22 @@
         "u_Mechanics"
       ],
       "calculate": {
-        "J_Mechanics": { "type": "expression", "value": "m_Mechanics * (v_Mechanics - u_Mechanics)" },
-        "m_Mechanics": { "type": "expression", "value": "J_Mechanics / (v_Mechanics - u_Mechanics)" },
-        "v_Mechanics": { "type": "expression", "value": "(J_Mechanics / m_Mechanics) + u_Mechanics" },
-        "u_Mechanics": { "type": "expression", "value": "v_Mechanics - (J_Mechanics / m_Mechanics)" }
+        "J_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * (v_Mechanics - u_Mechanics)"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "J_Mechanics / (v_Mechanics - u_Mechanics)"
+        },
+        "v_Mechanics": {
+          "type": "expression",
+          "value": "(J_Mechanics / m_Mechanics) + u_Mechanics"
+        },
+        "u_Mechanics": {
+          "type": "expression",
+          "value": "v_Mechanics - (J_Mechanics / m_Mechanics)"
+        }
       }
     },
     {
@@ -138,10 +96,22 @@
         "t0_Mechanics"
       ],
       "calculate": {
-        "Favg_Mechanics": { "type": "expression", "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)" },
-        "J_Mechanics": { "type": "expression", "value": "Favg_Mechanics * (t_Mechanics - t0_Mechanics)" },
-        "t_Mechanics": { "type": "expression", "value": "(J_Mechanics / Favg_Mechanics) + t0_Mechanics" },
-        "t0_Mechanics": { "type": "expression", "value": "t_Mechanics - (J_Mechanics / Favg_Mechanics)" }
+        "Favg_Mechanics": {
+          "type": "expression",
+          "value": "J_Mechanics / (t_Mechanics - t0_Mechanics)"
+        },
+        "J_Mechanics": {
+          "type": "expression",
+          "value": "Favg_Mechanics * (t_Mechanics - t0_Mechanics)"
+        },
+        "t_Mechanics": {
+          "type": "expression",
+          "value": "(J_Mechanics / Favg_Mechanics) + t0_Mechanics"
+        },
+        "t0_Mechanics": {
+          "type": "expression",
+          "value": "t_Mechanics - (J_Mechanics / Favg_Mechanics)"
+        }
       }
     }
   ]

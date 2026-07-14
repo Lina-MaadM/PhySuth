@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
+import { isValidNumberInput, parseNumberInput, formatNumberOutput } from "../utils/numberFormat";
+import { evaluateExpression } from "../utils/calcEngine";
 
 // ค่า fallback สำหรับ min/max ของตัวแปรที่ไม่ได้กำหนดขอบเขตไว้
 const GLOBAL_MIN = -9999999;
@@ -119,10 +121,15 @@ export default function CalculatePanel({
     return map;
   }, [variables]);
 
-  // ตัวแปรที่ผู้ใช้เลือกได้ = ตัดตัวแปรค่าคงที่ (isFixed) ออก
+  // ตัวแปรที่ผู้ใช้เลือกได้ = ไม่ fixed และมี entry ใน calculate
   const editableKeys = useMemo(
-    () => variableKeys.filter((key) => variableMap[key]?.isFixed !== true),
-    [variableKeys, variableMap]
+    () =>
+      variableKeys.filter(
+        (key) =>
+          variableMap[key]?.isFixed !== true &&
+          formula?.calculate?.[key] != null
+      ),
+    [variableKeys, variableMap, formula]
   );
 
   const [target, setTarget] = useState("");
@@ -186,9 +193,6 @@ export default function CalculatePanel({
     [variableKeys, target, variableMap]
   );
 
-  // ─── Validation: รับเฉพาะตัวเลข (รวม negative และ decimal) ───────────────
-  const isValidNumberInput = (val) => /^-?\d*\.?\d*$/.test(val);
-
   // ─── Handler: ผู้ใช้พิมพ์ค่าใน input ──────────────────────────────────────
   const handleChange = (key, value) => {
     if (!isValidNumberInput(value)) return;
@@ -233,14 +237,14 @@ export default function CalculatePanel({
         continue;
       }
 
-      const val = Number(raw);
-
-      // กรณี: ไม่ใช่ตัวเลขที่สมบูรณ์ (เช่น "-" หรือ ".")
-      if (!isFinite(val)) {
-        newFieldErrors[key] = "Invalid number";
+      const parsed = parseNumberInput(raw);
+      if (!parsed.ok) {
+        newFieldErrors[key] = parsed.reason;
         hasFieldError = true;
         continue;
       }
+
+      const val = parsed.value;
 
       // กรณี: ค่าอยู่นอก range ที่กำหนดใน JSON
       const min = v?.min ?? GLOBAL_MIN;
@@ -265,43 +269,21 @@ export default function CalculatePanel({
 
     // ── คำนวณ expression ──
     try {
-      let expression = calculation.value.includes("=")
-        ? calculation.value.split("=")[1].trim()
-        : calculation.value;
-
-      // แทนค่า input variables (sort ยาวก่อนเพื่อป้องกัน "v" แทนใน "v0")
-      Object.keys(values).sort((a, b) => b.length - a.length).forEach((key) => {
-        expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), values[key]);
-      });
-
-      // แทนค่า fixed variables (ค่าคงที่ฟิสิกส์ เช่น g, c)
+      const scope = { ...values };
       variableKeys
         .filter((key) => variableMap[key]?.isFixed)
-        .sort((a, b) => b.length - a.length)
         .forEach((key) => {
-          expression = expression.replace(new RegExp(`\\b${key}\\b`, "g"), variableMap[key].value);
+          scope[key] = variableMap[key].value;
         });
 
-      // ประเมิน expression ด้วย Function() พร้อม inject Math functions
-      // ⚠️ expression มาจาก data ที่ developer เขียนเอง ไม่ใช่ user input
-      let calculated;
-      try {
-        calculated = Function(
-          "sqrt","pow","sin","cos","tan","asin","acos","atan","PI",
-          `return ${expression}`
-        )(Math.sqrt,Math.pow,Math.sin,Math.cos,Math.tan,Math.asin,Math.acos,Math.atan,Math.PI);
-      } catch {
-        setOutputError("Calculation failed");
+      const result = evaluateExpression(calculation.value, scope);
+      if (!result.ok) {
+        setOutputError(result.error);
         setResult(null);
         return;
       }
 
-      // ตรวจผลลัพธ์: ต้องเป็นจำนวนจริง
-      if (!isFinite(calculated)) {
-        setOutputError("Result is undefined (e.g. division by zero)");
-        setResult(null);
-        return;
-      }
+      const calculated = result.value;
 
       // ตรวจ range ของ output
       const minT = variableMap[target]?.min ?? GLOBAL_MIN;
@@ -312,8 +294,7 @@ export default function CalculatePanel({
         return;
       }
 
-      // toPrecision(6) → ไม่เกิน 6 หลักนัยสำคัญ, parseFloat ตัด trailing zero
-      const formatted = parseFloat(calculated.toPrecision(6));
+      const formatted = formatNumberOutput(calculated);
       setResult(formatted);
       setOutputError(null);
 
@@ -330,7 +311,7 @@ export default function CalculatePanel({
   };
 
   const currentVariable = variableMap[target];
-  if (!formula) return null;
+  if (!formula || !formula.calculate) return null;
 
   const dropdownOptions = editableKeys.map((key) => ({
     value:  key,

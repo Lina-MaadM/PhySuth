@@ -1,0 +1,50 @@
+{
+  "topic": "Thermodynamics",
+  "variables": [
+    {
+      "key": "c_Thermodynamics",
+      "symbol": "c",
+      "name": "Specific heat capacity",
+      "unit": "J/(kg·K)",
+      "description": "Energy required to raise the temperature of 1 kg of a substance by 1 degree.",
+      "min": 0.000001
+    },
+    {
+      "key": "L_Thermodynamics",
+      "symbol": "L",
+      "name": "Latent heat",
+      "unit": "J/kg",
+      "description": "Energy required for a phase change without temperature change.",
+      "min": 0.000001
+    },
+    {
+      "key": "m_Thermodynamics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "description": "Mass of the substance.",
+      "min": 0.000001
+    },
+    {
+      "key": "Q_Thermodynamics",
+      "symbol": "Q",
+      "name": "Heat energy",
+      "unit": "J",
+      "description": "Thermal energy transferred to or from a substance."
+    },
+    {
+      "key": "Tfinal_Thermodynamics",
+      "symbol": "T",
+      "name": "Final temperature",
+      "unit": "°C",
+      "description": "Temperature of the substance after heat transfer."
+    },
+    {
+      "key": "Tinitial_Thermodynamics",
+      "symbol": "T_0",
+      "name": "Initial temperature",
+      "unit": "°C",
+      "description": "Temperature of the substance before heat transfer."
+    }
+  ]
+}

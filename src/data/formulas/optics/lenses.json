@@ -2,58 +2,53 @@
   "topic": "Optics",
   "subtopic": "Lenses and Mirrors",
   "description": "The study of image formation using the thin lens and mirror equations.",
-  "variable_sub": [
-    {
-      "key": "f_Optics",
-      "symbol": "f",
-      "name": "Focal length",
-      "unit": "cm",
-      "description": "Distance from the center of the lens or mirror to the focal point (positive for converging systems such as convex lenses or concave mirrors)."
-    },
-    {
-      "key": "s_Optics",
-      "symbol": "s",
-      "name": "Object distance",
-      "unit": "cm",
-      "min": 0.000001,
-      "description": "Distance from the object to the center of the lens or mirror."
-    },
-    {
-      "key": "sprime_Optics",
-      "symbol": "s'",
-      "name": "Image distance",
-      "unit": "cm",
-      "description": "Distance from the image to the center of the lens or mirror (positive for real images)."
-    },
-    {
-      "key": "m_Optics",
-      "symbol": "m",
-      "name": "Magnification",
-      "unit": "",
-      "description": "Ratio of image height to object height."
-    }
-  ],
   "formula_sub": [
     {
       "id": "opt-1",
       "name": "Lens/Mirror equation",
       "formula": "1/f = 1/s + 1/s'",
-      "variable": ["f_Optics", "s_Optics", "sprime_Optics"],
+      "variable": [
+        "f_Optics",
+        "s_Optics",
+        "sprime_Optics"
+      ],
       "calculate": {
-        "f_Optics": { "type": "expression", "value": "1 / ((1 / s_Optics) + (1 / sprime_Optics))" },
-        "s_Optics": { "type": "expression", "value": "1 / ((1 / f_Optics) - (1 / sprime_Optics))" },
-        "sprime_Optics": { "type": "expression", "value": "1 / ((1 / f_Optics) - (1 / s_Optics))" }
+        "f_Optics": {
+          "type": "expression",
+          "value": "1 / ((1 / s_Optics) + (1 / sprime_Optics))"
+        },
+        "s_Optics": {
+          "type": "expression",
+          "value": "1 / ((1 / f_Optics) - (1 / sprime_Optics))"
+        },
+        "sprime_Optics": {
+          "type": "expression",
+          "value": "1 / ((1 / f_Optics) - (1 / s_Optics))"
+        }
       }
     },
     {
       "id": "opt-2",
       "name": "Magnification",
       "formula": "m = -s' / s",
-      "variable": ["m_Optics", "sprime_Optics", "s_Optics"],
+      "variable": [
+        "m_Optics",
+        "sprime_Optics",
+        "s_Optics"
+      ],
       "calculate": {
-        "m_Optics": { "type": "expression", "value": "-sprime_Optics / s_Optics" },
-        "sprime_Optics": { "type": "expression", "value": "-(m_Optics * s_Optics)" },
-        "s_Optics": { "type": "expression", "value": "-sprime_Optics / m_Optics" }
+        "m_Optics": {
+          "type": "expression",
+          "value": "-sprime_Optics / s_Optics"
+        },
+        "sprime_Optics": {
+          "type": "expression",
+          "value": "-(m_Optics * s_Optics)"
+        },
+        "s_Optics": {
+          "type": "expression",
+          "value": "-sprime_Optics / m_Optics"
+        }
       }
     }
   ]

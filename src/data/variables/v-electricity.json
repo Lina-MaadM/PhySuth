@@ -1,0 +1,47 @@
+{
+  "topic": "Electricity",
+  "variables": [
+    {
+      "key": "E_Electricity",
+      "symbol": "E",
+      "name": "Electrical Energy",
+      "unit": "J",
+      "description": "Energy consumed in a circuit"
+    },
+    {
+      "key": "I_Electricity",
+      "symbol": "I",
+      "name": "Current",
+      "unit": "A",
+      "description": "Rate of flow of electric charge"
+    },
+    {
+      "key": "P_Electricity",
+      "symbol": "P",
+      "name": "Electric Power",
+      "unit": "W",
+      "description": "Rate of electrical energy transfer"
+    },
+    {
+      "key": "R_Electricity",
+      "symbol": "R",
+      "name": "Resistance",
+      "unit": "Ω",
+      "description": "Opposition to current flow"
+    },
+    {
+      "key": "t_Electricity",
+      "symbol": "t",
+      "name": "Time",
+      "unit": "s",
+      "description": "Time duration of energy usage"
+    },
+    {
+      "key": "V_Electricity",
+      "symbol": "V",
+      "name": "Voltage",
+      "unit": "V",
+      "description": "Electric potential difference"
+    }
+  ]
+}

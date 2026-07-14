@@ -38,77 +38,83 @@ function flColour(topic) {
   };
 }
 
-// ─── แปลง LaTeX string → plain text สำหรับ label บน Cytoscape canvas ─────────
-// Cytoscape วาด label ด้วย Canvas API — ไม่รองรับ HTML/KaTeX
-// ฟังก์ชันนี้แปลง \frac, ^{}, _{}, \alpha ฯลฯ → unicode ที่อ่านได้
-export function latexToPlain(str) {
-  if (!str) return "";
-  let s = str;
-  ["sin","cos","tan"].forEach((fn) => { s = s.replaceAll("\\"+fn, fn); });
-  const greek = {
-    "\\omega":"ω","\\Omega":"Ω","\\alpha":"α","\\beta":"β","\\gamma":"γ","\\Gamma":"Γ",
-    "\\delta":"δ","\\Delta":"Δ","\\theta":"θ","\\Theta":"Θ","\\lambda":"λ","\\Lambda":"Λ",
-    "\\mu":"μ","\\nu":"ν","\\pi":"π","\\Pi":"Π","\\rho":"ρ","\\sigma":"σ","\\tau":"τ",
-    "\\phi":"φ","\\Phi":"Φ","\\psi":"ψ","\\chi":"χ","\\epsilon":"ε","\\eta":"η","\\kappa":"κ",
-  };
-  Object.entries(greek).forEach(([k,v]) => { s = s.replace(new RegExp(k.replace("\\","\\\\"),"g"), v); });
-  s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)");
-  s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, "($1)/($2)");
-  const sup = {"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","+":"⁺","-":"⁻","n":"ⁿ"};
-  s = s.replace(/\^\{([^}]+)\}/g,(_,i)=>[...i].map(c=>sup[c]||c).join(""));
-  s = s.replace(/\^([0-9])/g,(_,c)=>sup[c]||("^"+c));
-  const sub = {"0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉","a":"ₐ","e":"ₑ","h":"ₕ","i":"ᵢ","j":"ⱼ","k":"ₖ","l":"ₗ","m":"ₘ","n":"ₙ","o":"ₒ","p":"ₚ","r":"ᵣ","s":"ₛ","t":"ₜ","u":"ᵤ","v":"ᵥ","x":"ₓ","g":"₉","d":"ₔ"};
-  const toSub = t => [...t].map(c=>sub[c]||c).join("");
-  s = s.replace(/_\{([^}]+)\}/g,(_,i)=>toSub(i));
-  s = s.replace(/_([a-zA-Z0-9]+)/g,(_,i)=>toSub(i));
-  s = s.replace(/\\sqrt\{([^}]*)\}/g,"√($1)");
-  const ops = {"\\cdot":"·","\\times":"×","\\pm":"±","\\infty":"∞","\\approx":"≈","\\neq":"≠","\\leq":"≤","\\geq":"≥"};
-  Object.entries(ops).forEach(([k,v]) => { s = s.replaceAll(k,v); });
-  s = s.replace(/\\text\{([^}]*)\}/g,"$1").replace(/\\[a-zA-Z]+/g,"").replace(/[{}]/g,"").replace(/\s+/g," ").trim();
-  return s;
-}
-
-// ─── render LaTeX เป็น HTML string (ใช้ใน DetailPanel เท่านั้น) ───────────────
-// ต่างจาก latexToPlain — อันนี้ใช้ KaTeX จริงๆ เพราะ DetailPanel เป็น HTML ธรรมดา
+// ─── KaTeX helpers ────────────────────────────────────────────────────────────
 function renderKatex(latex) {
-  try { return katex.renderToString(latex, { throwOnError: false, displayMode: false }); }
-  catch { return latexToPlain(latex); }
+  try {
+    return katex.renderToString(latex, { throwOnError: false, displayMode: false });
+  } catch {
+    return latex || "";
+  }
 }
 
-// ─── วัดความกว้างข้อความด้วย Canvas (สำหรับคำนวณ node width) ─────────────────
-// ใช้ font เดียวกับที่ Cytoscape วาด label จริง → node จะพอดีกับข้อความ
-const MEASURE_FONT = "500 15px monospace";
-let _mCtx = null;
-function measureText(text) {
-  if (!_mCtx) { const c = document.createElement("canvas"); _mCtx = c.getContext("2d"); }
-  _mCtx.font = MEASURE_FONT;
-  return _mCtx.measureText(text).width;
+let _measureEl = null;
+function measureKatexWidth(latex) {
+  if (typeof document === "undefined") return 90;
+  if (!_measureEl) {
+    _measureEl = document.createElement("div");
+    _measureEl.style.cssText =
+      "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;pointer-events:none;";
+    document.body.appendChild(_measureEl);
+  }
+  _measureEl.innerHTML = renderKatex(latex);
+  return _measureEl.offsetWidth || 90;
+}
+
+function bindCyTransform(cy, el) {
+  if (!cy || !el) return () => {};
+  const update = () => {
+    if (!el) return;
+    const { x, y } = cy.pan();
+    const z = cy.zoom();
+    el.style.transform = `translate(${x}px,${y}px) scale(${z})`;
+  };
+  cy.on("pan zoom render", update);
+  update();
+  return () => cy.off("pan zoom render", update);
 }
 
 // ─── สร้าง list สูตรทั้งหมดจาก formulaIndex ──────────────────────────────────
 function buildFormulaList() {
   return Object.values(formulaIndex).map((f) => ({
     id:       f.id,
-    label:    latexToPlain(f.formula),   // plain text สำหรับ Cytoscape label
-    labelRaw: f.formula,                 // LaTeX ดิบ สำหรับ KaTeX ใน DetailPanel
+    labelRaw: f.formula,
     name:     f.name,
     topic:    f.systemTopic,
-    vars:     (f.variable||[]).map(k => latexToPlain(variableIndex[k]?.symbol || k.split("_")[0])),
-    varRaw:   (f.variable||[]).map(k => variableIndex[k]?.symbol || k.split("_")[0]),
+    varKeys:  f.variable || [],
+    varRaw:   (f.variable || []).map((k) => variableIndex[k]?.symbol || k.split("_")[0]),
   }));
 }
 
-// ─── สร้าง edge ระหว่างสูตรที่มีตัวแปรร่วมกัน ────────────────────────────────
-// วิ่ง O(n²) 
-// สร้างความเชื่อมโยงสูตร-สูตร
+// เชื่อมสูตรที่มีตัวแปรร่วมกัน:
+// - same topic + key เดียวกัน (เช่น v_Mechanics) → เส้นทึบ
+// - คนละ topic + symbol เดียวกัน (เช่น a_Mechanics ↔ a_Optics) → เส้นประ (cross-topic)
+function varSymbol(key) {
+  return variableIndex[key]?.symbol ?? key.split("_")[0];
+}
+
 function buildEdges(formulas) {
   const edges = [];
-  for (let i = 0; i < formulas.length; i++)
-    for (let j = i+1; j < formulas.length; j++) {
+  for (let i = 0; i < formulas.length; i++) {
+    for (let j = i + 1; j < formulas.length; j++) {
       const a = formulas[i], b = formulas[j];
-      const shared = a.vars.filter(v => b.vars.includes(v));
-      if (shared.length) edges.push({ a: a.id, b: b.id, shared, sameTopic: a.topic === b.topic });
+      const shared = [];
+      let hasExactKey = false;
+
+      for (const ka of a.varKeys) {
+        for (const kb of b.varKeys) {
+          const sym = varSymbol(ka);
+          if (sym !== varSymbol(kb)) continue;
+          if (!shared.includes(sym)) shared.push(sym);
+          if (ka === kb) hasExactKey = true;
+        }
+      }
+
+      if (!shared.length) continue;
+
+      const sameTopic = a.topic === b.topic && hasExactKey;
+      edges.push({ a: a.id, b: b.id, shared, sameTopic });
     }
+  }
   return edges;
 }
 
@@ -150,7 +156,7 @@ function computeLayout(formulas, W) {
       rowSlice.forEach((f, col) => {
         const xStart = (W - rowSlice.length * cellW) / 2;
         positions[f.id] = { x: xStart + col * cellW + cellW / 2, y: rowY };
-        nodeSizes[f.id] = { w: Math.max(measureText(f.label) + NODE_PAD * 2, 90), h: NODE_H };
+        nodeSizes[f.id] = { w: Math.max(measureKatexWidth(f.labelRaw) + NODE_PAD * 2, 90), h: NODE_H };
       });
 
       idx += rowSlice.length;
@@ -180,7 +186,6 @@ function buildCyStyle() {
         "active-bg-opacity":          0,
         "outside-texture-bg-color":   "transparent",
         "outside-texture-bg-opacity": 0,
-        "bg-color":                   "transparent",
       },
     },
 
@@ -190,22 +195,15 @@ function buildCyStyle() {
       selector: "node",
       style: {
         "shape":        "round-rectangle",
-        "width":        "data(w)",    // อ่านจาก element data ที่ส่งตอน init
+        "width":        "data(w)",
         "height":       "data(h)",
-        "label":        "data(label)",
-        "font-family":  "monospace",
-        "font-size":    17,
-        "font-weight":  500,
-        "text-valign":  "center",
-        "text-halign":  "center",
-        "text-wrap":    "none",       // ไม่ตัดบรรทัด — ถ้าอยากตัดให้เป็น "wrap"
-        "border-width": 1.5,
+        "label":        "",
+        "text-opacity": 0,
+        "border-width": 2,
         "outline-width":   6,
         "outline-color":   "transparent",
         "outline-opacity": 0,
-        "shadow-blur":  0,
-        // transition: animate เฉพาะ property เหล่านี้เมื่อ state เปลี่ยน
-        "transition-property": "background-color, border-color, border-width, color, shadow-blur",
+        "transition-property": "background-color, border-color, border-width, color",
         "transition-duration": "150ms",
       },
     },
@@ -270,11 +268,12 @@ function buildCyStyle() {
   TOPIC_ORDER.forEach(tk => {
     const c = flColour(tk);
 
-    // idle — พื้นสี light ของ topic นั้น
+    // idle — พื้นสี light + กรอบเข้ม (เหมือน connected state)
     base.push({ selector: `node[topic="${tk}"]`, style: {
-      "background-color": c.bg,      // lightCode (เช่น rose-100)
-      "border-color":     c.border,  // borderCode (เช่น rose-200)
-      "color":            c.text,    // deepCode (เช่น rose-700)
+      "background-color": c.bg,
+      "border-color":     c.text,
+      "border-width":     2,
+      "color":            c.text,
     }});
 
     // hovered หรือ selected — พื้น deepCode + ข้อความขาว (เหมือน FormulaCard hover)
@@ -304,6 +303,66 @@ function buildCyStyle() {
   return base;
 }
 
+// ─── FormulaNodeOverlay ───────────────────────────────────────────────────────
+// KaTeX labels synced with Cytoscape node positions (above canvas, pointer-events: none)
+function FormulaNodeOverlay({
+  formulas,
+  positions,
+  nodeSizes,
+  selectedId,
+  hoveredId,
+  fadedIds,
+  cyRef,
+  containerW,
+  totalH,
+}) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const cy = cyRef.current;
+    if (!cy || !ref.current) return;
+    return bindCyTransform(cy, ref.current);
+  }, [cyRef, containerW, totalH, formulas.length]);
+
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 4 }}>
+      <div ref={ref} style={{ position: "absolute", top: 0, left: 0, transformOrigin: "0 0", width: containerW, height: totalH }}>
+        {formulas.map((f) => {
+          const pos = positions[f.id];
+          const size = nodeSizes[f.id];
+          if (!pos || !size) return null;
+
+          const c = flColour(f.topic);
+          const isActive = f.id === selectedId || f.id === hoveredId;
+          const isFaded = fadedIds.has(f.id);
+
+          return (
+            <div
+              key={f.id}
+              className="formula-node-katex"
+              style={{
+                position: "absolute",
+                left: pos.x - size.w / 2,
+                top: pos.y - size.h / 2,
+                width: size.w,
+                height: size.h,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                opacity: isFaded ? 0.15 : 1,
+                transition: "opacity 150ms",
+                color: isActive ? "#FDF6EE" : c.text,
+                fontWeight: isActive ? 700 : 500,
+              }}
+              dangerouslySetInnerHTML={{ __html: renderKatex(f.labelRaw) }}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── SharedVarOverlay ─────────────────────────────────────────────────────────
 // HTML div ลอยอยู่เหนือ BandOverlay แต่ต่ำกว่า Cytoscape canvas
 // แสดงตัวแปรที่ใช้ร่วมกันใต้ node ที่ connected กับ node ที่เลือก
@@ -314,25 +373,15 @@ function SharedVarOverlay({ sharedMap, selectedId, cyRef, containerW, totalH }) 
   useEffect(() => {
     const cy = cyRef.current;
     if (!cy || !ref.current) return;
-    // ดัก event pan/zoom/render ของ Cytoscape → sync transform ของ div
-    const update = () => {
-      if (!ref.current) return;
-      const { x, y } = cy.pan();
-      const z = cy.zoom();
-      ref.current.style.transform = `translate(${x}px,${y}px) scale(${z})`;
-    };
-    cy.on("pan zoom render", update);
-    update();
-    return () => cy.off("pan zoom render", update);
+    return bindCyTransform(cy, ref.current);
   });
 
   if (!selectedId || !sharedMap || Object.keys(sharedMap).length === 0) return null;
 
   return (
-    <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none", zIndex:2 }}>
+    <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none", zIndex:5 }}>
       <div ref={ref} style={{ position:"absolute", top:0, left:0, transformOrigin:"0 0", width: containerW, height: totalH }}>
         {Object.entries(sharedMap).map(([nodeId, { pos, size, shared, sameTopic }]) => {
-          // วางไว้ใต้ node ใน Cytoscape coordinate space
           const x = pos.x - size.w / 2;
           const y = pos.y + size.h / 2 + 6;
           return (
@@ -342,15 +391,23 @@ function SharedVarOverlay({ sharedMap, selectedId, cyRef, containerW, totalH }) 
             }}>
               <span style={{
                 position: "relative", zIndex: 10,
-                fontSize: 13, fontFamily: "monospace", fontWeight: 700,
+                fontSize: 13, fontWeight: 700,
                 padding: "4px 12px", borderRadius: 10,
                 border: `1.5px solid ${sameTopic ? "#6B3E26" : "#C07030"}`,
                 color:      sameTopic ? "#3A1F0D" : "#7A3A0A",
                 background: sameTopic ? "#F2E6D4"  : "#FFF3E0",
                 boxShadow: "0 0 0 4px #FFFAF5",
                 whiteSpace: "nowrap",
+                display: "inline-flex", alignItems: "center", gap: 4,
               }}>
-                {shared.join(", ")}
+                {shared.map((sym, i) => (
+                  <span
+                    key={i}
+                    className="formula-node-katex"
+                    style={{ fontSize: 13 }}
+                    dangerouslySetInnerHTML={{ __html: renderKatex(sym) }}
+                  />
+                ))}
               </span>
             </div>
           );
@@ -361,46 +418,30 @@ function SharedVarOverlay({ sharedMap, selectedId, cyRef, containerW, totalH }) 
 }
 
 // ─── BandOverlay ──────────────────────────────────────────────────────────────
-// HTML div วาดพื้นหลังสีของแต่ละ topic band
-// อยู่ที่ zIndex:1 (ใต้ Cytoscape canvas ที่ zIndex:3)
-// ต้อง sync transform กับ cy.pan()/cy.zoom() เหมือน SharedVarOverlay
+// พื้นหลังขาว + เส้นแบ่ง topic + ชื่อหัวข้อ
 function BandOverlay({ bandMeta, hiddenTopics, cyRef, totalH, containerW }) {
   const ref = useRef(null);
 
   useEffect(() => {
     const cy = cyRef.current;
     if (!cy || !ref.current) return;
-    const update = () => {
-      if (!ref.current) return;
-      const { x, y } = cy.pan();
-      const z = cy.zoom();
-      ref.current.style.transform = `translate(${x}px,${y}px) scale(${z})`;
-    };
-    cy.on("pan zoom render", update);
-    update();
-    return () => cy.off("pan zoom render", update);
+    return bindCyTransform(cy, ref.current);
   });
 
   return (
-    <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none", zIndex:1 }}>
+    <div style={{ position:"absolute", inset:0, overflow:"hidden", pointerEvents:"none", zIndex:1, background:"#FFFFFF" }}>
       <div ref={ref} style={{ position:"absolute", top:0, left:0, transformOrigin:"0 0", width: containerW, height: totalH }}>
         {bandMeta.map(({ topic, yStart, height }, i) => {
           if (hiddenTopics.has(topic) || height === 0) return null;
           const c = flColour(topic);
           return (
             <div key={topic} style={{ position:"absolute", top: yStart, left:0, width:"100%", height }}>
-              {/* พื้นสี light ของ topic */}
-              <div style={{ position:"absolute", inset:0, background: c.bg }} />
-              {/* เส้นแบ่ง topic — ประด้วยสีของ topic */}
               {i > 0 && (
                 <div style={{
-                  position: "absolute", top: 0, left: 0, right: 0, height: 2, zIndex: 2,
-                  background: `repeating-linear-gradient(90deg,
-                    ${c.border} 0px, ${c.border} 8px,
-                    transparent 8px, transparent 18px)`,
+                  position: "absolute", top: 0, left: 0, right: 0, height: 1, zIndex: 2,
+                  background: "#E5DDD4",
                 }} />
               )}
-              {/* ชื่อ topic มุมบนซ้าย */}
               <div style={{
                 position:"absolute", top:14, left:16,
                 fontFamily:"sans-serif", fontWeight:700, fontSize:13,
@@ -520,16 +561,19 @@ function DetailPanel({ selectedId, formulas, edges, hiddenTopics }) {
                       </span>
                       {/* shared variable badges — สี่เหลี่ยมมน */}
                       <div style={{ display:"flex", gap:5, flexShrink:0 }}>
-                        {edge.shared.map(sym => (
-                          <span key={sym} style={{
-                            fontSize:14, padding:"3px 10px", borderRadius:6,
-                            fontFamily:"monospace", fontWeight:700,
-                            border:`1.5px solid ${edge.sameTopic ? "#6B3E26" : "#C07030"}`,
-                            color:      edge.sameTopic ? "#3A1F0D" : "#7A3A0A",
-                            background: edge.sameTopic ? "#F2E6D4"  : "#FFF3E0",
-                          }}>
-                            {sym}
-                          </span>
+                        {edge.shared.map((sym) => (
+                          <span
+                            key={sym}
+                            className="formula-node-katex"
+                            style={{
+                              fontSize: 14, padding: "3px 10px", borderRadius: 6,
+                              fontWeight: 700,
+                              border: `1.5px solid ${edge.sameTopic ? "#6B3E26" : "#C07030"}`,
+                              color: edge.sameTopic ? "#3A1F0D" : "#7A3A0A",
+                              background: edge.sameTopic ? "#F2E6D4" : "#FFF3E0",
+                            }}
+                            dangerouslySetInnerHTML={{ __html: renderKatex(sym) }}
+                          />
                         ))}
                       </div>
                       <button
@@ -587,9 +631,13 @@ export default function FormulaMap() {
   const wrapRef     = useRef(null);  // ref ของ card wrapper (ใช้ใน QuickNav scroll)
 
   const [selectedId, setSelectedId] = useState(null);
+  const [hoveredId,  setHoveredId]  = useState(null);
   const [graphH,     setGraphH]     = useState(600);
-  const [layout, setLayout] = useState({ bandMeta:[], totalH:600, containerW:800 });
-  const [sharedMap, setSharedMap] = useState({});  // ข้อมูล shared vars สำหรับ overlay
+  const [layout, setLayout] = useState({
+    bandMeta: [], totalH: 600, containerW: 800, positions: {}, nodeSizes: {},
+  });
+  const [sharedMap, setSharedMap] = useState({});
+  const [fadedIds,  setFadedIds]  = useState(new Set());
 
   const formulas = useMemo(() => buildFormulaList(), []);
   const edges    = useMemo(() => buildEdges(formulas), [formulas]);
@@ -604,7 +652,7 @@ export default function FormulaMap() {
     const containerW = container.clientWidth || 800;
     const { positions, nodeSizes, bandMeta, totalH } = computeLayout(formulas, containerW);
 
-    setLayout({ bandMeta, totalH, containerW });
+    setLayout({ bandMeta, totalH, containerW, positions, nodeSizes });
     setGraphH(Math.max(totalH, 400));
 
     // ── Elements = nodes + edges ──────────────────────────────────────────────
@@ -614,8 +662,7 @@ export default function FormulaMap() {
       ...formulas.map(f => ({
         data: {
           id:    f.id,
-          label: f.label,   // plain text ที่ Cytoscape วาดบน canvas
-          topic: f.topic,   // ใช้ใน selector เช่น node[topic="Mechanics"]
+          topic: f.topic,
           w:     nodeSizes[f.id]?.w ?? 120,
           h:     nodeSizes[f.id]?.h ?? NODE_H,
         },
@@ -692,18 +739,32 @@ export default function FormulaMap() {
     });
 
     // hover effect
-    cy.on("mouseover", "node", evt => { evt.target.addClass("hovered");    container.style.cursor = "pointer"; });
-    cy.on("mouseout",  "node", evt => { evt.target.removeClass("hovered"); container.style.cursor = "default"; });
+    cy.on("mouseover", "node", evt => {
+      evt.target.addClass("hovered");
+      setHoveredId(evt.target.id());
+      container.style.cursor = "pointer";
+    });
+    cy.on("mouseout", "node", evt => {
+      evt.target.removeClass("hovered");
+      setHoveredId(null);
+      container.style.cursor = "default";
+    });
 
     cyRef.current = cy;
 
     // ── ResizeObserver: ปรับ layout เมื่อ container ขนาดเปลี่ยน ──────────────
     const ro = new ResizeObserver(() => {
       const newW = container.clientWidth;
-      const { bandMeta: nb, totalH: nh, containerW: nc } = computeLayout(formulas, newW);
-      setLayout({ bandMeta: nb, totalH: nh, containerW: nc });
+      const { positions, nodeSizes, bandMeta: nb, totalH: nh } = computeLayout(formulas, newW);
+      setLayout({ bandMeta: nb, totalH: nh, containerW: newW, positions, nodeSizes });
       setGraphH(Math.max(nh, 400));
-      cy.resize();  // บอก Cytoscape ให้ recalculate viewport
+      formulas.forEach((f) => {
+        const n = cy.getElementById(f.id);
+        if (!n.length) return;
+        n.position(positions[f.id] || { x: 0, y: 0 });
+        n.data("w", nodeSizes[f.id]?.w ?? 120);
+      });
+      cy.resize();
     });
     ro.observe(container);
 
@@ -724,19 +785,22 @@ export default function FormulaMap() {
     visNodes.removeClass("faded connected");
     visEdges.removeClass("highlighted faded");
     setSharedMap({});
+    setFadedIds(new Set());
 
     if (selectedId) {
       const sel    = cy.getElementById(selectedId);
       const hlEdge = sel.connectedEdges().intersection(visEdges);
-      // connectedNodes คือ node ปลายทางของ edge — ไม่รวม sel เอง
       const hlNode = hlEdge.connectedNodes().intersection(visNodes).not(sel);
 
-      // fade ทุก node/edge ก่อน แล้วค่อย un-fade เฉพาะที่ต้องการ
       visNodes.addClass("faded");
       visEdges.addClass("faded");
-      sel.removeClass("faded");                          // selected node = ไม่ fade
+      sel.removeClass("faded");
       hlEdge.removeClass("faded").addClass("highlighted");
       hlNode.removeClass("faded").addClass("connected");
+
+      const faded = new Set();
+      visNodes.forEach((n) => { if (n.hasClass("faded")) faded.add(n.id()); });
+      setFadedIds(faded);
 
       // สร้าง sharedMap สำหรับ SharedVarOverlay
       // { [connectedNodeId]: { pos, size, shared[], sameTopic } }
@@ -772,6 +836,17 @@ export default function FormulaMap() {
           background: transparent !important;
           background-color: transparent !important;
         }
+        .formula-node-katex .katex {
+          color: inherit;
+          font-size: 1em;
+        }
+        .formula-node-katex .katex .mord,
+        .formula-node-katex .katex .mop,
+        .formula-node-katex .katex .mbin,
+        .formula-node-katex .katex .mrel,
+        .formula-node-katex .katex .minner {
+          color: inherit;
+        }
       `}</style>
 
       {/* ── Hero ── */}
@@ -797,12 +872,13 @@ export default function FormulaMap() {
       {/* ── Graph card ── */}
       {/*
         Layer stack (zIndex):
-          1 — BandOverlay    (HTML div พื้นหลังสี topic)
-          2 — SharedVarOverlay (HTML div label ตัวแปร)
-          3 — Cytoscape canvas (ต้องโปร่งใสเพื่อให้ 1,2 โชว์ผ่าน)
+          1 — BandOverlay         (พื้นหลังขาว + ชื่อ topic)
+          3 — Cytoscape canvas    (node hit-area + edges)
+          4 — FormulaNodeOverlay  (KaTeX labels)
+          5 — SharedVarOverlay    (ป้ายตัวแปรร่วม — เหนือเส้นเชื่อม)
       */}
       <div className="border-2 border-[#C8A882] rounded-[18px] overflow-hidden" ref={wrapRef}>
-        <div style={{ position:"relative", width:"100%", height: graphH }}>
+        <div style={{ position:"relative", width:"100%", height: graphH, background:"#FFFFFF" }}>
 
           <BandOverlay
             bandMeta={layout.bandMeta}
@@ -812,18 +888,30 @@ export default function FormulaMap() {
             containerW={layout.containerW}
           />
 
+          <div
+            ref={cyContainer}
+            className="cy-map-container"
+            style={{ position:"absolute", inset:0, zIndex:3 }}
+          />
+
+          <FormulaNodeOverlay
+            formulas={formulas}
+            positions={layout.positions}
+            nodeSizes={layout.nodeSizes}
+            selectedId={selectedId}
+            hoveredId={hoveredId}
+            fadedIds={fadedIds}
+            cyRef={cyRef}
+            containerW={layout.containerW}
+            totalH={layout.totalH}
+          />
+
           <SharedVarOverlay
             sharedMap={sharedMap}
             selectedId={selectedId}
             cyRef={cyRef}
             containerW={layout.containerW}
             totalH={layout.totalH}
-          />
-
-          <div
-            ref={cyContainer}
-            className="cy-map-container"
-            style={{ position:"absolute", inset:0, zIndex:3 }}
           />
         </div>
 

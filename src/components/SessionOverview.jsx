@@ -1,52 +1,7 @@
 import { useState, useMemo } from "react";
 import { InlineMath } from "react-katex";
 import { allSweetFlavour } from "../allSweetFlavour";
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
-// Logic: ดึงชื่อ base ของตัวแปร
-// เช่น v_mechanic → v
-function baseOf(key) { return key?.split("_")[0] || ""; }
-
-// Logic: ดึงรายการตัวแปรของ entry
-// formula → ใช้ formula.variable
-// variable → คืน key ของตัวเอง
-function getVarKeys(entry, formulaIndex, variableIndex) {
-  if (entry.page === "formula") return formulaIndex[entry.id]?.variable || [];
-  return variableIndex[entry.key] ? [entry.key] : [];
-}
-
-// Logic: ตรวจสอบตัวแปรที่เชื่อมกับ entry ก่อนหน้า
-// ใช้ base variable เช่น v_x และ v_y → v
-function getSharedWithPrev(currEntry, prevEntry, formulaIndex, variableIndex) {
-  if (!prevEntry) return [];
-  const curr = getVarKeys(currEntry, formulaIndex, variableIndex);
-  const prev = getVarKeys(prevEntry, formulaIndex, variableIndex);
-
-  // Map: เก็บตัวแปรก่อนหน้าในรูป base key
-  const prevMap = {};
-  prev.forEach((k) => { prevMap[baseOf(k)] = k; });
-  return curr
-
-    // Filter: เลือกเฉพาะตัวแปรที่มี base ตรงกัน
-    .filter((k) => prevMap[baseOf(k)] !== undefined)
-    .map((k) => {
-      const prevKey = prevMap[baseOf(k)];
-      const cInfo = variableIndex[k] || {};
-      const pInfo = variableIndex[prevKey] || {};
-      return {
-        key: k, base: baseOf(k),
-        symbol: cInfo.symbol || baseOf(k),
-        isCross: cInfo.systemTopic !== pInfo.systemTopic,
-      };
-    });
-}
-
-function isRepeatEntry(entry, idx, history) {
-  for (let i = 0; i < idx; i++) {
-    if (history[i].id === entry.id && history[i].key === entry.key) return true;
-  }
-  return false;
-}
+import { analyzeHistory, baseOf } from "../utils/historyAnalysis";
 
 // ── Confirm dialog ────────────────────────────────────────────────────────────
 
@@ -149,9 +104,8 @@ function VarChip({ varKey, variableIndex, memory, sharedMap }) {
 }
 
 // ── Bridge ────────────────────────────────────────────────────────────────────
-// Logic: หาความเชื่อมโยงระหว่าง entry ปัจจุบันและก่อนหน้า
-function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
-  const shared = getSharedWithPrev(entryB, entryA, formulaIndex, variableIndex);
+function Bridge({ entryB }) {
+  const shared = entryB.sharedWithPrev || [];
 
   // ไม่มีตัวแปรร่วมระหว่าง entry
   if (!shared.length) {
@@ -190,26 +144,24 @@ function Bridge({ entryA, entryB, formulaIndex, variableIndex }) {
 
 // ── EntryCard ─────────────────────────────────────────────────────────────────
 
-function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, memory, onClickEntry }) {
+function EntryCard({ entry, idx, analyzedHistory, pointer, formulaIndex, variableIndex, memory, onClickEntry }) {
   const fData = formulaIndex[entry.id];
   const vData = variableIndex[entry.key];
 
   // เลือกสีตาม Topic
-  const sysT = fData?.systemTopic || vData?.systemTopic || "default";
+  const sysT = fData?.systemTopic || vData?.systemTopic || entry.systemTopic || "default";
   const fl = allSweetFlavour[sysT] || allSweetFlavour.default;
 
-  // ใช้ค่า default หากข้อมูลไม่ครบ
-  const topic = fData?.topic || vData?.topic || "—";
+  const topic = entry.topic || fData?.topic || vData?.topic || "—";
   const name = fData?.name || vData?.name || "—";
   const formula = fData?.formula || entry.label || "?";
 
-  const prev = idx > 0 ? history[idx - 1] : null;
   const isActive = idx === pointer;
-  const repeat = isRepeatEntry(entry, idx, history);
-  const swp = getSharedWithPrev(entry, prev, formulaIndex, variableIndex);
-  const hasPrev = !!prev;
-  const isDisc = hasPrev && swp.length === 0 && !repeat;
-  const isCross = !isDisc && swp.some((v) => v.isCross);
+  const repeat = entry.repeat;
+  const swp = entry.sharedWithPrev || [];
+  const hasPrev = idx > 0;
+  const isDisc = entry.disconnected && hasPrev && !repeat;
+  const isCross = entry.crossTopic && !isDisc;
 
   // ── dot style ──
   // UI: จุดแสดงสถานะบน timeline
@@ -277,12 +229,11 @@ function EntryCard({ entry, idx, history, pointer, formulaIndex, variableIndex, 
   // แปลง shared variable เป็น object สำหรับ lookup
   const sharedMap = {};
   swp.forEach((s) => { sharedMap[s.key] = s; });
-  // Logic: ดึงตัวแปรทั้งหมดที่เกี่ยวข้องกับ entry นี้
-  const varKeys = getVarKeys(entry, formulaIndex, variableIndex);
+  const varKeys = entry.variableKeys || [];
 
   return (
     <div className="relative pl-9 pr-[14px]">
-      {idx < history.length - 1 && (
+      {idx < analyzedHistory.length - 1 && (
         <div className="absolute left-[18px] top-7 bottom-0 w-[1.5px] bg-[#D4C0AE]" />
       )}
       <div className={dotClass} />
@@ -360,11 +311,16 @@ function SessionOverview({
 }) {
   const [open, setOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  // Summary: คำนวณจำนวน entry และ topic ใน session
+
+  const analyzedHistory = useMemo(
+    () => analyzeHistory(history, { formulaIndex, variableIndex }),
+    [history, formulaIndex, variableIndex]
+  );
+
   const { entryCount, topicCount } = useMemo(() => {
-    const topics = new Set(history.map((e) => formulaIndex[e.id]?.topic).filter(Boolean));
-    return { entryCount: history.length, topicCount: topics.size };
-  }, [history, formulaIndex]);
+    const topics = new Set(analyzedHistory.map((e) => e.topic).filter(Boolean));
+    return { entryCount: analyzedHistory.length, topicCount: topics.size };
+  }, [analyzedHistory]);
   // Action: ล้าง session ทั้งหมด
   const handleConfirmClear = () => {
     onClearAll?.();
@@ -440,18 +396,18 @@ function SessionOverview({
         {/* Timeline */}
         {/* UI: เส้นเชื่อมระหว่าง timeline entries */}
         <div className="flex-1 overflow-y-auto py-2">
-          {history.length === 0 ? (
+          {analyzedHistory.length === 0 ? (
             <div className="px-4 py-8 text-center text-[#8C6A56] text-[13px] leading-relaxed">
               No history yet.<br />
               <span className="text-[11px] opacity-70">Browse formulas to start a session.</span>
             </div>
           ) : (
-            history.map((entry, i) => (
+            analyzedHistory.map((entry, i) => (
               <div key={`${entry.id || entry.key}-${i}`}>
                 <EntryCard
                   entry={entry}
                   idx={i}
-                  history={history}
+                  analyzedHistory={analyzedHistory}
                   pointer={pointer}
                   formulaIndex={formulaIndex}
                   variableIndex={variableIndex}
@@ -461,13 +417,8 @@ function SessionOverview({
                     setOpen(false);
                   }}
                 />
-                {i < history.length - 1 && (
-                  <Bridge
-                    entryA={entry}
-                    entryB={history[i + 1]}
-                    formulaIndex={formulaIndex}
-                    variableIndex={variableIndex}
-                  />
+                {i < analyzedHistory.length - 1 && (
+                  <Bridge entryB={analyzedHistory[i + 1]} />
                 )}
               </div>
             ))

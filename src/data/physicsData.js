@@ -1,5 +1,11 @@
 // --------------------------------------------
-// ดึงไฟล์ JSON ทั้งหมดด้วย Vite glob
+// Data layout:
+//   variables/v-*.json  — variable registry per topic
+//   formulas/*/*.json   — subtopic metadata + formula_sub only
+// --------------------------------------------
+
+const variableFiles = import.meta.glob("./variables/v-*.json", { eager: true });
+
 const mechanics = import.meta.glob("./formulas/mechanics/*.json", { eager: true });
 const electricity = import.meta.glob("./formulas/electricity/*.json", { eager: true });
 const modernPhysics = import.meta.glob("./formulas/modern-physics/*.json", { eager: true });
@@ -7,19 +13,67 @@ const optics = import.meta.glob("./formulas/optics/*.json", { eager: true });
 const thermodynamics = import.meta.glob("./formulas/thermodynamics/*.json", { eager: true });
 const waves = import.meta.glob("./formulas/waves/*.json", { eager: true });
 
-// --------------------------------------------
-// GLOBAL INDEX
+const TOPIC_GLOBS = {
+  Mechanics: mechanics,
+  Electricity: electricity,
+  ModernPhysics: modernPhysics,
+  Optics: optics,
+  Thermodynamics: thermodynamics,
+  Waves: waves,
+};
+
+const TOPIC_FROM_VAR_FILE = {
+  mechanics: "Mechanics",
+  electricity: "Electricity",
+  "modern-physics": "ModernPhysics",
+  optics: "Optics",
+  thermodynamics: "Thermodynamics",
+  waves: "Waves",
+};
+
 export const formulaIndex = {};
 export const variableIndex = {};
 
-// --------------------------------------------
-// 1. normalize dataset
+function registerVariable(v, systemTopic, displayTopic) {
+  if (!v?.key) return;
+  if (variableIndex[v.key]) {
+    console.warn("Duplicate variable skipped:", v.key);
+    return;
+  }
+
+  variableIndex[v.key] = {
+    ...v,
+    isFixed: v.isFixed ?? false,
+    value: v.value !== undefined ? v.value : undefined,
+    topic: displayTopic,
+    systemTopic,
+    subtopic: "",
+  };
+}
+
+function loadVariableRegistries() {
+  Object.entries(variableFiles).forEach(([path, mod]) => {
+    const slug = path.match(/v-([^.]+)\.json$/)?.[1];
+    const systemTopic = TOPIC_FROM_VAR_FILE[slug];
+    if (!systemTopic) {
+      console.warn("Unknown variable file:", path);
+      return;
+    }
+
+    const data = mod.default;
+    const displayTopic = data?.topic || systemTopic;
+    const variables = Array.isArray(data?.variables) ? data.variables : [];
+
+    variables.forEach((v) => registerVariable(v, systemTopic, displayTopic));
+  });
+}
+
 function normalizeDataset(dataset) {
   if (!dataset || typeof dataset !== "object") return null;
   if (!Array.isArray(dataset.formula_sub)) return null;
 
   const cleanedFormula = dataset.formula_sub.filter((f) => {
-    if (!f || !f.id || typeof f.formula !== "string" || !f.calculate) {
+    if (!f || !f.id || typeof f.formula !== "string") {
       console.warn("Invalid formula removed:", f?.id || "Unknown ID");
       return false;
     }
@@ -29,32 +83,34 @@ function normalizeDataset(dataset) {
   if (cleanedFormula.length === 0) return null;
 
   return {
-    topic: dataset.topic ?? "", // display topic
+    topic: dataset.topic ?? "",
     subtopic: dataset.subtopic ?? "",
     description: dataset.description ?? "",
-
-    variable_sub: Array.isArray(dataset.variable_sub)
-      ? dataset.variable_sub
-          .filter((v) => v && v.key)
-          .map((v) => ({
-            ...v,
-            isFixed: v.isFixed ?? false,
-            value: v.value !== undefined ? v.value : undefined,
-          }))
-      : [],
-
     formula_sub: cleanedFormula,
   };
 }
 
-// --------------------------------------------
-// 2. validate variables
 function validateFormulaVariables(formula) {
-  const declaredVars = new Set(formula.variable || []);
+  const declaredVars = formula.variable || [];
+  const missingRefs = declaredVars.filter((key) => !variableIndex[key]);
 
-  const mathReserved = new Set(["sqrt", "pow", "abs", "sin", "cos", "tan", "Math"]);
+  if (missingRefs.length > 0) {
+    console.warn(
+      `Formula [${formula.id}] error: Unknown variable keys ->`,
+      missingRefs
+    );
+    return false;
+  }
 
-  const calcVars = Object.values(formula.calculate || {})
+  if (!formula.calculate) return true;
+
+  const declaredSet = new Set(declaredVars);
+  const mathReserved = new Set([
+    "sqrt", "pow", "abs", "sin", "cos", "tan", "asin", "acos", "atan",
+    "cosd", "sind", "tand", "acosd", "asind", "atand", "PI", "Math",
+  ]);
+
+  const calcVars = Object.values(formula.calculate)
     .flatMap((c) => {
       if (!c || typeof c.value !== "string") return [];
       return c.value.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
@@ -64,7 +120,7 @@ function validateFormulaVariables(formula) {
     (v) => v.includes("_") && !mathReserved.has(v)
   );
 
-  const missing = usedVars.filter((v) => !declaredVars.has(v));
+  const missing = usedVars.filter((v) => !declaredSet.has(v));
 
   if (missing.length > 0) {
     console.warn(
@@ -77,36 +133,17 @@ function validateFormulaVariables(formula) {
   return true;
 }
 
-// --------------------------------------------
-// 3. build topic
 function buildTopic(systemTopic, globResult) {
-  const rawDatasets = Object.values(globResult).map((m) => m.default);
-
-  const cleanedDatasets = rawDatasets
-    .map(normalizeDataset)
+  const cleanedDatasets = Object.values(globResult)
+    .map((m) => normalizeDataset(m.default))
     .filter((d) => d !== null);
 
   cleanedDatasets.forEach((dataset) => {
-    // ช้ topic จาก JSON ถ้ามี (สำหรับ UI)
     const displayTopic = dataset.topic || systemTopic;
 
-    // บังคับให้ทุก dataset ใช้ topic เดียวกันในระบบ
     dataset.topic = displayTopic;
     dataset.systemTopic = systemTopic;
 
-    // VARIABLE INDEX
-    dataset.variable_sub.forEach((v) => {
-      if (variableIndex[v.key]) return;
-
-      variableIndex[v.key] = {
-        ...v,
-        topic: displayTopic,
-        systemTopic,
-        subtopic: dataset.subtopic,
-      };
-    });
-
-    // FORMULA INDEX
     dataset.formula_sub.forEach((formula) => {
       if (!validateFormulaVariables(formula)) return;
 
@@ -125,19 +162,14 @@ function buildTopic(systemTopic, globResult) {
   });
 
   return {
-    topic: cleanedDatasets[0]?.topic || systemTopic, // UI
-    systemTopic, // internal
+    topic: cleanedDatasets[0]?.topic || systemTopic,
+    systemTopic,
     datasets: cleanedDatasets,
   };
 }
 
-// --------------------------------------------
-// export
-export const physicsTopics = [
-  buildTopic("Mechanics", mechanics),
-  buildTopic("Electricity", electricity),
-  buildTopic("ModernPhysics", modernPhysics),
-  buildTopic("Optics", optics),
-  buildTopic("Thermodynamics", thermodynamics),
-  buildTopic("Waves", waves),
-];
+loadVariableRegistries();
+
+export const physicsTopics = Object.entries(TOPIC_GLOBS).map(([systemTopic, glob]) =>
+  buildTopic(systemTopic, glob)
+);

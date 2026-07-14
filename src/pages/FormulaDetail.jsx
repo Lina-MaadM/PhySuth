@@ -94,13 +94,15 @@ function FormulaDetail({ memory, onSaveMemory, addHistory }) {
 
         {/* Right: Calculator */}
         <div className="flex-1 w-full">
-          <CalculatePanel
-            formula={targetEquation}
-            variables={usedVariables}
-            memory={memory}
-            onSaveMemory={onSaveMemory}
-            flavour={flavour}
-          />
+          {targetEquation.calculate && (
+            <CalculatePanel
+              formula={targetEquation}
+              variables={usedVariables}
+              memory={memory}
+              onSaveMemory={onSaveMemory}
+              flavour={flavour}
+            />
+          )}
         </div>
 
       </div>

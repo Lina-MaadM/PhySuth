@@ -2,186 +2,155 @@
   "topic": "Mechanics",
   "subtopic": "Simple Harmonic Motion",
   "description": "Basic SHM formulas for high school level: focus on position-based relationships and energy.",
-  "variable_sub": [
-    {
-  "key": "T_Mechanics",
-  "symbol": "T",
-  "name": "Period",
-  "unit": "s",
-  "min": 0.000001,
-  "description": "Time taken for one complete oscillation."
-},
-    {
-      "key": "x_Mechanics",
-      "symbol": "x",
-      "name": "Displacement",
-      "unit": "m",
-      "description": "Position relative to equilibrium (can be positive or negative)."
-    },
-    {
-      "key": "A_Mechanics",
-      "symbol": "A",
-      "name": "Amplitude",
-      "unit": "m",
-      "min": 0.000001,
-      "description": "Maximum distance from equilibrium (always positive)."
-    },
-    {
-      "key": "v_Mechanics",
-      "symbol": "v",
-      "name": "Velocity",
-      "unit": "m/s",
-      "description": "Velocity at a given moment (can be positive or negative)."
-    },
-    {
-      "key": "vmax_Mechanics",
-      "symbol": "v_{max}",
-      "name": "Max Velocity",
-      "unit": "m/s",
-      "min": 0.000001,
-      "description": "Maximum speed during the motion (always positive)."
-    },
-    {
-      "key": "a_Mechanics",
-      "symbol": "a",
-      "name": "Acceleration",
-      "unit": "m/s^2",
-      "description": "Acceleration at a given position (can be positive or negative)."
-    },
-    {
-      "key": "amax_Mechanics",
-      "symbol": "a_{max}",
-      "name": "Max Acceleration",
-      "unit": "m/s^2",
-      "min": 0.000001,
-      "description": "Maximum acceleration magnitude (always positive)."
-    },
-    {
-      "key": "omega_Mechanics",
-      "symbol": "\\omega",
-      "name": "Angular frequency",
-      "unit": "rad/s",
-      "min": 0.000001,
-      "description": "Angular frequency of the oscillation (always positive)."
-    },
-    {
-      "key": "k_Mechanics",
-      "symbol": "k",
-      "name": "Spring constant",
-      "unit": "N/m",
-      "min": 0.000001,
-      "description": "Spring stiffness constant (always positive)."
-    },
-    {
-      "key": "m_Mechanics",
-      "symbol": "m",
-      "name": "Mass",
-      "unit": "kg",
-      "min": 0.000001,
-      "description": "Mass of the oscillating object (always positive)."
-    },
-    {
-      "key": "t_Mechanics",
-      "symbol": "t",
-      "name": "Time",
-      "unit": "s",
-      "min": 0,
-      "description": "Time elapsed since the start of motion."
-    },
-    {
-      "key": "E_Mechanics",
-      "symbol": "E",
-      "name": "Total energy",
-      "unit": "J",
-      "min": 0,
-      "description": "Total mechanical energy of the oscillation (non-negative)."
-    }
-  ],
   "formula_sub": [
-
     {
       "id": "shm-2",
       "name": "Acceleration at Position x",
       "formula": "a = -\\omega^2 x",
-      "variable": ["a_Mechanics", "omega_Mechanics", "x_Mechanics"],
+      "variable": [
+        "a_Mechanics",
+        "omega_Mechanics",
+        "x_Mechanics"
+      ],
       "calculate": {
-        "a_Mechanics": { "type": "expression", "value": "-pow(omega_Mechanics, 2) * x_Mechanics" },
-        "x_Mechanics": { "type": "expression", "value": "-a_Mechanics / pow(omega_Mechanics, 2)" },
-        "omega_Mechanics": { "type": "expression", "value": "sqrt(abs(a_Mechanics / x_Mechanics))" }
+        "a_Mechanics": {
+          "type": "expression",
+          "value": "-pow(omega_Mechanics, 2) * x_Mechanics"
+        },
+        "x_Mechanics": {
+          "type": "expression",
+          "value": "-a_Mechanics / pow(omega_Mechanics, 2)"
+        },
+        "omega_Mechanics": {
+          "type": "expression",
+          "value": "sqrt(abs(a_Mechanics / x_Mechanics))"
+        }
       }
     },
     {
       "id": "shm-3",
       "name": "Maximum Velocity",
       "formula": "v_{max} = \\omega A",
-      "variable": ["vmax_Mechanics", "omega_Mechanics", "A_Mechanics"],
+      "variable": [
+        "vmax_Mechanics",
+        "omega_Mechanics",
+        "A_Mechanics"
+      ],
       "calculate": {
-        "vmax_Mechanics": { "type": "expression", "value": "omega_Mechanics * A_Mechanics" },
-        "omega_Mechanics": { "type": "expression", "value": "vmax_Mechanics / A_Mechanics" },
-        "A_Mechanics": { "type": "expression", "value": "vmax_Mechanics / omega_Mechanics" }
+        "vmax_Mechanics": {
+          "type": "expression",
+          "value": "omega_Mechanics * A_Mechanics"
+        },
+        "omega_Mechanics": {
+          "type": "expression",
+          "value": "vmax_Mechanics / A_Mechanics"
+        },
+        "A_Mechanics": {
+          "type": "expression",
+          "value": "vmax_Mechanics / omega_Mechanics"
+        }
       }
     },
     {
       "id": "shm-4",
       "name": "Maximum Acceleration",
       "formula": "a_{max} = \\omega^2 A",
-      "variable": ["amax_Mechanics", "omega_Mechanics", "A_Mechanics"],
+      "variable": [
+        "amax_Mechanics",
+        "omega_Mechanics",
+        "A_Mechanics"
+      ],
       "calculate": {
-        "amax_Mechanics": { "type": "expression", "value": "pow(omega_Mechanics, 2) * A_Mechanics" },
-        "omega_Mechanics": { "type": "expression", "value": "sqrt(abs(amax_Mechanics / A_Mechanics))" },
-        "A_Mechanics": { "type": "expression", "value": "amax_Mechanics / pow(omega_Mechanics, 2)" }
+        "amax_Mechanics": {
+          "type": "expression",
+          "value": "pow(omega_Mechanics, 2) * A_Mechanics"
+        },
+        "omega_Mechanics": {
+          "type": "expression",
+          "value": "sqrt(abs(amax_Mechanics / A_Mechanics))"
+        },
+        "A_Mechanics": {
+          "type": "expression",
+          "value": "amax_Mechanics / pow(omega_Mechanics, 2)"
+        }
       }
     },
     {
       "id": "shm-5",
       "name": "Angular Frequency (Spring)",
       "formula": "\\omega = \\sqrt{k/m}",
-      "variable": ["omega_Mechanics", "k_Mechanics", "m_Mechanics"],
+      "variable": [
+        "omega_Mechanics",
+        "k_Mechanics",
+        "m_Mechanics"
+      ],
       "calculate": {
-        "omega_Mechanics": { "type": "expression", "value": "sqrt(k_Mechanics / m_Mechanics)" },
-        "k_Mechanics": { "type": "expression", "value": "pow(omega_Mechanics, 2) * m_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "k_Mechanics / pow(omega_Mechanics, 2)" }
+        "omega_Mechanics": {
+          "type": "expression",
+          "value": "sqrt(k_Mechanics / m_Mechanics)"
+        },
+        "k_Mechanics": {
+          "type": "expression",
+          "value": "pow(omega_Mechanics, 2) * m_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "k_Mechanics / pow(omega_Mechanics, 2)"
+        }
       }
     },
     {
       "id": "shm-6",
       "name": "Total Energy",
       "formula": "E = \\frac{1}{2} k A^2",
-      "variable": ["E_Mechanics", "k_Mechanics", "A_Mechanics"],
+      "variable": [
+        "E_Mechanics",
+        "k_Mechanics",
+        "A_Mechanics"
+      ],
       "calculate": {
-        "E_Mechanics": { "type": "expression", "value": "0.5 * k_Mechanics * pow(A_Mechanics, 2)" },
-        "k_Mechanics": { "type": "expression", "value": "2 * E_Mechanics / pow(A_Mechanics, 2)" },
-        "A_Mechanics": { "type": "expression", "value": "sqrt(2 * E_Mechanics / k_Mechanics)" }
+        "E_Mechanics": {
+          "type": "expression",
+          "value": "0.5 * k_Mechanics * pow(A_Mechanics, 2)"
+        },
+        "k_Mechanics": {
+          "type": "expression",
+          "value": "2 * E_Mechanics / pow(A_Mechanics, 2)"
+        },
+        "A_Mechanics": {
+          "type": "expression",
+          "value": "sqrt(2 * E_Mechanics / k_Mechanics)"
+        }
       }
     },
-{
-  "id": "shm-7",
-  "name": "Position-Time Equation",
-  "formula": "x = A \\cos(\\omega t)",
-  "variable": [
-    "x_Mechanics",
-    "A_Mechanics",
-    "omega_Mechanics",
-    "t_Mechanics"
-  ],
-  "calculate": {
-    "x_Mechanics": {
-      "type": "expression",
-      "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics * 180 / 3.141592)"
-    },
-    "A_Mechanics": {
-      "type": "expression",
-      "value": "x_Mechanics / cos(omega_Mechanics * t_Mechanics * 180 / 3.141592)"
-    },
-    "omega_Mechanics": {
-      "type": "expression",
-      "value": "(acos(x_Mechanics / A_Mechanics) * 3.141592 / 180) / t_Mechanics"
-    },
-    "t_Mechanics": {
-      "type": "expression",
-      "value": "(acos(x_Mechanics / A_Mechanics) * 3.141592 / 180) / omega_Mechanics"
+    {
+      "id": "shm-7",
+      "name": "Position-Time Equation",
+      "formula": "x = A \\cos(\\omega t)",
+      "variable": [
+        "x_Mechanics",
+        "A_Mechanics",
+        "omega_Mechanics",
+        "t_Mechanics"
+      ],
+      "calculate": {
+        "x_Mechanics": {
+          "type": "expression",
+          "value": "A_Mechanics * cos(omega_Mechanics * t_Mechanics)"
+        },
+        "A_Mechanics": {
+          "type": "expression",
+          "value": "x_Mechanics / cos(omega_Mechanics * t_Mechanics)"
+        },
+        "omega_Mechanics": {
+          "type": "expression",
+          "value": "acos(x_Mechanics / A_Mechanics) / t_Mechanics"
+        },
+        "t_Mechanics": {
+          "type": "expression",
+          "value": "acos(x_Mechanics / A_Mechanics) / omega_Mechanics"
+        }
+      }
     }
-  }
-}
   ]
 }

@@ -2,59 +2,84 @@
   "topic": "Electricity",
   "subtopic": "Ohm's Law",
   "description": "Relationship between voltage, current, resistance, electric power, and electrical energy in basic circuits.",
-
-  "variable_sub": [
-    { "key": "V_Electricity", "symbol": "V", "name": "Voltage", "unit": "V", "description": "Electric potential difference" },
-    { "key": "I_Electricity", "symbol": "I", "name": "Current", "unit": "A", "description": "Rate of flow of electric charge" },
-    { "key": "R_Electricity", "symbol": "R", "name": "Resistance", "unit": "Ω", "description": "Opposition to current flow" },
-    { "key": "P_Electricity", "symbol": "P", "name": "Electric Power", "unit": "W", "description": "Rate of electrical energy transfer" },
-    { "key": "E_Electricity", "symbol": "E", "name": "Electrical Energy", "unit": "J", "description": "Energy consumed in a circuit" },
-    { "key": "t_Electricity", "symbol": "t", "name": "Time", "unit": "s", "description": "Time duration of energy usage" }
-  ],
-
   "formula_sub": [
-
     {
       "id": "ohm-1",
       "topic": "Electricity",
       "subtopic": "Ohm's Law",
       "name": "Ohm's Law",
       "formula": "V = IR",
-      "variable": ["V_Electricity", "I_Electricity", "R_Electricity"],
+      "variable": [
+        "V_Electricity",
+        "I_Electricity",
+        "R_Electricity"
+      ],
       "calculate": {
-        "V_Electricity": { "type": "expression", "value": "I_Electricity * R_Electricity" },
-        "I_Electricity": { "type": "expression", "value": "V_Electricity / R_Electricity" },
-        "R_Electricity": { "type": "expression", "value": "V_Electricity / I_Electricity" }
+        "V_Electricity": {
+          "type": "expression",
+          "value": "I_Electricity * R_Electricity"
+        },
+        "I_Electricity": {
+          "type": "expression",
+          "value": "V_Electricity / R_Electricity"
+        },
+        "R_Electricity": {
+          "type": "expression",
+          "value": "V_Electricity / I_Electricity"
+        }
       }
     },
-
     {
       "id": "ohm-2",
       "topic": "Electricity",
       "subtopic": "Ohm's Law",
       "name": "Electric Power",
       "formula": "P = VI",
-      "variable": ["P_Electricity", "V_Electricity", "I_Electricity"],
+      "variable": [
+        "P_Electricity",
+        "V_Electricity",
+        "I_Electricity"
+      ],
       "calculate": {
-        "P_Electricity": { "type": "expression", "value": "V_Electricity * I_Electricity" },
-        "V_Electricity": { "type": "expression", "value": "P_Electricity / I_Electricity" },
-        "I_Electricity": { "type": "expression", "value": "P_Electricity / V_Electricity" }
+        "P_Electricity": {
+          "type": "expression",
+          "value": "V_Electricity * I_Electricity"
+        },
+        "V_Electricity": {
+          "type": "expression",
+          "value": "P_Electricity / I_Electricity"
+        },
+        "I_Electricity": {
+          "type": "expression",
+          "value": "P_Electricity / V_Electricity"
+        }
       }
     },
-
     {
       "id": "ohm-3",
       "topic": "Electricity",
       "subtopic": "Ohm's Law",
       "name": "Electrical Energy",
       "formula": "E = Pt",
-      "variable": ["E_Electricity", "P_Electricity", "t_Electricity"],
+      "variable": [
+        "E_Electricity",
+        "P_Electricity",
+        "t_Electricity"
+      ],
       "calculate": {
-        "E_Electricity": { "type": "expression", "value": "P_Electricity * t_Electricity" },
-        "P_Electricity": { "type": "expression", "value": "E_Electricity / t_Electricity" },
-        "t_Electricity": { "type": "expression", "value": "E_Electricity / P_Electricity" }
+        "E_Electricity": {
+          "type": "expression",
+          "value": "P_Electricity * t_Electricity"
+        },
+        "P_Electricity": {
+          "type": "expression",
+          "value": "E_Electricity / t_Electricity"
+        },
+        "t_Electricity": {
+          "type": "expression",
+          "value": "E_Electricity / P_Electricity"
+        }
       }
     }
-
   ]
 }

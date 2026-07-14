@@ -2,60 +2,6 @@
   "topic": "Mechanics",
   "subtopic": "Force (Newton's Laws)",
   "description": "Newton's laws of motion and related forces including net force, acceleration, weight, and friction.",
-  "variable_sub": [
-    {
-      "key": "F_Mechanics",
-      "symbol": "F",
-      "name": "Net Force",
-      "unit": "N",
-      "description": "The total force acting on an object."
-    },
-    {
-      "key": "m_Mechanics",
-      "symbol": "m",
-      "name": "Mass",
-      "unit": "kg",
-      "min": 0.000001,
-      "description": "A physical quantity representing the amount of matter in an object."
-    },
-    {
-      "key": "a_Mechanics",
-      "symbol": "a",
-      "name": "Acceleration",
-      "unit": "m/s^2",
-      "description": "A physical quantity representing the rate of change of velocity with respect to time."
-    },
-    {
-      "key": "g_Mechanics",
-      "symbol": "g",
-      "name": "Gravity",
-      "unit": "m/s^2",
-      "value": 9.8,
-      "description": "The acceleration due to gravity near the surface of a planet."
-    },
-    {
-      "key": "W_Mechanics",
-      "symbol": "W",
-      "name": "Weight",
-      "unit": "N",
-      "description": "The gravitational force acting on an object."
-    },
-    {
-      "key": "Ff_Mechanics",
-      "symbol": "F_f",
-      "name": "Friction Force",
-      "unit": "N",
-      "description": "The force that resists relative motion between two surfaces in contact."
-    },
-    {
-      "key": "mu_Mechanics",
-      "symbol": "\\mu",
-      "name": "Coeff. of Friction",
-      "unit": "",
-      "min": 0,
-      "description": "A dimensionless quantity representing the ratio between frictional force and normal force."
-    }
-  ],
   "formula_sub": [
     {
       "id": "force-1",
@@ -67,9 +13,18 @@
         "a_Mechanics"
       ],
       "calculate": {
-        "F_Mechanics": { "type": "expression", "value": "m_Mechanics * a_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "F_Mechanics / a_Mechanics" },
-        "a_Mechanics": { "type": "expression", "value": "F_Mechanics / m_Mechanics" }
+        "F_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * a_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "F_Mechanics / a_Mechanics"
+        },
+        "a_Mechanics": {
+          "type": "expression",
+          "value": "F_Mechanics / m_Mechanics"
+        }
       }
     },
     {
@@ -82,12 +37,21 @@
         "W_Mechanics"
       ],
       "calculate": {
-        "Ff_Mechanics": { "type": "expression", "value": "mu_Mechanics * W_Mechanics" },
-        "mu_Mechanics": { "type": "expression", "value": "Ff_Mechanics / W_Mechanics" },
-        "W_Mechanics": { "type": "expression", "value": "Ff_Mechanics / mu_Mechanics" }
+        "Ff_Mechanics": {
+          "type": "expression",
+          "value": "mu_Mechanics * W_Mechanics"
+        },
+        "mu_Mechanics": {
+          "type": "expression",
+          "value": "Ff_Mechanics / W_Mechanics"
+        },
+        "W_Mechanics": {
+          "type": "expression",
+          "value": "Ff_Mechanics / mu_Mechanics"
+        }
       }
     },
-      {
+    {
       "id": "force-3",
       "name": "Weight Equation",
       "formula": "W = mg",
@@ -110,7 +74,6 @@
           "value": "W_Mechanics / m_Mechanics"
         }
       }
-      
     }
   ]
 }

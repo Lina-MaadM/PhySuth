@@ -2,51 +2,6 @@
   "topic": "Mechanics",
   "subtopic": "Kinematics",
   "description": "One-dimensional motion with constant acceleration. Position is measured as displacement from the initial point (s₀ = 0).",
-  "variable_sub": [
-    {
-      "key": "s_Mechanics",
-      "symbol": "s",
-      "name": "Displacement",
-      "unit": "m",
-      "description": "Displacement from the initial position. The origin is assumed at the starting point (s₀ = 0)."
-    },
-    {
-      "key": "u_Mechanics",
-      "symbol": "u",
-      "name": "Initial Velocity",
-      "unit": "m/s",
-      "description": "The velocity of the object at the beginning of the motion."
-    },
-    {
-      "key": "v_Mechanics",
-      "symbol": "v",
-      "name": "Final Velocity",
-      "unit": "m/s",
-      "description": "The velocity of the object at a later time during the motion."
-    },
-    {
-      "key": "vavg_Mechanics",
-      "symbol": "\\bar{v}",
-      "name": "Average Velocity",
-      "unit": "m/s",
-      "description": "The average rate of displacement over time."
-    },
-    {
-      "key": "a_Mechanics",
-      "symbol": "a",
-      "name": "Acceleration",
-      "unit": "m/s^2",
-      "description": "The rate of change of velocity."
-    },
-    {
-      "key": "t_Mechanics",
-      "symbol": "t",
-      "name": "Time Interval",
-      "unit": "s",
-      "min": 0,
-      "description": "The duration of motion."
-    }
-  ],
   "formula_sub": [
     {
       "id": "kin-1",
@@ -78,7 +33,8 @@
       "calculate": {
         "s_Mechanics": { "type": "expression", "value": "(u_Mechanics * t_Mechanics) + (0.5 * a_Mechanics * pow(t_Mechanics, 2))" },
         "u_Mechanics": { "type": "expression", "value": "(s_Mechanics - 0.5 * a_Mechanics * pow(t_Mechanics, 2)) / t_Mechanics" },
-        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - u_Mechanics * t_Mechanics) / pow(t_Mechanics, 2)" }
+        "a_Mechanics": { "type": "expression", "value": "2 * (s_Mechanics - u_Mechanics * t_Mechanics) / pow(t_Mechanics, 2)" },
+        "t_Mechanics": { "type": "expression", "value": "(2 * s_Mechanics) / (u_Mechanics + sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * s_Mechanics))" }
       }
     },
     {
@@ -94,7 +50,8 @@
       "calculate": {
         "v_Mechanics": { "type": "expression", "value": "sqrt(pow(u_Mechanics, 2) + 2 * a_Mechanics * s_Mechanics)" },
         "u_Mechanics": { "type": "expression", "value": "sqrt(pow(v_Mechanics, 2) - 2 * a_Mechanics * s_Mechanics)" },
-        "a_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * s_Mechanics)" }
+        "a_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * s_Mechanics)" },
+        "s_Mechanics": { "type": "expression", "value": "(pow(v_Mechanics, 2) - pow(u_Mechanics, 2)) / (2 * a_Mechanics)" }
       }
     },
     {
@@ -109,7 +66,9 @@
       ],
       "calculate": {
         "s_Mechanics": { "type": "expression", "value": "((u_Mechanics + v_Mechanics) / 2) * t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "s_Mechanics / ((u_Mechanics + v_Mechanics) / 2)" }
+        "t_Mechanics": { "type": "expression", "value": "s_Mechanics / ((u_Mechanics + v_Mechanics) / 2)" },
+        "u_Mechanics": { "type": "expression", "value": "(2 * s_Mechanics) / t_Mechanics - v_Mechanics" },
+        "v_Mechanics": { "type": "expression", "value": "(2 * s_Mechanics) / t_Mechanics - u_Mechanics" }
       }
     },
     {

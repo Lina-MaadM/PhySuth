@@ -2,45 +2,6 @@
   "topic": "Mechanics",
   "subtopic": "Gravitation",
   "description": "Gravitational interactions near a planetary surface including weight and gravitational potential energy.",
-  "variable_sub": [
-    {
-      "key": "m_Mechanics",
-      "symbol": "m",
-      "name": "Mass",
-      "unit": "kg",
-      "min": 0.000001,
-      "description": "A physical quantity representing the amount of matter in an object."
-    },
-    {
-      "key": "g_Mechanics",
-      "symbol": "g",
-      "name": "Gravitational acceleration",
-      "unit": "m/s^2",
-      "value": 9.8,
-      "description": "The acceleration caused by gravity near the surface of a planet."
-    },
-    {
-      "key": "W_Mechanics",
-      "symbol": "W",
-      "name": "Weight",
-      "unit": "N",
-      "description": "The gravitational force acting on an object."
-    },
-    {
-      "key": "h_Mechanics",
-      "symbol": "h",
-      "name": "Height",
-      "unit": "m",
-      "description": "The vertical distance from a chosen reference level."
-    },
-    {
-      "key": "Epg_Mechanics",
-      "symbol": "E_{pg}",
-      "name": "Gravitational Potential Energy",
-      "unit": "J",
-      "description": "The potential energy associated with an object's position in a gravitational field."
-    }
-  ],
   "formula_sub": [
     {
       "id": "grav-1",
@@ -52,9 +13,18 @@
         "g_Mechanics"
       ],
       "calculate": {
-        "W_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "W_Mechanics / g_Mechanics" },
-        "g_Mechanics": { "type": "expression", "value": "W_Mechanics / m_Mechanics" }
+        "W_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * g_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / g_Mechanics"
+        },
+        "g_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / m_Mechanics"
+        }
       }
     },
     {
@@ -68,10 +38,22 @@
         "h_Mechanics"
       ],
       "calculate": {
-        "Epg_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics * h_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (g_Mechanics * h_Mechanics)" },
-        "g_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (m_Mechanics * h_Mechanics)" },
-        "h_Mechanics": { "type": "expression", "value": "Epg_Mechanics / (m_Mechanics * g_Mechanics)" }
+        "Epg_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * g_Mechanics * h_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "Epg_Mechanics / (g_Mechanics * h_Mechanics)"
+        },
+        "g_Mechanics": {
+          "type": "expression",
+          "value": "Epg_Mechanics / (m_Mechanics * h_Mechanics)"
+        },
+        "h_Mechanics": {
+          "type": "expression",
+          "value": "Epg_Mechanics / (m_Mechanics * g_Mechanics)"
+        }
       }
     }
   ]

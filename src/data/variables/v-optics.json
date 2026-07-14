@@ -1,0 +1,34 @@
+{
+  "topic": "Optics",
+  "variables": [
+    {
+      "key": "f_Optics",
+      "symbol": "f",
+      "name": "Focal length",
+      "unit": "cm",
+      "description": "Distance from the center of the lens or mirror to the focal point (positive for converging systems such as convex lenses or concave mirrors)."
+    },
+    {
+      "key": "m_Optics",
+      "symbol": "m",
+      "name": "Magnification",
+      "unit": "",
+      "description": "Ratio of image height to object height."
+    },
+    {
+      "key": "s_Optics",
+      "symbol": "s",
+      "name": "Object distance",
+      "unit": "cm",
+      "description": "Distance from the object to the center of the lens or mirror.",
+      "min": 0.000001
+    },
+    {
+      "key": "sprime_Optics",
+      "symbol": "s'",
+      "name": "Image distance",
+      "unit": "cm",
+      "description": "Distance from the image to the center of the lens or mirror (positive for real images)."
+    }
+  ]
+}

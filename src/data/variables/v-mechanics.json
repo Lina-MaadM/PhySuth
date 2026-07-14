@@ -1,0 +1,290 @@
+{
+  "topic": "Mechanics",
+  "variables": [
+    {
+      "key": "ac_Mechanics",
+      "symbol": "a_c",
+      "name": "Centripetal Acceleration",
+      "unit": "m/s^2",
+      "description": "An acceleration directed toward the center of a circular path."
+    },
+    {
+      "key": "amax_Mechanics",
+      "symbol": "a_{max}",
+      "name": "Max Acceleration",
+      "unit": "m/s^2",
+      "description": "Maximum acceleration magnitude (always positive).",
+      "min": 0.000001
+    },
+    {
+      "key": "a_Mechanics",
+      "symbol": "a",
+      "name": "Acceleration",
+      "unit": "m/s^2",
+      "description": "The rate of change of velocity."
+    },
+    {
+      "key": "A_Mechanics",
+      "symbol": "A",
+      "name": "Amplitude",
+      "unit": "m",
+      "description": "Maximum distance from equilibrium (always positive).",
+      "min": 0.000001
+    },
+    {
+      "key": "deltap_Mechanics",
+      "symbol": "\\Delta p",
+      "name": "Change in Momentum",
+      "unit": "kg·m/s",
+      "description": "The change in an object's momentum during an interaction. It occurs when a force acts over time."
+    },
+    {
+      "key": "d_Mechanics",
+      "symbol": "d",
+      "name": "Displacement",
+      "unit": "m",
+      "description": "Magnitude of the displacement during motion.",
+      "min": 0
+    },
+    {
+      "key": "E_Mechanics",
+      "symbol": "E",
+      "name": "Total energy",
+      "unit": "J",
+      "description": "Total mechanical energy of the oscillation (non-negative).",
+      "min": 0
+    },
+    {
+      "key": "Epg_Mechanics",
+      "symbol": "E_{pg}",
+      "name": "Gravitational Potential Energy",
+      "unit": "J",
+      "description": "The potential energy associated with an object's position in a gravitational field."
+    },
+    {
+      "key": "Favg_Mechanics",
+      "symbol": "F_{avg}",
+      "name": "Average Force",
+      "unit": "N",
+      "description": "The average force applied to an object during a time interval. It represents the overall effect of a varying force."
+    },
+    {
+      "key": "Fc_Mechanics",
+      "symbol": "F_c",
+      "name": "Centripetal Force",
+      "unit": "N",
+      "description": "The net force directed toward the center of a circular path in circular motion."
+    },
+    {
+      "key": "Ff_Mechanics",
+      "symbol": "F_f",
+      "name": "Friction Force",
+      "unit": "N",
+      "description": "The force that resists relative motion between two surfaces in contact."
+    },
+    {
+      "key": "f_Mechanics",
+      "symbol": "f",
+      "name": "Frequency",
+      "unit": "Hz",
+      "description": "A physical quantity representing the number of revolutions per unit time.",
+      "min": 0
+    },
+    {
+      "key": "F_Mechanics",
+      "symbol": "F",
+      "name": "Net Force",
+      "unit": "N",
+      "description": "The total force acting on an object."
+    },
+    {
+      "key": "g_Mechanics",
+      "symbol": "g",
+      "name": "Gravity",
+      "unit": "m/s^2",
+      "description": "The acceleration due to gravity near the surface of a planet.",
+      "value": 9.8
+    },
+    {
+      "key": "h_Mechanics",
+      "symbol": "h",
+      "name": "Height",
+      "unit": "m",
+      "description": "The vertical distance from a chosen reference level."
+    },
+    {
+      "key": "J_Mechanics",
+      "symbol": "J",
+      "name": "Impulse",
+      "unit": "N·s",
+      "description": "The effect of a force acting over a time interval on an object. It represents how motion changes during impacts or interactions."
+    },
+    {
+      "key": "KE_Mechanics",
+      "symbol": "KE",
+      "name": "Kinetic energy",
+      "unit": "J",
+      "description": "Energy associated with motion (always non-negative).",
+      "min": 0
+    },
+    {
+      "key": "k_Mechanics",
+      "symbol": "k",
+      "name": "Spring constant",
+      "unit": "N/m",
+      "description": "Spring stiffness constant (always positive).",
+      "min": 0.000001
+    },
+    {
+      "key": "m_Mechanics",
+      "symbol": "m",
+      "name": "Mass",
+      "unit": "kg",
+      "description": "A physical quantity representing the amount of matter in an object.",
+      "min": 0.000001
+    },
+    {
+      "key": "mu_Mechanics",
+      "symbol": "\\mu",
+      "name": "Coeff. of Friction",
+      "unit": "",
+      "description": "A dimensionless quantity representing the ratio between frictional force and normal force.",
+      "min": 0
+    },
+    {
+      "key": "omega_Mechanics",
+      "symbol": "\\omega",
+      "name": "Angular Velocity",
+      "unit": "rad/s",
+      "description": "A physical quantity representing the rate of change of angular position with respect to time.",
+      "min": 0
+    },
+    {
+      "key": "p0_Mechanics",
+      "symbol": "p_0",
+      "name": "Initial Momentum",
+      "unit": "kg·m/s",
+      "description": "The momentum of an object before an interaction or applied force. It represents the motion at the beginning of the event."
+    },
+    {
+      "key": "PE_Mechanics",
+      "symbol": "PE",
+      "name": "Potential energy",
+      "unit": "J",
+      "description": "Gravitational potential energy relative to a reference level."
+    },
+    {
+      "key": "PI_Mechanics",
+      "symbol": "\\pi",
+      "name": "Pi",
+      "unit": "",
+      "description": "A mathematical constant representing the ratio of a circle's circumference to its diameter.",
+      "isFixed": true,
+      "value": 3.141592
+    },
+    {
+      "key": "p_Mechanics",
+      "symbol": "p",
+      "name": "Momentum",
+      "unit": "kg·m/s",
+      "description": "The quantity of motion of an object related to its mass and velocity. It appears when describing moving objects and collisions."
+    },
+    {
+      "key": "P_Mechanics",
+      "symbol": "P",
+      "name": "Power",
+      "unit": "W",
+      "description": "Rate at which work is done or energy is transferred.",
+      "min": 0
+    },
+    {
+      "key": "r_Mechanics",
+      "symbol": "r",
+      "name": "Radius",
+      "unit": "m",
+      "description": "The distance from the center of a circular path to the moving object.",
+      "min": 0.000001
+    },
+    {
+      "key": "s_Mechanics",
+      "symbol": "s",
+      "name": "Displacement",
+      "unit": "m",
+      "description": "Displacement from the initial position. The origin is assumed at the starting point (s₀ = 0)."
+    },
+    {
+      "key": "t0_Mechanics",
+      "symbol": "t_0",
+      "name": "Initial Time",
+      "unit": "s",
+      "description": "The time when the force begins acting on the object. It marks the start of the interaction interval.",
+      "min": 0
+    },
+    {
+      "key": "theta_Mechanics",
+      "symbol": "\\theta",
+      "name": "Angle",
+      "unit": "deg",
+      "description": "Angle between force and displacement (0–180 degrees)."
+    },
+    {
+      "key": "t_Mechanics",
+      "symbol": "t",
+      "name": "Time Interval",
+      "unit": "s",
+      "description": "The duration of motion.",
+      "min": 0
+    },
+    {
+      "key": "T_Mechanics",
+      "symbol": "T",
+      "name": "Period",
+      "unit": "s",
+      "description": "The time required for one complete revolution in circular motion.",
+      "min": 0.000001
+    },
+    {
+      "key": "u_Mechanics",
+      "symbol": "u",
+      "name": "Initial Velocity",
+      "unit": "m/s",
+      "description": "The velocity of the object at the beginning of the motion."
+    },
+    {
+      "key": "vavg_Mechanics",
+      "symbol": "\\bar{v}",
+      "name": "Average Velocity",
+      "unit": "m/s",
+      "description": "The average rate of displacement over time."
+    },
+    {
+      "key": "vmax_Mechanics",
+      "symbol": "v_{max}",
+      "name": "Max Velocity",
+      "unit": "m/s",
+      "description": "Maximum speed during the motion (always positive).",
+      "min": 0.000001
+    },
+    {
+      "key": "v_Mechanics",
+      "symbol": "v",
+      "name": "Final Velocity",
+      "unit": "m/s",
+      "description": "The velocity of the object at a later time during the motion."
+    },
+    {
+      "key": "W_Mechanics",
+      "symbol": "W",
+      "name": "Weight",
+      "unit": "N",
+      "description": "The gravitational force acting on an object."
+    },
+    {
+      "key": "x_Mechanics",
+      "symbol": "x",
+      "name": "Displacement",
+      "unit": "m",
+      "description": "Position relative to equilibrium (can be positive or negative)."
+    }
+  ]
+}

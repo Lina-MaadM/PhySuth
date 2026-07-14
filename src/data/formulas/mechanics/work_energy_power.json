@@ -2,144 +2,111 @@
   "topic": "Mechanics",
   "subtopic": "Work, Energy, Power",
   "description": "The study of energy transfer through forces and the rate at which energy is transformed from one form to another in a system.",
-  "variable_sub": [
-    { 
-      "key": "W_Mechanics", 
-      "symbol": "W", 
-      "name": "Work", 
-      "unit": "J", 
-      "description": "Energy transferred by a force acting through a displacement (can be negative depending on direction)." 
-    },
-    { 
-      "key": "F_Mechanics", 
-      "symbol": "F", 
-      "name": "Force", 
-      "unit": "N", 
-      "min": 0, 
-      "description": "Magnitude of the applied constant force." 
-    },
-    { 
-      "key": "d_Mechanics", 
-      "symbol": "d", 
-      "name": "Displacement", 
-      "unit": "m", 
-      "min": 0, 
-      "description": "Magnitude of the displacement during motion." 
-    },
-    { 
-      "key": "theta_Mechanics", 
-      "symbol": "\\theta", 
-      "name": "Angle", 
-      "unit": "deg", 
-      "description": "Angle between force and displacement (0–180 degrees)." 
-    },
-    { 
-      "key": "KE_Mechanics", 
-      "symbol": "KE", 
-      "name": "Kinetic energy", 
-      "unit": "J", 
-      "min": 0,
-      "description": "Energy associated with motion (always non-negative)."
-    },
-    { 
-      "key": "PE_Mechanics", 
-      "symbol": "PE", 
-      "name": "Potential energy", 
-      "unit": "J",
-      "description": "Gravitational potential energy relative to a reference level."
-    },
-    { 
-      "key": "m_Mechanics", 
-      "symbol": "m", 
-      "name": "Mass", 
-      "unit": "kg", 
-      "min": 0.000001,
-      "description": "Mass of the object (always positive)."
-    },
-    { 
-      "key": "v_Mechanics", 
-      "symbol": "v", 
-      "name": "Velocity/Speed", 
-      "unit": "m/s",
-      "description": "Speed of the object during motion."
-    },
-    { 
-      "key": "h_Mechanics", 
-      "symbol": "h", 
-      "name": "Height", 
-      "unit": "m",
-      "description": "Vertical distance from the chosen reference level."
-    },
-    { 
-      "key": "g_Mechanics", 
-      "symbol": "g", 
-      "name": "Gravity", 
-      "unit": "m/s^2", 
-      "value": 9.8, 
-      "description": "Acceleration due to gravity near Earth's surface (default 9.8)."
-    },
-    { 
-      "key": "P_Mechanics", 
-      "symbol": "P", 
-      "name": "Power", 
-      "unit": "W", 
-      "min": 0,
-      "description": "Rate at which work is done or energy is transferred."
-    },
-    { 
-      "key": "t_Mechanics", 
-      "symbol": "t", 
-      "name": "Time", 
-      "unit": "s", 
-      "min": 0,
-      "description": "Duration over which work or energy transfer occurs."
-    }
-  ],
   "formula_sub": [
     {
       "id": "wep-1",
       "name": "Work done by a constant force",
       "formula": "W = F d \\cos(\\theta)",
-      "variable": ["W_Mechanics", "F_Mechanics", "d_Mechanics", "theta_Mechanics"],
+      "variable": [
+        "W_Mechanics",
+        "F_Mechanics",
+        "d_Mechanics",
+        "theta_Mechanics"
+      ],
       "calculate": {
-        "W_Mechanics": { "type": "expression", "value": "F_Mechanics * d_Mechanics * cos(theta_Mechanics * 3.141592 / 180)" },
-        "F_Mechanics": { "type": "expression", "value": "W_Mechanics / (d_Mechanics * cos(theta_Mechanics * 3.141592 / 180))" },
-        "d_Mechanics": { "type": "expression", "value": "W_Mechanics / (F_Mechanics * cos(theta_Mechanics * 3.141592 / 180))" },
-        "theta_Mechanics": { "type": "expression", "value": "acos(W_Mechanics / (F_Mechanics * d_Mechanics)) * 180 / 3.141592" }
+        "W_Mechanics": {
+          "type": "expression",
+          "value": "F_Mechanics * d_Mechanics * cosd(theta_Mechanics)"
+        },
+        "F_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / (d_Mechanics * cosd(theta_Mechanics))"
+        },
+        "d_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / (F_Mechanics * cosd(theta_Mechanics))"
+        },
+        "theta_Mechanics": {
+          "type": "expression",
+          "value": "acosd(W_Mechanics / (F_Mechanics * d_Mechanics))"
+        }
       }
     },
     {
       "id": "wep-2",
       "name": "Kinetic Energy",
       "formula": "KE = \\frac{1}{2} m v^2",
-      "variable": ["KE_Mechanics", "m_Mechanics", "v_Mechanics"],
+      "variable": [
+        "KE_Mechanics",
+        "m_Mechanics",
+        "v_Mechanics"
+      ],
       "calculate": {
-        "KE_Mechanics": { "type": "expression", "value": "0.5 * m_Mechanics * pow(v_Mechanics, 2)" },
-        "m_Mechanics": { "type": "expression", "value": "(2 * KE_Mechanics) / pow(v_Mechanics, 2)" },
-        "v_Mechanics": { "type": "expression", "value": "sqrt(2 * KE_Mechanics / m_Mechanics)" }
+        "KE_Mechanics": {
+          "type": "expression",
+          "value": "0.5 * m_Mechanics * pow(v_Mechanics, 2)"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "(2 * KE_Mechanics) / pow(v_Mechanics, 2)"
+        },
+        "v_Mechanics": {
+          "type": "expression",
+          "value": "sqrt(2 * KE_Mechanics / m_Mechanics)"
+        }
       }
     },
     {
       "id": "wep-3",
       "name": "Potential energy",
       "formula": "PE = m g h",
-      "variable": ["PE_Mechanics", "m_Mechanics", "g_Mechanics", "h_Mechanics"],
+      "variable": [
+        "PE_Mechanics",
+        "m_Mechanics",
+        "g_Mechanics",
+        "h_Mechanics"
+      ],
       "calculate": {
-        "PE_Mechanics": { "type": "expression", "value": "m_Mechanics * g_Mechanics * h_Mechanics" },
-        "m_Mechanics": { "type": "expression", "value": "PE_Mechanics / (g_Mechanics * h_Mechanics)" },
-        "h_Mechanics": { "type": "expression", "value": "PE_Mechanics / (m_Mechanics * g_Mechanics)" },
-        "g_Mechanics": { "type": "expression", "value": "PE_Mechanics / (m_Mechanics * h_Mechanics)" }
+        "PE_Mechanics": {
+          "type": "expression",
+          "value": "m_Mechanics * g_Mechanics * h_Mechanics"
+        },
+        "m_Mechanics": {
+          "type": "expression",
+          "value": "PE_Mechanics / (g_Mechanics * h_Mechanics)"
+        },
+        "h_Mechanics": {
+          "type": "expression",
+          "value": "PE_Mechanics / (m_Mechanics * g_Mechanics)"
+        },
+        "g_Mechanics": {
+          "type": "expression",
+          "value": "PE_Mechanics / (m_Mechanics * h_Mechanics)"
+        }
       }
     },
     {
       "id": "wep-4",
       "name": "Power (average)",
       "formula": "P = \\frac{W}{t}",
-      "variable": ["P_Mechanics", "W_Mechanics", "t_Mechanics"],
+      "variable": [
+        "P_Mechanics",
+        "W_Mechanics",
+        "t_Mechanics"
+      ],
       "calculate": {
-        "P_Mechanics": { "type": "expression", "value": "W_Mechanics / t_Mechanics" },
-        "W_Mechanics": { "type": "expression", "value": "P_Mechanics * t_Mechanics" },
-        "t_Mechanics": { "type": "expression", "value": "W_Mechanics / P_Mechanics" }
+        "P_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / t_Mechanics"
+        },
+        "W_Mechanics": {
+          "type": "expression",
+          "value": "P_Mechanics * t_Mechanics"
+        },
+        "t_Mechanics": {
+          "type": "expression",
+          "value": "W_Mechanics / P_Mechanics"
+        }
       }
     }
   ]

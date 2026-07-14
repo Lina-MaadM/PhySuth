@@ -1,0 +1,59 @@
+{
+  "topic": "ModernPhysics",
+  "variables": [
+    {
+      "key": "Ad_ModernPhysics",
+      "symbol": "A_{d}",
+      "name": "Daughter mass number",
+      "description": "Mass number of the daughter nucleus after the reaction."
+    },
+    {
+      "key": "Ap_ModernPhysics",
+      "symbol": "A_{p}",
+      "name": "Parent mass number",
+      "description": "Mass number of the parent nucleus (total protons and neutrons)."
+    },
+    {
+      "key": "Ax_ModernPhysics",
+      "symbol": "A_{x}",
+      "name": "Particle mass number",
+      "description": "Mass number of the emitted or incoming particle."
+    },
+    {
+      "key": "c_ModernPhysics",
+      "symbol": "c",
+      "name": "Daughter atomic number",
+      "description": "Number of protons in the daughter nucleus."
+    },
+    {
+      "key": "E_ModernPhysics",
+      "symbol": "E",
+      "name": "Particle mass number",
+      "description": "Mass number of the emitted or incoming particle."
+    },
+    {
+      "key": "m_ModernPhysics",
+      "symbol": "m",
+      "name": "Parent atomic number",
+      "description": "Number of protons in the parent nucleus."
+    },
+    {
+      "key": "Zd_ModernPhysics",
+      "symbol": "Z_{d}",
+      "name": "Daughter atomic number",
+      "description": "Number of protons in the daughter nucleus."
+    },
+    {
+      "key": "Zp_ModernPhysics",
+      "symbol": "Z_{p}",
+      "name": "Parent atomic number",
+      "description": "Number of protons in the parent nucleus."
+    },
+    {
+      "key": "Zx_ModernPhysics",
+      "symbol": "Z_{x}",
+      "name": "Particle atomic number",
+      "description": "Number of protons in the emitted or incoming particle."
+    }
+  ]
+}
