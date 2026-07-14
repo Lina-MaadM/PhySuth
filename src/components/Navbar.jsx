@@ -1,5 +1,4 @@
 import { NavLink } from "react-router-dom";
-import { ROUTE_PATH } from "../routes";
 
 function Navbar() {
   const baseStyle =
@@ -19,7 +18,7 @@ function Navbar() {
 
           {/* Formula Map — หน้าแรก */}
           <NavLink
-            to={ROUTE_PATH.HOME}
+            to="/"
             end
             className={({ isActive }) => `
               ${baseStyle}
@@ -37,8 +36,7 @@ function Navbar() {
 
           {/* Formula Catalog */}
           <NavLink
-            to={ROUTE_PATH.CATALOG}
-            end
+            to="/formula"
             className={({ isActive }) => `
               ${baseStyle}
               ${isActive
@@ -54,7 +52,7 @@ function Navbar() {
 
           {/* Variable Index */}
           <NavLink
-            to={ROUTE_PATH.VARIABLES}
+            to="/variables"
             className={({ isActive }) => `
               ${baseStyle}
               ${isActive
